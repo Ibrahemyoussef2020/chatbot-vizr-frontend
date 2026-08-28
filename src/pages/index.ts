@@ -1,0 +1,21 @@
+export { default as Overview } from "./dashboard/Overview";
+export { default as Analytics } from "./dashboard/Analytics";
+export { default as Channels } from "./dashboard/settings/channels";
+export { default as ChatbotInfo } from "./dashboard/settings/chatbotInfo";
+export { default as Security } from "./dashboard/settings/security";
+export { default as Widget } from "./dashboard/settings/widget";
+export { default as Configs } from "./dashboard/settings/configs";
+export { default as WhatsAppChannel } from "./dashboard/settings/whatsappChannel";
+export { default as TelegramChannel } from "./dashboard/settings/telegramChannel";
+export { default as Inbox } from "./dashboard/Inbox";
+export { default as Tags } from "./dashboard/Tags";
+export { default as TokenManagement } from "./dashboard/TokenManagement";
+export { default as Logs } from "./dashboard/Logs";
+
+export { default as Login } from "./auth/Login";
+export { default as Register } from "./auth/Register";
+export { default as Home } from "./landing/Home";
+export { default as About } from "./landing/About";
+export { default as Contact } from "./landing/Contact";
+export { default as PolicyTerms } from "./landing/Policy-Terms";
+export { default as Pricing } from "./landing/Pricing";

@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --background: #05101c;
+  --foreground: #ffffff;
+  --surface: #0d2032;
+  --surface-muted: #0a1928;
+  --surface-elevated: #101a2d;
+  --surface-overlay: rgb(5 16 28 / 92%);
+  --border: #1d3044;
+  --primary: #078ea4;
+  --primary-foreground: #ffffff;
+  --secondary: #36d79a;
+  --secondary-foreground: #04111e;
+  --muted: #29435c;
+  --muted-foreground: #aabccd;
+  --accent: #00e5e2;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --input: #39536e;
+  --ring: #078ea477;
+  --shadow: 0 1rem 3rem #0005;
+  --shadow-color: rgb(0 0 0 / 35%);
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-main: var(--font-sans);
+  --font-secondary: var(--font-sans);
+
+  /* Temporary aliases for legacy landing components. */
+  --bg-main: var(--background);
+  --text-main: var(--foreground);
+  --theme-canvas: var(--background);
+  --theme-surface: var(--surface);
+  --theme-surface-soft: var(--surface-muted);
+  --theme-ink: var(--foreground);
+  --theme-copy: var(--muted-foreground);
+  --theme-border: var(--border);
+  --theme-shadow: var(--shadow);
+  --theme-accent: var(--primary);
+  --theme-accent-faint: color-mix(in srgb, var(--primary) 11%, transparent);
+  --theme-accent-soft: color-mix(in srgb, var(--primary) 20%, transparent);
+  --theme-accent-medium: color-mix(in srgb, var(--primary) 33%, transparent);
+  --theme-accent-strong: color-mix(in srgb, var(--primary) 47%, transparent);
+}
+
+body.light-theme {
+  color-scheme: light;
+  --background: #f8fafc;
+  --foreground: #101d24;
+  --surface: #ffffff;
+  --surface-muted: #eef0f0;
+  --surface-elevated: #f8fafc;
+  --surface-overlay: rgb(248 250 252 / 92%);
+  --border: #d2d8d8;
+  --primary: #078ea4;
+  --primary-foreground: #ffffff;
+  --secondary: #16845f;
+  --secondary-foreground: #ffffff;
+  --muted: #e2e6e5;
+  --muted-foreground: #4d5b62;
+  --accent: #066f80;
+  --danger: #b91c1c;
+  --success: #15803d;
+  --warning: #b45309;
+  --input: #b8c4c7;
+  --ring: #078ea477;
+  --shadow: none;
+  --shadow-color: rgb(16 29 36 / 12%);
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow-x: clip;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+main {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+[id] {
+  scroll-margin-top: 5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
