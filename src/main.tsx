@@ -18,6 +18,7 @@ if (import.meta.env.DEV) {
   localStorage.removeItem("tanstack_devtools_settings");
 }
 
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
