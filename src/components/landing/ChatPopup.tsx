@@ -3,6 +3,7 @@ import TextField from "@mui/material/TextField";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import * as chat from "@/services/chat";
 import type { PublicMessage } from "@/services/chat";
+import { fetchWidgetConfig, type WidgetConfigData } from "@/services/widgetConfig";
 
 const ChatPopup = () => {
     const [open, setOpen] = useState(false);
@@ -11,9 +12,23 @@ const ChatPopup = () => {
     const [loading, setLoading] = useState(Boolean(current));
     const [sending, setSending] = useState(false);
     const [error, setError] = useState("");
+    const [widgetSettings, setWidgetSettings] = useState<WidgetConfigData | null>(null);
     const closeButton = useRef<HTMLButtonElement>(null);
     const nameInput = useRef<HTMLInputElement>(null);
     const bottom = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        let isMounted = true;
+        fetchWidgetConfig()
+            .then((data) => {
+                if (isMounted && data) setWidgetSettings(data);
+            })
+            .catch(() => {});
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
 
     useEffect(() => {
         if (!current) return;
@@ -160,7 +175,7 @@ const ChatPopup = () => {
                     <header className="flex items-center gap-3 bg-primary p-4 text-primary-foreground">
                         <img className="h-9 w-9 shrink-0 rounded-full bg-white p-1 object-contain" src="/robot.png" alt="" />
                         <div className="grid">
-                            <strong id="chat-title">Vizr Assistant</strong>
+                            <strong id="chat-title">{widgetSettings?.name || "Vizr Assistant"}</strong>
                             <small className="flex items-center gap-2">
                                 <i className="h-2 w-2 rounded-full bg-success" /> Online now
                             </small>
@@ -182,11 +197,12 @@ const ChatPopup = () => {
                             <form className="grid gap-3 py-3" onSubmit={start}>
                                 <div className="mb-2 text-center">
                                     <img className="mx-auto h-20 w-20 object-contain" src="/robott.png" alt="Vizr chatbot ready to help" />
-                                    <strong className="mt-2 block text-lg">Welcome to Vizr</strong>
+                                    <strong className="mt-2 block text-lg">{widgetSettings?.name || "Welcome to Vizr"}</strong>
                                     <p className="mb-0 mt-1 text-sm leading-6 text-muted-foreground">
-                                        Enter your name to start a live conversation with our AI assistant.
+                                        {widgetSettings?.settings?.welcome_message || "Enter your name to start a live conversation with our AI assistant."}
                                     </p>
                                 </div>
+
                                 <TextField inputRef={nameInput} name="name" label="Your name" required slotProps={{ htmlInput: { maxLength: 100 } }} />
                                 <TextField name="email" label="Email (optional)" type="email" slotProps={{ htmlInput: { maxLength: 254 } }} />
                                 <TextField name="phone" label="Phone number (optional)" type="tel" slotProps={{ htmlInput: { maxLength: 30 } }} />
