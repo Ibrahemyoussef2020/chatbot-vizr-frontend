@@ -38,13 +38,14 @@ export interface PublicChatVisitor {
     phone?: string;
 }
 
-export const createPublicChat = async (visitor: PublicChatVisitor) => {
+export const createPublicChat = async (visitor: PublicChatVisitor, systemSlug?: string) => {
     const { data } = await api.post("/system/chat/thread/create", {
-        systemSlug: "demo",
+        systemSlug: systemSlug || "demo",
         user_name: visitor.name,
         user_email: visitor.email || null,
         user_phone: visitor.phone || null,
     });
+
 
     const value = {
         id: data.thread.id as string,

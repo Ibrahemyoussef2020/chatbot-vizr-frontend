@@ -91,9 +91,10 @@ const ChatPopup = () => {
         const phone = String(form.get("phone") || "").trim();
 
         try {
-            const session = await chat.createPublicChat({ name, email, phone });
+            const session = await chat.createPublicChat({ name, email, phone }, (widgetSettings as any)?.system_slug);
             setCurrent(session);
         } catch {
+
             setError("Please check your details and try again.");
         } finally {
             setLoading(false);
@@ -138,12 +139,14 @@ const ChatPopup = () => {
 
             form.reset();
             setSelectedFile(null);
-        } catch {
-            setError("Message could not be sent.");
+        } catch (err: any) {
+            setError(err?.response?.data?.message || err?.message || "Message could not be sent.");
         } finally {
+
             setSending(false);
         }
     };
+
 
     const end = async () => {
         if (!current) return;
