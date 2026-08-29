@@ -40,11 +40,12 @@ export interface ThreadItem {
 
 export interface ThreadMessageItem {
     id: string;
-    sender_type: "visitor" | "assistant" | "system";
+    sender_type: "visitor" | "assistant" | "system" | "user" | "agent" | string;
     content: string;
     attachments?: Array<{ url: string; fileName: string; fileType: string }>;
     created_at: string;
 }
+
 
 export interface ThreadDetailResponse {
     thread: ThreadItem;

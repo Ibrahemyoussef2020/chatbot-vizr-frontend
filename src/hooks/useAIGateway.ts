@@ -18,9 +18,6 @@ export const useAIGateway = (config?: UseAIGatewayOptions) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
-    /**
-     * Generate text non-streamed
-     */
     const generateText = useCallback(
         async (prompt: string | CoreMessage[], overrideProvider?: AIProvider, overrideOptions?: AIGatewayOptions): Promise<string> => {
             setIsLoading(true);
@@ -43,9 +40,7 @@ export const useAIGateway = (config?: UseAIGatewayOptions) => {
         [provider, options]
     );
 
-    /**
-     * Stream text completion with real-time callback
-     */
+
     const streamText = useCallback(
         async (
             messages: CoreMessage[],
@@ -77,26 +72,21 @@ export const useAIGateway = (config?: UseAIGatewayOptions) => {
         [provider, options]
     );
 
-    /**
-     * Generate an AI Copilot reply suggestion for a chat thread
-     */
     const suggestReply = useCallback(
         async (
-            chatMessages: Array<{ role?: string; sender_type?: string; senderType?: string; content: string }>,
+            chatMessages: Array<{ sender_type: string; agent_type?: "human" | "bot"; content: string }>,
             systemInstructions?: string,
             onChunk?: (chunk: string) => void
         ): Promise<string> => {
             setIsLoading(true);
             setError(null);
 
-            const formattedMessages: CoreMessage[] = chatMessages.map((m) => {
-                const sender = m.sender_type || m.senderType || m.role;
-                const isVisitor = sender === "visitor" || sender === "user";
-                return {
-                    role: isVisitor ? "user" : "assistant",
-                    content: m.content || "",
-                };
-            });
+            const formattedMessages: CoreMessage[] = chatMessages.map((m) => ({
+                role: (m.sender_type === "user" || m.sender_type === "visitor") ? "user" : "assistant",
+                content: m.content || "",
+            }));
+
+
 
             const finalOptions: AIGatewayOptions = {
                 ...options,
