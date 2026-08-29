@@ -33,6 +33,7 @@ import {
 } from "@/services/analytics";
 import { fetchTags, type TagItem } from "@/services/tags";
 import { useUrlSearchParams } from "@/hooks/useUrlSearchParams";
+import { useAIGateway } from "@/hooks/useAIGateway";
 
 const formatDate = (value?: string) => {
     if (!value) return "N/A";
@@ -93,6 +94,36 @@ const InboxPage = () => {
     const [newNoteInput, setNewNoteInput] = useState<string>("");
 
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+    // Modular AI Gateway Hook Integration
+    const {
+        provider: aiProvider,
+        setProvider: setAiProvider,
+        isLoading: isAILoading,
+        suggestReply,
+    } = useAIGateway({ defaultProvider: "vercel" });
+
+    const handleAISuggestReply = async () => {
+        if (!messages.length) return;
+        setReplyText("");
+        try {
+            await suggestReply(
+                messages.map((m) => ({
+                    sender_type: m.sender_type,
+                    senderType: (m as any).senderType,
+                    content: m.content,
+                })),
+                "You are an AI Copilot assisting a human support agent. Write a helpful, professional, and clear response to the customer on behalf of the agent.",
+                (chunk) => {
+                    setReplyText((prev) => prev + chunk);
+                }
+            );
+        } catch {
+            setError("AI Gateway stream failed. Please try again.");
+        }
+    };
+
+
 
     const loadThreads = useCallback(async () => {
         setLoadingThreads(true);
@@ -423,11 +454,10 @@ const InboxPage = () => {
                                 <button
                                     key={tab}
                                     onClick={() => setStatusTab(tab)}
-                                    className={`flex-1 rounded-lg py-1 text-[11px] font-bold capitalize transition-all ${
-                                        statusTab === tab
-                                            ? "bg-primary text-white shadow-sm"
-                                            : "text-muted-foreground hover:text-foreground"
-                                    }`}
+                                    className={`flex-1 rounded-lg py-1 text-[11px] font-bold capitalize transition-all ${statusTab === tab
+                                        ? "bg-primary text-white shadow-sm"
+                                        : "text-muted-foreground hover:text-foreground"
+                                        }`}
                                 >
                                     {tab}
                                 </button>
@@ -450,24 +480,22 @@ const InboxPage = () => {
                                 <div
                                     key={thread.id}
                                     onClick={() => setSelectedThread(thread)}
-                                    className={`p-3.5 cursor-pointer transition-all ${
-                                        isSelected
-                                            ? "bg-primary/10 border-l-4 border-l-primary"
-                                            : "hover:bg-surface-muted/40"
-                                    }`}
+                                    className={`p-3.5 cursor-pointer transition-all ${isSelected
+                                        ? "bg-primary/10 border-l-4 border-l-primary"
+                                        : "hover:bg-surface-muted/40"
+                                        }`}
                                 >
                                     <div className="flex items-center justify-between mb-1">
                                         <span className="font-bold text-xs text-foreground truncate max-w-[130px]">
                                             {thread.user_name}
                                         </span>
                                         <span
-                                            className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                                                priority === "high"
-                                                    ? "bg-danger/15 text-danger"
-                                                    : priority === "medium"
+                                            className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${priority === "high"
+                                                ? "bg-danger/15 text-danger"
+                                                : priority === "medium"
                                                     ? "bg-warning/15 text-warning"
                                                     : "bg-info/15 text-info"
-                                            }`}
+                                                }`}
                                         >
                                             {priority.toUpperCase()}
                                         </span>
@@ -506,11 +534,10 @@ const InboxPage = () => {
                                         <div className="flex items-center gap-2">
                                             <h3 className="m-0 text-sm font-bold text-foreground">{selectedThread.user_name}</h3>
                                             <span
-                                                className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                                                    selectedThread.status === "open"
-                                                        ? "bg-warning/15 text-warning"
-                                                        : "bg-success/15 text-success"
-                                                }`}
+                                                className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${selectedThread.status === "open"
+                                                    ? "bg-warning/15 text-warning"
+                                                    : "bg-success/15 text-success"
+                                                    }`}
                                             >
                                                 {selectedThread.status}
                                             </span>
@@ -546,7 +573,9 @@ const InboxPage = () => {
                                 )}
 
                                 {!loadingMessages && messages.map((msg) => {
-                                    const isVisitor = msg.sender_type === "visitor";
+                                    const sender = msg.sender_type || (msg as any).senderType || (msg as any).role;
+                                    const isVisitor = sender === "visitor" || sender === "user";
+                                    const createdAt = msg.created_at || (msg as any).createdAt;
 
                                     return (
                                         <div
@@ -555,15 +584,14 @@ const InboxPage = () => {
                                         >
                                             <div className="flex items-center gap-1.5 mb-1 text-[10px] text-muted-foreground">
                                                 <span className="font-semibold">{isVisitor ? selectedThread.user_name : "Vizr AI / Agent"}</span>
-                                                <span>• {formatDate(msg.created_at)}</span>
+                                                <span>• {formatDate(createdAt)}</span>
                                             </div>
 
                                             <div
-                                                className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs font-medium leading-relaxed shadow-sm ${
-                                                    isVisitor
-                                                        ? "bg-card text-foreground border border-border rounded-tl-sm"
-                                                        : "bg-primary text-white rounded-tr-sm"
-                                                }`}
+                                                className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs font-medium leading-relaxed shadow-sm ${isVisitor
+                                                    ? "bg-card text-foreground border border-border rounded-tl-sm"
+                                                    : "bg-primary text-white rounded-tr-sm"
+                                                    }`}
                                             >
                                                 {msg.content}
                                             </div>
@@ -571,28 +599,76 @@ const InboxPage = () => {
                                     );
                                 })}
 
+
                                 <div ref={messagesEndRef} />
                             </div>
 
                             <div className="p-3 border-t border-border bg-card space-y-2">
-                                <div className="flex flex-wrap gap-1.5">
-                                    {quickTemplates.map((tmpl, i) => (
-                                        <Chip
-                                            key={i}
-                                            label={tmpl.slice(0, 30) + "..."}
-                                            onClick={() => setReplyText(tmpl)}
+                                <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-border/60 pb-2">
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                        {quickTemplates.map((tmpl, i) => (
+                                            <Chip
+                                                key={i}
+                                                label={tmpl.slice(0, 25) + "..."}
+                                                onClick={() => setReplyText(tmpl)}
+                                                size="small"
+                                                variant="outlined"
+                                                sx={{
+                                                    fontSize: "0.68rem",
+                                                    height: "22px",
+                                                    borderColor: "var(--border)",
+                                                    color: "var(--foreground)",
+                                                    "&:hover": { bgcolor: "var(--accent)" },
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Modular AI Gateway Integration */}
+                                    <div className="flex items-center gap-1.5 ml-auto">
+                                        <Select
+                                            value={aiProvider}
+                                            onChange={(e) => setAiProvider(e.target.value as any)}
+                                            size="small"
+                                            sx={{
+                                                height: "24px",
+                                                fontSize: "0.68rem",
+                                                color: "var(--foreground)",
+                                                bgcolor: "var(--surface-muted)",
+                                                borderRadius: "6px",
+                                                "& .MuiOutlinedInput-notchedOutline": { borderColor: "var(--border)" },
+                                            }}
+                                        >
+                                            <MenuItem value="vercel" sx={{ fontSize: "0.7rem" }}>⚡ Vercel Gateway</MenuItem>
+                                            <MenuItem value="custom" sx={{ fontSize: "0.7rem" }}>⚙️ Custom AI</MenuItem>
+                                        </Select>
+
+                                        <Button
                                             size="small"
                                             variant="outlined"
+                                            onClick={handleAISuggestReply}
+                                            disabled={isAILoading || !messages.length}
                                             sx={{
+                                                height: "24px",
                                                 fontSize: "0.68rem",
-                                                height: "22px",
-                                                borderColor: "var(--border)",
-                                                color: "var(--foreground)",
-                                                "&:hover": { bgcolor: "var(--accent)" },
+                                                fontWeight: 700,
+                                                borderColor: "var(--primary)",
+                                                color: "var(--primary)",
+                                                borderRadius: "6px",
+                                                textTransform: "none",
+                                                gap: "4px",
+                                                "&:hover": { bgcolor: "var(--primary)/10" },
                                             }}
-                                        />
-                                    ))}
+                                        >
+                                            {isAILoading ? (
+                                                <CircularProgress size={12} color="primary" />
+                                            ) : (
+                                                <>✨ AI Suggest Reply</>
+                                            )}
+                                        </Button>
+                                    </div>
                                 </div>
+
 
                                 <div className="flex items-center gap-2">
                                     <TextField
