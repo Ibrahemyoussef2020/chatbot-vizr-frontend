@@ -188,10 +188,6 @@ const WhatsAppChannel = () => {
     const handleSendTestMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!testPhone.trim()) return;
-        if (!connectionStatus?.connected) {
-            setError(connectionStatus?.reason || "Validate the Meta Access Token before sending.");
-            return;
-        }
         const sendMode: "text" | "template" = conversationStatus?.replied ? "text" : "template";
         if (sendMode === "text" && !testText.trim()) {
             setError("Enter the custom message you want to send.");
@@ -680,7 +676,7 @@ const WhatsAppChannel = () => {
                                         </p>
                                         <Button
                                             type="submit"
-                                            disabled={sendingTest || !connectionStatus?.connected || !testPhone.trim()}
+                                            disabled={sendingTest || !testPhone.trim()}
                                             variant="contained"
                                             color="success"
                                             startIcon={<HiOutlinePaperAirplane />}
@@ -688,9 +684,7 @@ const WhatsAppChannel = () => {
                                         >
                                             {sendingTest
                                                 ? "Sending Welcome..."
-                                                : !connectionStatus?.connected
-                                                    ? "Update Access Token to Send Welcome"
-                                                    : "Send Welcome Message"}
+                                                : "Send Welcome Message"}
                                         </Button>
                                     </div>
                                 )}
@@ -734,7 +728,7 @@ const WhatsAppChannel = () => {
                                 {conversationStatus?.replied && (
                                     <Button
                                         type="submit"
-                                        disabled={sendingTest || !connectionStatus?.connected || !testPhone.trim() || !testText.trim()}
+                                        disabled={sendingTest || !testPhone.trim() || !testText.trim()}
                                         variant="contained"
                                         color="success"
                                         startIcon={<HiOutlinePaperAirplane />}
