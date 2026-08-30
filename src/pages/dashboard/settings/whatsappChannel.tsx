@@ -673,11 +673,25 @@ const WhatsAppChannel = () => {
                                 </div>
 
                                 {!conversationStatus?.replied && !waitingForReply && (
-                                    <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-600">
+                                    <div className="space-y-3 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-600">
                                         <div className="font-bold">Welcome message</div>
                                         <p className="mt-1 text-[10px]">
                                             Send the approved welcome message first. The custom-message form opens automatically after the customer replies.
                                         </p>
+                                        <Button
+                                            type="submit"
+                                            disabled={sendingTest || !connectionStatus?.connected || !testPhone.trim()}
+                                            variant="contained"
+                                            color="success"
+                                            startIcon={<HiOutlinePaperAirplane />}
+                                            sx={{ width: "100%", borderRadius: "10px", fontWeight: 800, textTransform: "none" }}
+                                        >
+                                            {sendingTest
+                                                ? "Sending Welcome..."
+                                                : !connectionStatus?.connected
+                                                    ? "Update Access Token to Send Welcome"
+                                                    : "Send Welcome Message"}
+                                        </Button>
                                     </div>
                                 )}
 
@@ -717,28 +731,18 @@ const WhatsAppChannel = () => {
                                     </div>
                                 )}
 
-                                <Button
-                                    type="submit"
-                                    disabled={
-                                        sendingTest ||
-                                        waitingForReply ||
-                                        !connectionStatus?.connected ||
-                                        !testPhone.trim() ||
-                                        (conversationStatus?.replied && !testText.trim())
-                                    }
-                                    variant="contained"
-                                    color="success"
-                                    startIcon={<HiOutlinePaperAirplane />}
-                                    sx={{ width: "100%", borderRadius: "10px", fontWeight: 800, textTransform: "none" }}
-                                >
-                                    {sendingTest
-                                        ? "Sending..."
-                                        : waitingForReply
-                                            ? "Waiting for Customer Reply"
-                                        : conversationStatus?.replied
-                                            ? "Send Custom Message"
-                                            : "Send Welcome Message"}
-                                </Button>
+                                {conversationStatus?.replied && (
+                                    <Button
+                                        type="submit"
+                                        disabled={sendingTest || !connectionStatus?.connected || !testPhone.trim() || !testText.trim()}
+                                        variant="contained"
+                                        color="success"
+                                        startIcon={<HiOutlinePaperAirplane />}
+                                        sx={{ width: "100%", borderRadius: "10px", fontWeight: 800, textTransform: "none" }}
+                                    >
+                                        {sendingTest ? "Sending Custom Message..." : "Send Custom Message"}
+                                    </Button>
+                                )}
                             </form>
                         </div>
                     </div>
