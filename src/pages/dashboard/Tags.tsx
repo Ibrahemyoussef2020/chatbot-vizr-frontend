@@ -17,7 +17,7 @@ import {
     HiOutlineMagnifyingGlass,
 } from "react-icons/hi2";
 import { useAppSelector } from "@/redux/store";
-import { createTag, updateTag, deleteTag, fetchTags, type TagItem } from "@/services/tags";
+import { createTag, updateTag, deleteTag, fetchTags, type TagItem } from "@/services/dashboard/tags";
 
 const bgPresetOptions = [
     { label: "Soft Blue", bg: "#dbeafe", color: "#1d4ed8" },

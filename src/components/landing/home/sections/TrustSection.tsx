@@ -1,5 +1,5 @@
 import { HiOutlineChartBarSquare, HiOutlineLockClosed, HiOutlineSignal, HiOutlineUserGroup } from "react-icons/hi2";
-import type { CardItem } from "@/services/landing";
+import type { CardItem } from "@/services/core/landing";
 import type { SectionProps } from "../../shared/types";
 
 const icons = [HiOutlineLockClosed, HiOutlineUserGroup, HiOutlineSignal, HiOutlineChartBarSquare];

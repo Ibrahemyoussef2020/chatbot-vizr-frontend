@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getLandingPage, type LandingPageContent } from "@/services/landing";
+import { getLandingPage, type LandingPageContent } from "@/services/core/landing";
 
 export const useLandingPage = (slug: string) => {
     const [page, setPage] = useState<LandingPageContent | null>(null);

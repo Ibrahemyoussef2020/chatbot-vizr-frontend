@@ -1,7 +1,7 @@
 import { sectionClass } from "../../shared/styles";
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import type { RoiSettingItem } from "@/services/landing";
+import type { RoiSettingItem } from "@/services/core/landing";
 import type { SectionProps } from "../../shared/types";
 
 export const RoiSection = ({ section }: SectionProps) => {

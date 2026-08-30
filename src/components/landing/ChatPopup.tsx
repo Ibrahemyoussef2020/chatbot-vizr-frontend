@@ -1,9 +1,9 @@
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import * as chat from "@/services/chat";
-import type { PublicMessage } from "@/services/chat";
-import { fetchWidgetConfig, type WidgetConfigData } from "@/services/widgetConfig";
+import * as chat from "@/services/llms/chat";
+import type { PublicMessage } from "@/services/llms/chat";
+import { fetchWidgetConfig, type WidgetConfigData } from "@/services/integrations/widgetConfig";
 
 const ChatPopup = () => {
     const [open, setOpen] = useState(false);

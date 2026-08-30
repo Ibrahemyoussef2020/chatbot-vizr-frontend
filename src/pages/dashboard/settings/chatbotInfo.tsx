@@ -4,7 +4,7 @@ import Alert from "@mui/material/Alert";
 import { useEffect, useState } from "react";
 import { HiOutlineInformationCircle, HiOutlineCheckCircle, HiOutlineArrowPath } from "react-icons/hi2";
 import { useAppSelector } from "@/redux/store";
-import { fetchChatbotConfig, updateChatbotConfig, type ChatbotConfigData } from "@/services/chatbotConfig";
+import { fetchChatbotConfig, updateChatbotConfig, type ChatbotConfigData } from "@/services/core/chatbotConfig";
 
 const ChatbotInfo = () => {
     const activeWorkspace = useAppSelector((state) => state.workspace.active);

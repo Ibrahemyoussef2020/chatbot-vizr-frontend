@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
-import type { ThreadListResponse, ThreadItem, ThreadMessageItem } from "@/services/analytics";
+import type { ThreadListResponse, ThreadItem, ThreadMessageItem } from "@/services/dashboard/analytics";
 import {
     getFilteredThreadsApi,
     getThreadMessagesApi,

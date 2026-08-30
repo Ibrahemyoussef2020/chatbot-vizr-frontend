@@ -1,7 +1,7 @@
 import { sectionClass } from "../../shared/styles";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import type { CardItem } from "@/services/landing";
+import type { CardItem } from "@/services/core/landing";
 import PlatformIcon from "../../shared/PlatformIcon";
 import SlideControls from "../../shared/SlideControls";
 import type { SectionProps } from "../../shared/types";

@@ -1,5 +1,5 @@
 import { sectionClass } from "../../shared/styles";
-import type { ComparisonItem } from "@/services/landing";
+import type { ComparisonItem } from "@/services/core/landing";
 import type { SectionProps } from "../../shared/types";
 
 type ComparisonSummary = Pick<ComparisonItem, "title" | "description">;

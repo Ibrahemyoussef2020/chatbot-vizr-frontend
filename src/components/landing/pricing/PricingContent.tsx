@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { LandingPageContent, PlanItem } from "@/services/landing";
+import type { LandingPageContent, PlanItem } from "@/services/core/landing";
 import PricingGrid from "./PricingGrid";
 import PricingHero from "./PricingHero";
 import type { BillingCycle } from "./types";

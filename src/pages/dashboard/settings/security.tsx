@@ -22,7 +22,7 @@ import {
     deleteSecurityRole,
     type SecurityRoleData,
     type PermissionData,
-} from "@/services/securityRole";
+} from "@/services/auth/securityRole";
 
 const Security = () => {
     const activeWorkspace = useAppSelector((state) => state.workspace.active);

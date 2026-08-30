@@ -28,7 +28,7 @@ import {
     type TokenAnalyticsData,
     type TokenLogRecord,
     type ThreadAgentItem,
-} from "@/services/tokens";
+} from "@/services/llms/tokens";
 
 const formatCompact = (num?: number) => {
     if (!num) return "0";

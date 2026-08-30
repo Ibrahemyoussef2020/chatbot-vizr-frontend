@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { Workspace } from "@/services/workspace";
+import type { Workspace } from "@/services/core/workspace";
 import { fetchWorkspaces } from "./workspaceThunk";
 
 interface WorkspaceState {

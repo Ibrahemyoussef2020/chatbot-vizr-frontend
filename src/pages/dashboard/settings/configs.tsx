@@ -10,7 +10,7 @@ import {
     HiOutlineCheckCircle,
 } from "react-icons/hi2";
 import { useAppSelector } from "@/redux/store";
-import { fetchAIConfig, saveAIConfig, type AIConfigData } from "@/services/aiConfig";
+import { fetchAIConfig, saveAIConfig, type AIConfigData } from "@/services/llms/aiConfig";
 
 const Configs = () => {
     const activeWorkspace = useAppSelector((state) => state.workspace.active);

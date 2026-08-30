@@ -10,7 +10,7 @@ import type {
     ConversationItem,
     HeroMetricItem,
     LandingSectionItem,
-} from "@/services/landing";
+} from "@/services/core/landing";
 import PlatformIcon from "../../shared/PlatformIcon";
 
 type HeroProps = {

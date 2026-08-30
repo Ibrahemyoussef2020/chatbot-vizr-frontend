@@ -23,7 +23,7 @@ import {
     deleteTelegramBot,
     sendTelegramTestMessage,
     type TelegramBotItem,
-} from "@/services/telegramBot";
+} from "@/services/integrations/telegramBot";
 
 const TelegramChannel = () => {
     const activeWorkspace = useAppSelector((state) => state.workspace.active);

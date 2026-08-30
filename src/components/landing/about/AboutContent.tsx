@@ -1,4 +1,4 @@
-import type { CardItem, LandingPageContent } from "@/services/landing";
+import type { CardItem, LandingPageContent } from "@/services/core/landing";
 import AboutHero from "./AboutHero";
 import ValuesSection from "./ValuesSection";
 

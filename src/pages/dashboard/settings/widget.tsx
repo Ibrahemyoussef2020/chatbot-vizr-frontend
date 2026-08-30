@@ -21,7 +21,7 @@ import {
     deleteWidgetConfig,
     fetchWidgetEmbedScript,
     type WidgetConfigData,
-} from "@/services/widgetConfig";
+} from "@/services/integrations/widgetConfig";
 
 const Widget = () => {
     const activeWorkspace = useAppSelector((state) => state.workspace.active);

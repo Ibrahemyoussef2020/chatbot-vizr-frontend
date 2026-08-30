@@ -1,4 +1,4 @@
-import type { CardItem } from "@/services/landing";
+import type { CardItem } from "@/services/core/landing";
 
 interface ValuesSectionProps {
     heading?: string;

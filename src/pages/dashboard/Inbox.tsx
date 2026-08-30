@@ -2,7 +2,7 @@ import Card from "@mui/material/Card";
 import Alert from "@mui/material/Alert";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { fetchTags, type TagItem } from "@/services/tags";
+import { fetchTags, type TagItem } from "@/services/dashboard/tags";
 import { useUrlSearchParams } from "@/hooks/useUrlSearchParams";
 import { useAIGateway } from "@/hooks/useAIGateway";
 import {

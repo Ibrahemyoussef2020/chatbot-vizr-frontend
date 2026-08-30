@@ -1,6 +1,6 @@
 import { sectionClass } from "../../shared/styles";
 import { useState } from "react";
-import type { AnalyticsItem } from "@/services/landing";
+import type { AnalyticsItem } from "@/services/core/landing";
 import type { SectionProps } from "../../shared/types";
 
 type AnalyticsRange = "7d" | "30d" | "6m";

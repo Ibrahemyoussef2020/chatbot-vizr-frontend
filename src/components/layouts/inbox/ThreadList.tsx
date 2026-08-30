@@ -6,7 +6,7 @@ import {
     setStatusTab,
     setSelectedThread,
 } from "@/redux/inboxSlice";
-import type { ThreadItem } from "@/services/analytics";
+import type { ThreadItem } from "@/services/dashboard/analytics";
 
 export interface ThreadListProps {
     search: string;

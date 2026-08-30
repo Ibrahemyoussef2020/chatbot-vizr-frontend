@@ -5,7 +5,7 @@ import {
     type AIGatewayOptions,
     generateAICompletion,
     streamAICompletion,
-} from "@/services/aiGateway";
+} from "@/services/llms/aiGateway";
 
 export interface UseAIGatewayOptions {
     defaultProvider?: AIProvider;

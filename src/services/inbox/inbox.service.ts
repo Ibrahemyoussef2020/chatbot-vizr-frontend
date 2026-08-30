@@ -3,7 +3,7 @@ import type {
     ThreadListResponse,
     ThreadDetailResponse,
     ThreadItem,
-} from "@/services/analytics";
+} from "@/services/dashboard/analytics";
 
 export interface FilterThreadsParams {
     system_slug?: string;

@@ -1,6 +1,6 @@
 import { sectionClass } from "../../shared/styles";
 import { useState } from "react";
-import type { CardItem } from "@/services/landing";
+import type { CardItem } from "@/services/core/landing";
 import SlideControls from "../../shared/SlideControls";
 import type { SectionProps } from "../../shared/types";
 

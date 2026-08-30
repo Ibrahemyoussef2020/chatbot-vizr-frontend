@@ -1,8 +1,8 @@
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import { useState } from "react";
-import type { PlanItem } from "@/services/landing";
-import { subscribeToPlan } from "@/services/subscription";
+import type { PlanItem } from "@/services/core/landing";
+import { subscribeToPlan } from "@/services/core/subscription";
 import type { BillingCycle } from "./types";
 
 interface PricingGridProps {

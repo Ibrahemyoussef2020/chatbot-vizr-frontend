@@ -29,7 +29,7 @@ import {
     sendWhatsAppTestMessage,
     type WhatsAppConfigData,
     type WhatsAppSession,
-} from "@/services/whatsappConfig";
+} from "@/services/integrations/whatsappConfig";
 
 const WhatsAppChannel = () => {
     const activeWorkspace = useAppSelector((state) => state.workspace.active);

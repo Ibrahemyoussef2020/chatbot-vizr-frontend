@@ -6,7 +6,7 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import {
     HiOutlineChatBubbleLeftRight,
     HiOutlineClock,
@@ -17,8 +17,7 @@ import {
     HiOutlinePaperAirplane,
     HiOutlineUserPlus,
 } from "react-icons/hi2";
-import { getDashboardOverview, type DashboardOverview } from "@/services/dashboard";
-import { assignThreadToAgent, updateThreadStatus, type ThreadItem } from "@/services/analytics";
+import { type ThreadItem } from "@/services/dashboard/analytics";
 import { useAppSelector } from "@/redux/store";
 import {
     ChannelDistributionChart,
@@ -29,7 +28,7 @@ import {
 } from "@/components/dashboard/AnalyticsCharts";
 import { DashboardFilterBar } from "@/components/dashboard/DashboardFilterBar";
 import { ReplyThreadModal } from "@/components/dashboard/ReplyThreadModal";
-import { useUrlSearchParams } from "@/hooks/useUrlSearchParams";
+import { useDashboardOverview, agentOptions } from "@/hooks/useDashboardOverview";
 
 const formatDate = (value?: string) => {
     if (!value) return "N/A";
@@ -41,66 +40,18 @@ const formatDate = (value?: string) => {
     }).format(new Date(value));
 };
 
-const agentOptions = [
-    { id: "unassigned", name: "Unassigned", email: "" },
-    { id: "agent-101", name: "Sarah Support Agent", email: "sarah.agent@vizr.local" },
-    { id: "agent-102", name: "Karim Tech Lead", email: "karim.lead@vizr.local" },
-    { id: "agent-103", name: "Amr Customer Success", email: "amr.cs@vizr.local" },
-];
-
 const Overview = () => {
     const activeWorkspace = useAppSelector((state) => state.workspace.active);
-    const { searchParams } = useUrlSearchParams();
-    const [overview, setOverview] = useState<DashboardOverview | null>(null);
-    const [error, setError] = useState<string>("");
     const [selectedReplyThread, setSelectedReplyThread] = useState<ThreadItem | null>(null);
 
-    const loadData = useCallback(() => {
-        const controller = new AbortController();
-        getDashboardOverview(activeWorkspace?.slug, controller.signal)
-            .then((data) => {
-                setOverview(data);
-                setError("");
-            })
-            .catch((requestError) => {
-                if (requestError?.code !== "ERR_CANCELED") {
-                    setError("Dashboard data could not be loaded.");
-                }
-            });
-        return () => controller.abort();
-    }, [activeWorkspace]);
-
-    useEffect(() => {
-        const cleanup = loadData();
-        return cleanup;
-    }, [loadData, searchParams]);
-
-    const handleAssign = async (threadId: string, agentId: string) => {
-        const selectedAgent = agentOptions.find((a) => a.id === agentId);
-        if (!selectedAgent) return;
-
-        try {
-            await assignThreadToAgent(
-                threadId,
-                selectedAgent.id,
-                selectedAgent.name,
-                selectedAgent.email,
-            );
-            loadData();
-        } catch {
-            setError("Failed to assign thread agent");
-        }
-    };
-
-    const handleStatusToggle = async (threadId: string, currentStatus: string) => {
-        const nextStatus = currentStatus === "open" ? "ended" : "active";
-        try {
-            await updateThreadStatus(threadId, nextStatus);
-            loadData();
-        } catch {
-            setError("Failed to update thread status");
-        }
-    };
+    const {
+        overview,
+        error,
+        isLoading,
+        loadData,
+        handleAssign,
+        handleStatusToggle
+    } = useDashboardOverview(activeWorkspace?.slug);
 
     if (!overview && !error) {
         return (

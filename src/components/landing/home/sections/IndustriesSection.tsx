@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { HiOutlineAcademicCap, HiOutlineBuildingStorefront, HiOutlineHeart, HiOutlineHomeModern } from "react-icons/hi2";
-import type { IndustryItem } from "@/services/landing";
+import type { IndustryItem } from "@/services/core/landing";
 import type { SectionProps } from "../../shared/types";
 
 const industryIcons = [HiOutlineBuildingStorefront, HiOutlineAcademicCap, HiOutlineHomeModern, HiOutlineHeart];

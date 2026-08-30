@@ -13,7 +13,7 @@ import {
     HiOutlineStar,
 } from "react-icons/hi2";
 import { useAppSelector } from "@/redux/store";
-import { fetchThreadAnalytics, type AnalyticsData } from "@/services/analytics";
+import { fetchThreadAnalytics, type AnalyticsData } from "@/services/dashboard/analytics";
 import {
     ChannelDistributionChart,
     DonutChart,

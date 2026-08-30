@@ -1,4 +1,4 @@
-import type { ContentSection } from "@/services/landing";
+import type { ContentSection } from "@/services/core/landing";
 import type { ComponentType } from "react";
 import {
     AnalyticsSection,

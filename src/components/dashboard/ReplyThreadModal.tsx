@@ -13,7 +13,7 @@ import {
     CircularProgress,
 } from "@mui/material";
 import { HiOutlinePaperAirplane, HiOutlineXMark } from "react-icons/hi2";
-import { replyToThread, type ThreadItem } from "@/services/analytics";
+import { replyToThread, type ThreadItem } from "@/services/dashboard/analytics";
 
 interface ReplyThreadModalProps {
     open: boolean;

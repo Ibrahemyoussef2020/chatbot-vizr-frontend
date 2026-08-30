@@ -2,7 +2,7 @@ import FinalCta from "@/components/landing/home/final-cta/FinalCta";
 import Hero from "@/components/landing/home/hero/Hero";
 import SectionRenderer from "@/components/landing/shared/SectionRenderer";
 import { useLandingPage } from "@/hooks/useLandingPage";
-import type { ContentSection, LandingSectionItem } from "@/services/landing";
+import type { ContentSection, LandingSectionItem } from "@/services/core/landing";
 
 const sectionOrder = [
     "commerce",

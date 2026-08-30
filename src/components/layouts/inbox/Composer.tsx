@@ -7,7 +7,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { HiOutlinePaperAirplane } from "react-icons/hi2";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { setReplyText, sendThreadReply } from "@/redux/inboxSlice";
-import type { AIProvider } from "@/services/aiGateway";
+import type { AIProvider } from "@/services/llms/aiGateway";
 
 export interface ComposerProps {
     quickTemplates: string[];

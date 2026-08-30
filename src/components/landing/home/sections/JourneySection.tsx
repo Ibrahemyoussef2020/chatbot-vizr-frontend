@@ -1,4 +1,4 @@
-import type { CardItem } from "@/services/landing";
+import type { CardItem } from "@/services/core/landing";
 import type { SectionProps } from "../../shared/types";
 
 const getItems = (section: SectionProps["section"]) => section.items as CardItem[];

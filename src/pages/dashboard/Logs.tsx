@@ -6,7 +6,7 @@ import Select from "@mui/material/Select";
 import { useEffect, useState } from "react";
 import { HiOutlineArrowDownTray, HiOutlineArrowPath, HiOutlineCommandLine } from "react-icons/hi2";
 import { useAppSelector } from "@/redux/store";
-import { downloadSystemLogs, fetchSystemLogs, type LogItem } from "@/services/logs";
+import { downloadSystemLogs, fetchSystemLogs, type LogItem } from "@/services/dashboard/logs";
 
 const formatDate = (value: string) =>
     new Intl.DateTimeFormat("en", {

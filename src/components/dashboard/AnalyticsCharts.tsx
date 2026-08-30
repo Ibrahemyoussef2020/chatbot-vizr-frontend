@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ChannelItem, HourlyItem, ResolutionItem, TimeSeriesPoint, TopicItem } from "@/services/analytics";
+import type { ChannelItem, HourlyItem, ResolutionItem, TimeSeriesPoint, TopicItem } from "@/services/dashboard/analytics";
 
 interface TimeSeriesChartProps {
     data: TimeSeriesPoint[];
