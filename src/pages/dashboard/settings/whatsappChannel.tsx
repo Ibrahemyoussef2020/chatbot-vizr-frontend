@@ -68,6 +68,7 @@ const WhatsAppChannel = () => {
     const [testPhone, setTestPhone] = useState<string>("");
     const [testText, setTestText] = useState<string>("");
     const [testMode, setTestMode] = useState<"template" | "text">("template");
+    const [customerReplyConfirmed, setCustomerReplyConfirmed] = useState<boolean>(false);
     const [sendingTest, setSendingTest] = useState<boolean>(false);
 
     // Section Refs for smooth scroll
@@ -153,7 +154,11 @@ const WhatsAppChannel = () => {
 
     const handleSendTestMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!testPhone.trim() || !testText.trim()) return;
+        if (!testPhone.trim()) return;
+        if (testMode === "text" && (!customerReplyConfirmed || !testText.trim())) {
+            setError("Confirm that the customer replied within the last 24 hours before sending a custom message.");
+            return;
+        }
         setSendingTest(true);
         setError("");
         setSuccessMsg("");
@@ -568,15 +573,22 @@ const WhatsAppChannel = () => {
                                     </label>
                                     <select
                                         value={testMode}
-                                        onChange={(e) => setTestMode(e.target.value as "template" | "text")}
+                                        onChange={(e) => {
+                                            const mode = e.target.value as "template" | "text";
+                                            setTestMode(mode);
+                                            setCustomerReplyConfirmed(false);
+                                            setError("");
+                                        }}
                                         className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none"
                                     >
-                                        <option value="template">Start conversation (approved hello_world template)</option>
-                                        <option value="text">Normal text (customer replied within 24 hours)</option>
+                                        <option value="template">Step 1 — Start conversation with approved template</option>
+                                        <option value="text">Step 2 — Send custom message after customer replies</option>
                                     </select>
-                                    <p className="mt-1 text-[10px] text-muted-foreground">
-                                        Use the template to start or reopen a conversation. Use normal text only after the customer replies.
-                                    </p>
+                                    <div className={`mt-2 rounded-lg border p-2 text-[10px] ${testMode === "template" ? "border-blue-500/30 bg-blue-500/10 text-blue-600" : "border-amber-500/30 bg-amber-500/10 text-amber-600"}`}>
+                                        {testMode === "template"
+                                            ? "Send this first when there is no active conversation. Then wait for the customer to reply."
+                                            : "Custom messages are allowed only after the customer replies, and for 24 hours after their latest reply."}
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-extrabold uppercase text-muted-foreground mb-1">
@@ -587,10 +599,28 @@ const WhatsAppChannel = () => {
                                         required
                                         placeholder="201554605666"
                                         value={testPhone}
-                                        onChange={(e) => setTestPhone(e.target.value)}
+                                        onChange={(e) => {
+                                            setTestPhone(e.target.value);
+                                            setCustomerReplyConfirmed(false);
+                                        }}
                                         className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
                                     />
                                 </div>
+
+                                {testMode === "text" && (
+                                    <label className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-foreground cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={customerReplyConfirmed}
+                                            onChange={(e) => setCustomerReplyConfirmed(e.target.checked)}
+                                            className="mt-0.5 accent-primary"
+                                        />
+                                        <span>
+                                            I confirm this customer replied on WhatsApp within the last 24 hours.
+                                            Without a recent reply, Meta will not deliver a custom message.
+                                        </span>
+                                    </label>
+                                )}
 
                                 <div>
                                     <label className="block text-[10px] font-extrabold uppercase text-muted-foreground mb-1">
@@ -599,7 +629,7 @@ const WhatsAppChannel = () => {
                                     <textarea
                                         rows={3}
                                         required={testMode === "text"}
-                                        disabled={testMode === "template"}
+                                        disabled={testMode === "template" || !customerReplyConfirmed}
                                         placeholder={testMode === "template" ? "The approved hello_world template will be sent" : "Test message from WhatsApp Gateway..."}
                                         value={testText}
                                         onChange={(e) => setTestText(e.target.value)}
@@ -609,13 +639,21 @@ const WhatsAppChannel = () => {
 
                                 <Button
                                     type="submit"
-                                    disabled={sendingTest || !testPhone.trim() || (testMode === "text" && !testText.trim())}
+                                    disabled={
+                                        sendingTest ||
+                                        !testPhone.trim() ||
+                                        (testMode === "text" && (!customerReplyConfirmed || !testText.trim()))
+                                    }
                                     variant="contained"
                                     color="success"
                                     startIcon={<HiOutlinePaperAirplane />}
                                     sx={{ width: "100%", borderRadius: "10px", fontWeight: 800, textTransform: "none" }}
                                 >
-                                    {sendingTest ? "Sending..." : "Dispatch Test Message"}
+                                    {sendingTest
+                                        ? "Sending..."
+                                        : testMode === "template"
+                                            ? "Send Approved Template"
+                                            : "Send Custom Message"}
                                 </Button>
                             </form>
                         </div>
