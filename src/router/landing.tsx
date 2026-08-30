@@ -1,4 +1,4 @@
-import { Home, About, Contact, PolicyTerms, Pricing } from "@/pages";
+import { Home, About, Contact, DataDeletion, PolicyTerms, Pricing } from "@/pages";
 import { Landing } from "@/layouts";
 
 const landingRouter = [
@@ -25,6 +25,10 @@ const landingRouter = [
             {
                 path: "policy-terms",
                 element: <PolicyTerms />,
+            },
+            {
+                path: "data-deletion",
+                element: <DataDeletion />,
             },
         ],
     },

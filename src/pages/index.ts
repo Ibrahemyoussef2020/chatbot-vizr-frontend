@@ -18,4 +18,5 @@ export { default as Home } from "./landing/Home";
 export { default as About } from "./landing/About";
 export { default as Contact } from "./landing/Contact";
 export { default as PolicyTerms } from "./landing/Policy-Terms";
+export { default as DataDeletion } from "./landing/DataDeletion";
 export { default as Pricing } from "./landing/Pricing";
