@@ -102,10 +102,7 @@ const WhatsAppChannel = () => {
     }, [activeWorkspace]);
 
     useEffect(() => {
-        if (!testPhone.trim()) {
-            setConversationStatus(null);
-            return;
-        }
+        if (!waitingForReply || !testPhone.trim()) return;
         const checkStatus = () => fetchWhatsAppConversationStatus(testPhone.trim(), activeWorkspace?.slug)
             .then((status) => {
                 setConversationStatus(status);
@@ -117,7 +114,7 @@ const WhatsAppChannel = () => {
         void checkStatus();
         const timer = window.setInterval(checkStatus, 5000);
         return () => window.clearInterval(timer);
-    }, [testPhone, activeWorkspace]);
+    }, [waitingForReply, testPhone, activeWorkspace]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -203,7 +200,10 @@ const WhatsAppChannel = () => {
                 "Delivery will be confirmed by the WhatsApp delivery webhook.",
             );
         } catch (err: any) {
-            const msg = err.response?.data?.message || err.message || "Failed to send WhatsApp test message.";
+            const apiMessage = err.response?.data?.message || err.message || "";
+            const msg = /authentication error|access token/i.test(apiMessage)
+                ? "Meta access token is expired or invalid. Save a new permanent System User Access Token in Platform Configurations."
+                : apiMessage || "Failed to send WhatsApp test message.";
             setError(msg);
         } finally {
             setSendingTest(false);
@@ -606,6 +606,7 @@ const WhatsAppChannel = () => {
                                     <input
                                         type="text"
                                         required
+                                        disabled={waitingForReply}
                                         placeholder="201554605666"
                                         value={testPhone}
                                         onChange={(e) => {
@@ -617,7 +618,7 @@ const WhatsAppChannel = () => {
                                     />
                                 </div>
 
-                                {!conversationStatus?.replied && (
+                                {!conversationStatus?.replied && !waitingForReply && (
                                     <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-600">
                                         <div className="font-bold">Welcome message</div>
                                         <p className="mt-1 text-[10px]">
@@ -666,6 +667,7 @@ const WhatsAppChannel = () => {
                                     type="submit"
                                     disabled={
                                         sendingTest ||
+                                        waitingForReply ||
                                         !testPhone.trim() ||
                                         (conversationStatus?.replied && !testText.trim())
                                     }
@@ -676,6 +678,8 @@ const WhatsAppChannel = () => {
                                 >
                                     {sendingTest
                                         ? "Sending..."
+                                        : waitingForReply
+                                            ? "Waiting for Customer Reply"
                                         : conversationStatus?.replied
                                             ? "Send Custom Message"
                                             : "Send Welcome Message"}
