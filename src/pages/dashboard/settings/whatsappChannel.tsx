@@ -69,8 +69,6 @@ const WhatsAppChannel = () => {
     // Test Message state
     const [testPhone, setTestPhone] = useState<string>("");
     const [testText, setTestText] = useState<string>("");
-    const [testMode, setTestMode] = useState<"template" | "text">("template");
-    const [customerReplyConfirmed, setCustomerReplyConfirmed] = useState<boolean>(false);
     const [conversationStatus, setConversationStatus] = useState<WhatsAppConversationStatus | null>(null);
     const [waitingForReply, setWaitingForReply] = useState<boolean>(false);
     const [sendingTest, setSendingTest] = useState<boolean>(false);
@@ -113,11 +111,6 @@ const WhatsAppChannel = () => {
                 setConversationStatus(status);
                 if (status.replied) {
                     setWaitingForReply(false);
-                    setCustomerReplyConfirmed(true);
-                    setTestMode("text");
-                } else {
-                    setCustomerReplyConfirmed(false);
-                    setTestMode("template");
                 }
             })
             .catch(() => undefined);
@@ -182,8 +175,9 @@ const WhatsAppChannel = () => {
     const handleSendTestMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!testPhone.trim()) return;
-        if (testMode === "text" && (!customerReplyConfirmed || !testText.trim())) {
-            setError("Confirm that the customer replied within the last 24 hours before sending a custom message.");
+        const sendMode: "text" | "template" = conversationStatus?.replied ? "text" : "template";
+        if (sendMode === "text" && !testText.trim()) {
+            setError("Enter the custom message you want to send.");
             return;
         }
         setSendingTest(true);
@@ -195,18 +189,17 @@ const WhatsAppChannel = () => {
                 testPhone.trim(),
                 testText.trim(),
                 activeWorkspace?.slug,
-                testMode,
+                sendMode,
                 "hello_world",
                 "en_US",
                 [],
             );
             setTestText("");
-            if (testMode === "template") {
+            if (sendMode === "template") {
                 setWaitingForReply(true);
-                setCustomerReplyConfirmed(false);
             }
             setSuccessMsg(
-                `Meta accepted the ${res.mode || testMode} message for ${res.phone || testPhone}. ` +
+                `Meta accepted the ${res.mode || sendMode} message for ${res.phone || testPhone}. ` +
                 "Delivery will be confirmed by the WhatsApp delivery webhook.",
             );
         } catch (err: any) {
@@ -617,9 +610,8 @@ const WhatsAppChannel = () => {
                                         value={testPhone}
                                         onChange={(e) => {
                                             setTestPhone(e.target.value);
-                                            setCustomerReplyConfirmed(false);
                                             setWaitingForReply(false);
-                                            setTestMode("template");
+                                            setConversationStatus(null);
                                         }}
                                         className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
                                     />
@@ -675,7 +667,7 @@ const WhatsAppChannel = () => {
                                     disabled={
                                         sendingTest ||
                                         !testPhone.trim() ||
-                                        (testMode === "text" && (!customerReplyConfirmed || !testText.trim()))
+                                        (conversationStatus?.replied && !testText.trim())
                                     }
                                     variant="contained"
                                     color="success"
@@ -684,9 +676,9 @@ const WhatsAppChannel = () => {
                                 >
                                     {sendingTest
                                         ? "Sending..."
-                                        : testMode === "template"
-                                            ? "Send Welcome Message"
-                                            : "Send Custom Message"}
+                                        : conversationStatus?.replied
+                                            ? "Send Custom Message"
+                                            : "Send Welcome Message"}
                                 </Button>
                             </form>
                         </div>
