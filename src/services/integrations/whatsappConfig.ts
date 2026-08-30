@@ -54,6 +54,13 @@ export interface WhatsAppConversationStatus {
     window_expires_at: string | null;
 }
 
+export interface WhatsAppConnectionStatus {
+    connected: boolean;
+    reason: string | null;
+    code?: number;
+    subcode?: number;
+}
+
 export const fetchWhatsAppConfig = async (systemSlug?: string): Promise<WhatsAppConfigData> => {
     const res = await api.get("/admin/whatsapp/config", { params: { system_slug: systemSlug } });
     return res.data.data;
@@ -69,6 +76,11 @@ export const fetchWhatsAppConversationStatus = async (
     systemSlug?: string,
 ): Promise<WhatsAppConversationStatus> => {
     const res = await api.get("/admin/whatsapp/conversation-status", { params: { phone, system_slug: systemSlug } });
+    return res.data.data;
+};
+
+export const fetchWhatsAppConnectionStatus = async (systemSlug?: string): Promise<WhatsAppConnectionStatus> => {
+    const res = await api.get("/admin/whatsapp/connection-status", { params: { system_slug: systemSlug } });
     return res.data.data;
 };
 
