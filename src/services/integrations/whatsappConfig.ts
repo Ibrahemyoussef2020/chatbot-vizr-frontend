@@ -33,6 +33,9 @@ export interface WhatsAppTestResult {
     provider: string;
     routed_via_ai_engine: string;
     timestamp: string;
+    mode?: "text" | "template";
+    template_name?: string;
+    message_id?: string;
 }
 
 export const fetchWhatsAppConfig = async (systemSlug?: string): Promise<WhatsAppConfigData> => {
@@ -67,7 +70,12 @@ export const sendWhatsAppTestMessage = async (
     phone: string,
     text: string,
     systemSlug?: string,
+    mode: "text" | "template" = "template",
 ): Promise<WhatsAppTestResult> => {
-    const res = await api.post("/admin/whatsapp/test-message", { phone, text }, { params: { system_slug: systemSlug } });
+    const res = await api.post(
+        "/admin/whatsapp/test-message",
+        { phone, text, mode, template_name: "hello_world", template_language: "en_US" },
+        { params: { system_slug: systemSlug } },
+    );
     return res.data.data;
 };

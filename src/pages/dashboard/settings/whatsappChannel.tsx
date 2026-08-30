@@ -67,6 +67,7 @@ const WhatsAppChannel = () => {
     // Test Message state
     const [testPhone, setTestPhone] = useState<string>("");
     const [testText, setTestText] = useState<string>("");
+    const [testMode, setTestMode] = useState<"template" | "text">("template");
     const [sendingTest, setSendingTest] = useState<boolean>(false);
 
     // Section Refs for smooth scroll
@@ -158,9 +159,12 @@ const WhatsAppChannel = () => {
         setSuccessMsg("");
 
         try {
-            const res = await sendWhatsAppTestMessage(testPhone.trim(), testText.trim(), activeWorkspace?.slug);
+            const res = await sendWhatsAppTestMessage(testPhone.trim(), testText.trim(), activeWorkspace?.slug, testMode);
             setTestText("");
-            setSuccessMsg(`Test message successfully dispatched to ${res.phone || testPhone}! (Routed via: ${res.routed_via_ai_engine})`);
+            setSuccessMsg(
+                `Meta accepted the ${res.mode || testMode} message for ${res.phone || testPhone}. ` +
+                "Delivery will be confirmed by the WhatsApp delivery webhook.",
+            );
         } catch (err: any) {
             const msg = err.response?.data?.message || err.message || "Failed to send WhatsApp test message.";
             setError(msg);
@@ -560,6 +564,22 @@ const WhatsAppChannel = () => {
                             <form onSubmit={handleSendTestMessage} className="space-y-3 mt-3">
                                 <div>
                                     <label className="block text-[10px] font-extrabold uppercase text-muted-foreground mb-1">
+                                        Message Mode
+                                    </label>
+                                    <select
+                                        value={testMode}
+                                        onChange={(e) => setTestMode(e.target.value as "template" | "text")}
+                                        className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none"
+                                    >
+                                        <option value="template">Start conversation (approved hello_world template)</option>
+                                        <option value="text">Normal text (customer replied within 24 hours)</option>
+                                    </select>
+                                    <p className="mt-1 text-[10px] text-muted-foreground">
+                                        Use the template to start or reopen a conversation. Use normal text only after the customer replies.
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-extrabold uppercase text-muted-foreground mb-1">
                                         Recipient Phone (e.g. 201554605666)
                                     </label>
                                     <input
@@ -578,8 +598,9 @@ const WhatsAppChannel = () => {
                                     </label>
                                     <textarea
                                         rows={3}
-                                        required
-                                        placeholder="Test message from WhatsApp Gateway..."
+                                        required={testMode === "text"}
+                                        disabled={testMode === "template"}
+                                        placeholder={testMode === "template" ? "The approved hello_world template will be sent" : "Test message from WhatsApp Gateway..."}
                                         value={testText}
                                         onChange={(e) => setTestText(e.target.value)}
                                         className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none resize-none"
@@ -588,7 +609,7 @@ const WhatsAppChannel = () => {
 
                                 <Button
                                     type="submit"
-                                    disabled={sendingTest || !testPhone.trim() || !testText.trim()}
+                                    disabled={sendingTest || !testPhone.trim() || (testMode === "text" && !testText.trim())}
                                     variant="contained"
                                     color="success"
                                     startIcon={<HiOutlinePaperAirplane />}

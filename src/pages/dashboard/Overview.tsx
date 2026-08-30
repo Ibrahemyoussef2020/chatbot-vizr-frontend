@@ -47,7 +47,6 @@ const Overview = () => {
     const {
         overview,
         error,
-        isLoading,
         loadData,
         handleAssign,
         handleStatusToggle

@@ -132,7 +132,7 @@ const InboxPage = () => {
 
     const availableTagNames = Array.from(
         new Set([
-            ...workspaceTags.map((t) => t.name),
+            ...workspaceTags.map((t) => t.name).filter((name): name is string => Boolean(name)),
             ...defaultTagPresets,
         ]),
     );
