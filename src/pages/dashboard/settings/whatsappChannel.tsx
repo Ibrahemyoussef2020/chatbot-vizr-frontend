@@ -28,11 +28,9 @@ import {
     deleteOpenWASession,
     sendWhatsAppTestMessage,
     fetchWhatsAppConversationStatus,
-    fetchWhatsAppConnectionStatus,
     type WhatsAppConfigData,
     type WhatsAppSession,
     type WhatsAppConversationStatus,
-    type WhatsAppConnectionStatus,
 } from "@/services/integrations/whatsappConfig";
 
 const WhatsAppChannel = () => {
@@ -73,8 +71,6 @@ const WhatsAppChannel = () => {
     const [testText, setTestText] = useState<string>("");
     const [conversationStatus, setConversationStatus] = useState<WhatsAppConversationStatus | null>(null);
     const [waitingForReply, setWaitingForReply] = useState<boolean>(false);
-    const [connectionStatus, setConnectionStatus] = useState<WhatsAppConnectionStatus | null>(null);
-    const [checkingConnection, setCheckingConnection] = useState<boolean>(false);
     const [sendingTest, setSendingTest] = useState<boolean>(false);
 
     // Section Refs for smooth scroll
@@ -103,18 +99,6 @@ const WhatsAppChannel = () => {
         return () => {
             isMounted = false;
         };
-    }, [activeWorkspace]);
-
-    const checkConnection = () => {
-        setCheckingConnection(true);
-        return fetchWhatsAppConnectionStatus(activeWorkspace?.slug)
-            .then(setConnectionStatus)
-            .catch(() => setConnectionStatus({ connected: false, reason: "Could not validate Meta credentials." }))
-            .finally(() => setCheckingConnection(false));
-    };
-
-    useEffect(() => {
-        void checkConnection();
     }, [activeWorkspace]);
 
     useEffect(() => {
@@ -218,12 +202,9 @@ const WhatsAppChannel = () => {
         } catch (err: any) {
             const apiMessage = err.response?.data?.message || err.message || "";
             const msg = /authentication error|access token/i.test(apiMessage)
-                ? "Meta access token is expired or invalid. Save a new permanent System User Access Token in Platform Configurations."
+                ? `${apiMessage} Check that the selected workspace has the current permanent System User token, then save Platform Configurations again.`
                 : apiMessage || "Failed to send WhatsApp test message.";
             setError(msg);
-            if (/authentication error|access token/i.test(apiMessage)) {
-                setConnectionStatus({ connected: false, reason: msg });
-            }
         } finally {
             setSendingTest(false);
         }
@@ -618,37 +599,6 @@ const WhatsAppChannel = () => {
                             </h3>
 
                             <form onSubmit={handleSendTestMessage} className="space-y-3 mt-3">
-                                <div>
-                                    <label className="block text-[10px] font-extrabold uppercase text-muted-foreground mb-1">
-                                        Required Admin Action
-                                    </label>
-                                    <select
-                                        value={!connectionStatus?.connected ? "access" : conversationStatus?.replied ? "custom" : "welcome"}
-                                        onChange={(e) => {
-                                            if (e.target.value === "access") switchTab("platform");
-                                        }}
-                                        className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs font-bold text-foreground focus:border-primary focus:outline-none"
-                                    >
-                                        <option value="access">1 — Update and validate Meta Access Token</option>
-                                        <option value="welcome" disabled={!connectionStatus?.connected}>2 — Send approved Welcome template</option>
-                                        <option value="custom" disabled={!conversationStatus?.replied}>3 — Send custom message after customer reply</option>
-                                    </select>
-                                </div>
-
-                                {!connectionStatus?.connected && (
-                                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-600">
-                                        <div className="font-bold">Meta connection requires attention</div>
-                                        <p className="mt-1 text-[10px]">{checkingConnection ? "Checking credentials…" : connectionStatus?.reason || "Access Token validation failed."}</p>
-                                        <div className="mt-2 flex gap-2">
-                                            <button type="button" onClick={() => switchTab("platform")} className="rounded-lg bg-red-600 px-3 py-1.5 text-[10px] font-bold text-white">
-                                                Update Access Token
-                                            </button>
-                                            <button type="button" onClick={() => void checkConnection()} className="rounded-lg border border-red-500/40 px-3 py-1.5 text-[10px] font-bold">
-                                                Check Again
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
                                 <div>
                                     <label className="block text-[10px] font-extrabold uppercase text-muted-foreground mb-1">
                                         Recipient Phone (e.g. 201554605666)
