@@ -113,7 +113,15 @@ const WhatsAppChannel = () => {
             .catch(() => undefined);
         void checkStatus();
         const timer = window.setInterval(checkStatus, 5000);
-        return () => window.clearInterval(timer);
+        const timeout = window.setTimeout(() => {
+            window.clearInterval(timer);
+            setWaitingForReply(false);
+            setError("No WhatsApp reply webhook was received within 2 minutes. In Meta Webhooks, verify the callback URL and subscribe the WhatsApp Business Account to the messages field, then reply again.");
+        }, 120000);
+        return () => {
+            window.clearInterval(timer);
+            window.clearTimeout(timeout);
+        };
     }, [waitingForReply, testPhone, activeWorkspace]);
 
     const handleSave = async (e: React.FormEvent) => {
