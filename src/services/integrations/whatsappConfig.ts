@@ -38,8 +38,37 @@ export interface WhatsAppTestResult {
     message_id?: string;
 }
 
+export interface WhatsAppTemplate {
+    name: string;
+    language: string;
+    category: string;
+    body: string;
+    parameter_count: number;
+}
+
+export interface WhatsAppConversationStatus {
+    phone: string;
+    replied: boolean;
+    latest_message: string | null;
+    replied_at: string | null;
+    window_expires_at: string | null;
+}
+
 export const fetchWhatsAppConfig = async (systemSlug?: string): Promise<WhatsAppConfigData> => {
     const res = await api.get("/admin/whatsapp/config", { params: { system_slug: systemSlug } });
+    return res.data.data;
+};
+
+export const fetchWhatsAppTemplates = async (systemSlug?: string): Promise<WhatsAppTemplate[]> => {
+    const res = await api.get("/admin/whatsapp/templates", { params: { system_slug: systemSlug } });
+    return res.data.data;
+};
+
+export const fetchWhatsAppConversationStatus = async (
+    phone: string,
+    systemSlug?: string,
+): Promise<WhatsAppConversationStatus> => {
+    const res = await api.get("/admin/whatsapp/conversation-status", { params: { phone, system_slug: systemSlug } });
     return res.data.data;
 };
 
@@ -71,10 +100,13 @@ export const sendWhatsAppTestMessage = async (
     text: string,
     systemSlug?: string,
     mode: "text" | "template" = "template",
+    templateName = "hello_world",
+    templateLanguage = "en_US",
+    templateParameters: string[] = [],
 ): Promise<WhatsAppTestResult> => {
     const res = await api.post(
         "/admin/whatsapp/test-message",
-        { phone, text, mode, template_name: "hello_world", template_language: "en_US" },
+        { phone, text, mode, template_name: templateName, template_language: templateLanguage, template_parameters: templateParameters },
         { params: { system_slug: systemSlug } },
     );
     return res.data.data;
