@@ -27,11 +27,9 @@ import {
     createOpenWASession,
     deleteOpenWASession,
     sendWhatsAppTestMessage,
-    fetchWhatsAppTemplates,
     fetchWhatsAppConversationStatus,
     type WhatsAppConfigData,
     type WhatsAppSession,
-    type WhatsAppTemplate,
     type WhatsAppConversationStatus,
 } from "@/services/integrations/whatsappConfig";
 
@@ -73,9 +71,6 @@ const WhatsAppChannel = () => {
     const [testText, setTestText] = useState<string>("");
     const [testMode, setTestMode] = useState<"template" | "text">("template");
     const [customerReplyConfirmed, setCustomerReplyConfirmed] = useState<boolean>(false);
-    const [templates, setTemplates] = useState<WhatsAppTemplate[]>([]);
-    const [selectedTemplateName, setSelectedTemplateName] = useState<string>("hello_world");
-    const [templateParameters, setTemplateParameters] = useState<string[]>([]);
     const [conversationStatus, setConversationStatus] = useState<WhatsAppConversationStatus | null>(null);
     const [waitingForReply, setWaitingForReply] = useState<boolean>(false);
     const [sendingTest, setSendingTest] = useState<boolean>(false);
@@ -109,17 +104,6 @@ const WhatsAppChannel = () => {
     }, [activeWorkspace]);
 
     useEffect(() => {
-        fetchWhatsAppTemplates(activeWorkspace?.slug)
-            .then((items) => {
-                setTemplates(items);
-                if (items.length && !items.some((item) => item.name === selectedTemplateName)) {
-                    setSelectedTemplateName(items[0].name);
-                }
-            })
-            .catch(() => setError("Failed to load approved Meta templates."));
-    }, [activeWorkspace]);
-
-    useEffect(() => {
         if (!testPhone.trim()) {
             setConversationStatus(null);
             return;
@@ -141,8 +125,6 @@ const WhatsAppChannel = () => {
         const timer = window.setInterval(checkStatus, 5000);
         return () => window.clearInterval(timer);
     }, [testPhone, activeWorkspace]);
-
-    const selectedTemplate = templates.find((item) => item.name === selectedTemplateName);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -214,9 +196,9 @@ const WhatsAppChannel = () => {
                 testText.trim(),
                 activeWorkspace?.slug,
                 testMode,
-                selectedTemplate?.name || "hello_world",
-                selectedTemplate?.language || "en_US",
-                templateParameters,
+                "hello_world",
+                "en_US",
+                [],
             );
             setTestText("");
             if (testMode === "template") {
@@ -644,44 +626,11 @@ const WhatsAppChannel = () => {
                                 </div>
 
                                 {!conversationStatus?.replied && (
-                                    <div className="space-y-2">
-                                        <label className="block text-[10px] font-extrabold uppercase text-muted-foreground">
-                                            Ready Message Template
-                                        </label>
-                                        <select
-                                            value={selectedTemplateName}
-                                            onChange={(e) => {
-                                                setSelectedTemplateName(e.target.value);
-                                                const template = templates.find((item) => item.name === e.target.value);
-                                                setTemplateParameters(Array(template?.parameter_count || 0).fill(""));
-                                            }}
-                                            className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none"
-                                        >
-                                            {templates.map((template) => (
-                                                <option key={`${template.name}-${template.language}`} value={template.name}>
-                                                    {template.name.replaceAll("_", " ")} ({template.category.toLowerCase()})
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {selectedTemplate && (
-                                            <div className="rounded-lg border border-border bg-surface-elevated p-2 text-[10px] text-muted-foreground whitespace-pre-line">
-                                                {selectedTemplate.body}
-                                            </div>
-                                        )}
-                                        {Array.from({ length: selectedTemplate?.parameter_count || 0 }, (_, index) => (
-                                            <input
-                                                key={index}
-                                                required
-                                                value={templateParameters[index] || ""}
-                                                onChange={(e) => setTemplateParameters((current) => {
-                                                    const next = [...current];
-                                                    next[index] = e.target.value;
-                                                    return next;
-                                                })}
-                                                placeholder={`Template value {{${index + 1}}}`}
-                                                className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none"
-                                            />
-                                        ))}
+                                    <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-600">
+                                        <div className="font-bold">Welcome message</div>
+                                        <p className="mt-1 text-[10px]">
+                                            Send the approved welcome message first. The custom-message form opens automatically after the customer replies.
+                                        </p>
                                     </div>
                                 )}
 
@@ -705,20 +654,21 @@ const WhatsAppChannel = () => {
                                     </div>
                                 )}
 
-                                <div>
-                                    <label className="block text-[10px] font-extrabold uppercase text-muted-foreground mb-1">
-                                        Message Content
-                                    </label>
-                                    <textarea
-                                        rows={3}
-                                        required={testMode === "text"}
-                                        disabled={!conversationStatus?.replied}
-                                        placeholder={conversationStatus?.replied ? "Write a custom message..." : "Available after the customer replies"}
-                                        value={testText}
-                                        onChange={(e) => setTestText(e.target.value)}
-                                        className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none resize-none"
-                                    />
-                                </div>
+                                {conversationStatus?.replied && (
+                                    <div>
+                                        <label className="block text-[10px] font-extrabold uppercase text-muted-foreground mb-1">
+                                            Custom Message
+                                        </label>
+                                        <textarea
+                                            rows={3}
+                                            required
+                                            placeholder="Write a custom message..."
+                                            value={testText}
+                                            onChange={(e) => setTestText(e.target.value)}
+                                            className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none resize-none"
+                                        />
+                                    </div>
+                                )}
 
                                 <Button
                                     type="submit"
@@ -735,7 +685,7 @@ const WhatsAppChannel = () => {
                                     {sendingTest
                                         ? "Sending..."
                                         : testMode === "template"
-                                            ? "Send Approved Template"
+                                            ? "Send Welcome Message"
                                             : "Send Custom Message"}
                                 </Button>
                             </form>
