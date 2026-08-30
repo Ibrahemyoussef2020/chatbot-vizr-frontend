@@ -27,10 +27,8 @@ import {
     createOpenWASession,
     deleteOpenWASession,
     sendWhatsAppTestMessage,
-    fetchWhatsAppConversationStatus,
     type WhatsAppConfigData,
     type WhatsAppSession,
-    type WhatsAppConversationStatus,
 } from "@/services/integrations/whatsappConfig";
 
 const WhatsAppChannel = () => {
@@ -69,8 +67,7 @@ const WhatsAppChannel = () => {
     // Test Message state
     const [testPhone, setTestPhone] = useState<string>("");
     const [testText, setTestText] = useState<string>("");
-    const [conversationStatus, setConversationStatus] = useState<WhatsAppConversationStatus | null>(null);
-    const [waitingForReply, setWaitingForReply] = useState<boolean>(false);
+    const [welcomeSent, setWelcomeSent] = useState<boolean>(false);
     const [sendingTest, setSendingTest] = useState<boolean>(false);
 
     // Section Refs for smooth scroll
@@ -100,29 +97,6 @@ const WhatsAppChannel = () => {
             isMounted = false;
         };
     }, [activeWorkspace]);
-
-    useEffect(() => {
-        if (!waitingForReply || !testPhone.trim()) return;
-        const checkStatus = () => fetchWhatsAppConversationStatus(testPhone.trim(), activeWorkspace?.slug)
-            .then((status) => {
-                setConversationStatus(status);
-                if (status.replied) {
-                    setWaitingForReply(false);
-                }
-            })
-            .catch(() => undefined);
-        void checkStatus();
-        const timer = window.setInterval(checkStatus, 5000);
-        const timeout = window.setTimeout(() => {
-            window.clearInterval(timer);
-            setWaitingForReply(false);
-            setError("No WhatsApp reply webhook was received within 2 minutes. In Meta Webhooks, verify the callback URL and subscribe the WhatsApp Business Account to the messages field, then reply again.");
-        }, 120000);
-        return () => {
-            window.clearInterval(timer);
-            window.clearTimeout(timeout);
-        };
-    }, [waitingForReply, testPhone, activeWorkspace]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -180,7 +154,7 @@ const WhatsAppChannel = () => {
     const handleSendTestMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!testPhone.trim()) return;
-        const sendMode: "text" | "template" = conversationStatus?.replied ? "text" : "template";
+        const sendMode: "text" | "template" = welcomeSent ? "text" : "template";
         if (sendMode === "text" && !testText.trim()) {
             setError("Enter the custom message you want to send.");
             return;
@@ -201,7 +175,7 @@ const WhatsAppChannel = () => {
             );
             setTestText("");
             if (sendMode === "template") {
-                setWaitingForReply(true);
+                setWelcomeSent(true);
             }
             setSuccessMsg(
                 `Meta accepted the ${res.mode || sendMode} message for ${res.phone || testPhone}. ` +
@@ -614,23 +588,21 @@ const WhatsAppChannel = () => {
                                     <input
                                         type="text"
                                         required
-                                        disabled={waitingForReply}
                                         placeholder="201554605666"
                                         value={testPhone}
                                         onChange={(e) => {
                                             setTestPhone(e.target.value);
-                                            setWaitingForReply(false);
-                                            setConversationStatus(null);
+                                            setWelcomeSent(false);
                                         }}
                                         className="w-full rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
                                     />
                                 </div>
 
-                                {!conversationStatus?.replied && !waitingForReply && (
+                                {!welcomeSent && (
                                     <div className="space-y-3 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-600">
                                         <div className="font-bold">Welcome message</div>
                                         <p className="mt-1 text-[10px]">
-                                            Send the approved welcome message first. The custom-message form opens automatically after the customer replies.
+                                            Send the approved welcome message first. The custom-message form opens immediately after Meta accepts it.
                                         </p>
                                         <Button
                                             type="submit"
@@ -647,27 +619,15 @@ const WhatsAppChannel = () => {
                                     </div>
                                 )}
 
-                                {!conversationStatus?.replied && waitingForReply && (
-                                    <div className="flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-600">
-                                        <span className="h-3 w-3 shrink-0 animate-pulse rounded-full bg-amber-400 ring-4 ring-amber-400/20" />
-                                        <span><strong>Waiting for customer response.</strong> Custom messaging unlocks automatically after their reply.</span>
-                                    </div>
-                                )}
-
-                                {conversationStatus?.replied && (
+                                {welcomeSent && (
                                     <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-600">
                                         <div className="flex items-center gap-2 font-bold">
-                                            <span className="h-3 w-3 rounded-full bg-emerald-500" /> Customer replied — custom messaging is active
+                                            <span className="h-3 w-3 rounded-full bg-emerald-500" /> Welcome accepted — custom messaging is active
                                         </div>
-                                        {conversationStatus.latest_message && (
-                                            <div className="mt-2 rounded-lg bg-card p-2 text-foreground">
-                                                “{conversationStatus.latest_message}”
-                                            </div>
-                                        )}
                                     </div>
                                 )}
 
-                                {conversationStatus?.replied && (
+                                {welcomeSent && (
                                     <div>
                                         <label className="block text-[10px] font-extrabold uppercase text-muted-foreground mb-1">
                                             Custom Message
@@ -683,7 +643,7 @@ const WhatsAppChannel = () => {
                                     </div>
                                 )}
 
-                                {conversationStatus?.replied && (
+                                {welcomeSent && (
                                     <Button
                                         type="submit"
                                         disabled={sendingTest || !testPhone.trim() || !testText.trim()}
