@@ -1,4 +1,6 @@
 import Button from "@mui/material/Button";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import TextField from "@mui/material/TextField";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import * as chat from "@/services/llms/chat";
@@ -224,7 +226,9 @@ const ChatPopup = () => {
                                         : "bg-surface-muted text-foreground"
                                 }`}
                             >
-                                <p className="mb-0">{message.content}</p>
+                                <div className="mb-0 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+                                </div>
                                 {message.attachments && message.attachments.length > 0 && (
                                     <div className="mt-2 space-y-1">
                                         {message.attachments.map((att, idx) => (

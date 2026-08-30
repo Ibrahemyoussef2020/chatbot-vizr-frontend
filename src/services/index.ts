@@ -1,4 +1,4 @@
-export * as chatServices from "./chat";
-export * as authServices from "./auth";
-export * as workspaceServices from "./workspace";
-export * as dashboardServices from "./dashboard";
+export * as chatServices from "./llms/chat";
+export * as authServices from "./auth/auth";
+export * as workspaceServices from "./core/workspace";
+export * as dashboardServices from "./dashboard/dashboard";

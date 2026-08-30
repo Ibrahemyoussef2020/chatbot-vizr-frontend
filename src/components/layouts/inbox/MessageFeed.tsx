@@ -1,4 +1,6 @@
 import { type RefObject } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import { HiOutlineUser } from "react-icons/hi2";
@@ -103,13 +105,13 @@ export const MessageFeed = ({
                             </div>
 
                             <div
-                                className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs font-medium leading-relaxed shadow-sm ${
+                                className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs font-medium leading-relaxed shadow-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 ${
                                     isClient
                                         ? "bg-card text-foreground border border-border rounded-tl-sm"
                                         : "bg-primary text-white rounded-tr-sm"
                                 }`}
                             >
-                                {msg.content}
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                             </div>
                         </div>
                     );
