@@ -272,11 +272,16 @@ export const inboxSlice = createSlice({
             .addCase(fetchInboxThreads.fulfilled, (state, action) => {
                 state.loadingThreads = false;
                 state.threadsData = action.payload;
-                if (action.payload?.threads?.length > 0 && !state.selectedThread) {
-                    state.selectedThread = action.payload.threads[0];
-                    state.visitorName = action.payload.threads[0].user_name || "";
-                    state.visitorEmail = action.payload.threads[0].user_email || "";
-                    state.visitorPhone = action.payload.threads[0].user_phone || "";
+                const threads = action.payload?.threads || [];
+                const selectedStillVisible = state.selectedThread
+                    ? threads.some((thread) => thread.id === state.selectedThread?.id)
+                    : false;
+                if (!selectedStillVisible) {
+                    state.selectedThread = threads[0] || null;
+                    state.messages = [];
+                    state.visitorName = threads[0]?.user_name || "";
+                    state.visitorEmail = threads[0]?.user_email || "";
+                    state.visitorPhone = threads[0]?.user_phone || "";
                 }
             })
             .addCase(fetchInboxThreads.rejected, (state, action) => {

@@ -30,6 +30,8 @@ export interface ThreadItem {
     user_phone?: string;
     system_slug: string;
     received_from: "web" | "whatsapp" | "telegram" | "gmail";
+    latest_message?: string;
+    latest_message_at?: string;
     status: string;
     priority?: string;
     assigned_agent?: AssignedAgent;

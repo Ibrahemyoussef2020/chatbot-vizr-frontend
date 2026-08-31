@@ -1,39 +1,40 @@
 import Card from "@mui/material/Card";
 import CircularProgress from "@mui/material/CircularProgress";
-import { HiOutlineMagnifyingGlass } from "react-icons/hi2";
+import { HiOutlineFunnel, HiOutlineMagnifyingGlass } from "react-icons/hi2";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import {
-    setStatusTab,
-    setSelectedThread,
-} from "@/redux/inboxSlice";
+import { setSelectedThread } from "@/redux/inboxSlice";
 import type { ThreadItem } from "@/services/dashboard/analytics";
+import { ChannelBadge } from "./ChannelBadge";
 
 export interface ThreadListProps {
     search: string;
     onSearchChange: (search: string) => void;
     formatDate: (date?: string) => string;
+    filtersOpen: boolean;
+    activeFilterCount: number;
+    onToggleFilters: () => void;
 }
 
 export const ThreadList = ({
     search,
     onSearchChange,
     formatDate,
+    filtersOpen,
+    activeFilterCount,
+    onToggleFilters,
 }: ThreadListProps) => {
     const dispatch = useAppDispatch();
-    const { statusTab, loadingThreads, threadsData, selectedThread } = useAppSelector((state) => state.inbox);
+    const { loadingThreads, threadsData, selectedThread } = useAppSelector((state) => state.inbox);
 
     const handleSelectThread = (thread: ThreadItem) => {
         dispatch(setSelectedThread(thread));
     };
 
-    const handleStatusTabChange = (tab: string) => {
-        dispatch(setStatusTab(tab));
-    };
-
     return (
         <Card variant="outlined" className="!rounded-2xl !border-border !bg-surface-elevated flex flex-col lg:col-span-3 overflow-hidden">
-            <div className="p-3 border-b border-border bg-surface-muted/50 space-y-2.5">
-                <div className="relative">
+            <div className="border-b border-border bg-surface-muted/50 p-3">
+                <div className="flex items-center gap-2">
+                    <div className="relative min-w-0 flex-1">
                     <HiOutlineMagnifyingGlass className="absolute left-3 top-2.5 text-muted-foreground text-sm" />
                     <input
                         type="text"
@@ -42,22 +43,17 @@ export const ThreadList = ({
                         onChange={(e) => onSearchChange(e.target.value)}
                         className="w-full rounded-xl border border-border bg-card pl-9 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                     />
-                </div>
-
-                <div className="flex items-center gap-1 bg-card p-1 rounded-xl border border-border">
-                    {["all", "open", "closed"].map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => handleStatusTabChange(tab)}
-                            className={`flex-1 rounded-lg py-1 text-[11px] font-bold capitalize transition-all ${
-                                statusTab === tab
-                                    ? "bg-primary text-white shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
-                            }`}
-                        >
-                            {tab}
-                        </button>
-                    ))}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onToggleFilters}
+                        aria-expanded={filtersOpen}
+                        aria-label="Toggle conversation filters"
+                        className={`relative grid h-8 w-9 shrink-0 place-items-center rounded-xl border transition ${filtersOpen || activeFilterCount > 0 ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                    >
+                        <HiOutlineFunnel />
+                        {activeFilterCount > 0 && <span className="absolute -right-1.5 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[9px] font-bold text-white">{activeFilterCount}</span>}
+                    </button>
                 </div>
             </div>
 
@@ -82,10 +78,13 @@ export const ThreadList = ({
                                     : "hover:bg-surface-muted/40"
                             }`}
                         >
-                            <div className="flex items-center justify-between mb-1">
-                                <span className="font-bold text-xs text-foreground truncate max-w-[130px]">
-                                    {thread.user_name}
-                                </span>
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                                <div className="flex min-w-0 items-center gap-2">
+                                    <ChannelBadge channel={thread.received_from} compact />
+                                    <span className="truncate text-xs font-bold text-foreground">
+                                        {thread.user_name}
+                                    </span>
+                                </div>
                                 <span
                                     className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
                                         priority === "high"
@@ -99,15 +98,13 @@ export const ThreadList = ({
                                 </span>
                             </div>
 
-                            <div className="text-[11px] text-muted-foreground truncate mb-1">
-                                {thread.user_email || "No email provided"}
+                            <div className="mb-1 truncate text-[11px] text-muted-foreground">
+                                {thread.latest_message || "No messages yet"}
                             </div>
 
                             <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                                <span className="rounded-full bg-primary/10 px-2 py-0.5 font-bold uppercase text-primary">
-                                    {thread.received_from || "web"}
-                                </span>
-                                <span>{formatDate(thread.updated_at)}</span>
+                                <ChannelBadge channel={thread.received_from} />
+                                <span>{formatDate(thread.latest_message_at || thread.updated_at)}</span>
                             </div>
                         </div>
                     );

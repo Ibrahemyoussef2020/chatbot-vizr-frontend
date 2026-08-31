@@ -20,6 +20,7 @@ import {
     TicketDetails,
     ConversationTags,
     InternalNotes,
+    InboxFilterSidebar,
 } from "@/components/layouts/inbox";
 
 const formatDate = (value?: string) => {
@@ -57,9 +58,10 @@ const defaultTagPresets = [
 const InboxPage = () => {
     const dispatch = useAppDispatch();
     const activeWorkspace = useAppSelector((state) => state.workspace.active);
-    const { statusTab, selectedThread, messages, error } = useAppSelector((state) => state.inbox);
-    const { filters, setFilter } = useUrlSearchParams();
+    const { selectedThread, messages, error } = useAppSelector((state) => state.inbox);
+    const { filters, setFilter, resetFilters } = useUrlSearchParams();
     const [workspaceTags, setWorkspaceTags] = useState<TagItem[]>([]);
+    const [filtersOpen, setFiltersOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
     const {
@@ -71,7 +73,7 @@ const InboxPage = () => {
 
     const getFilterParams = useCallback(() => ({
         system_slug: activeWorkspace?.slug,
-        status: statusTab !== "all" ? statusTab : filters.status,
+        status: filters.status,
         assigned: filters.assigned,
         channel: filters.channel,
         priority: filters.priority,
@@ -81,7 +83,7 @@ const InboxPage = () => {
         sort: filters.sort,
         page: filters.page,
         limit: filters.limit,
-    }), [activeWorkspace?.slug, filters, statusTab]);
+    }), [activeWorkspace?.slug, filters]);
 
     useEffect(() => {
         void dispatch(fetchInboxThreads(getFilterParams()));
@@ -138,6 +140,13 @@ const InboxPage = () => {
     );
 
     const filterParams = getFilterParams();
+    const activeFilterCount = [
+        filters.status !== "all",
+        filters.channel !== "all",
+        filters.days !== 30,
+        filters.priority !== "all",
+        filters.sort !== "newest",
+    ].filter(Boolean).length;
 
     return (
         <div className="mx-auto grid w-full max-w-[1600px] gap-4 p-1">
@@ -158,15 +167,27 @@ const InboxPage = () => {
             {error && <Alert severity="error" className="mb-2">{error}</Alert>}
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-210px)] min-h-[620px]">
-                {/* COLUMN 1: Threads List & Filter Tabs */}
+                {filtersOpen && (
+                    <InboxFilterSidebar
+                        filters={filters}
+                        setFilter={setFilter}
+                        resetFilters={resetFilters}
+                        onClose={() => setFiltersOpen(false)}
+                    />
+                )}
+
+                {/* Conversation list */}
                 <ThreadList
                     search={filters.search || ""}
                     onSearchChange={(s) => setFilter("search", s)}
                     formatDate={formatDate}
+                    filtersOpen={filtersOpen}
+                    activeFilterCount={activeFilterCount}
+                    onToggleFilters={() => setFiltersOpen((open) => !open)}
                 />
 
                 {/* COLUMN 2: Center Live Message Stream & Composer */}
-                <Card variant="outlined" className="!rounded-2xl !border-border !bg-surface-elevated flex flex-col lg:col-span-5 overflow-hidden">
+                <Card variant="outlined" className={`!rounded-2xl !border-border !bg-surface-elevated flex flex-col overflow-hidden ${filtersOpen ? "lg:col-span-4" : "lg:col-span-5"}`}>
                     <MessageFeed
                         filterParams={filterParams}
                         formatDate={formatDate}
@@ -185,7 +206,7 @@ const InboxPage = () => {
                 </Card>
 
                 {/* COLUMN 3: Right Customer Profile & Ticket Side Details */}
-                <Card variant="outlined" className="!rounded-2xl !border-border !bg-surface-elevated p-4 flex flex-col lg:col-span-4 space-y-4 overflow-y-auto">
+                <Card variant="outlined" className={`!rounded-2xl !border-border !bg-surface-elevated p-4 flex flex-col space-y-4 overflow-y-auto ${filtersOpen ? "lg:col-span-3" : "lg:col-span-4"}`}>
                     {selectedThread ? (
                         <>
                             <CustomerProfile filterParams={filterParams} />

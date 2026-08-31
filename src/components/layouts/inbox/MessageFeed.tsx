@@ -7,6 +7,7 @@ import { HiOutlineUser } from "react-icons/hi2";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { toggleThreadStatus } from "@/redux/inboxSlice";
 import type { FilterThreadsParams } from "@/services/inbox";
+import { ChannelBadge } from "./ChannelBadge";
 
 export interface MessageFeedProps {
     filterParams: FilterThreadsParams;
@@ -50,6 +51,7 @@ export const MessageFeed = ({
                     <div>
                         <div className="flex items-center gap-2">
                             <h3 className="m-0 text-sm font-bold text-foreground">{selectedThread.user_name}</h3>
+                            <ChannelBadge channel={selectedThread.received_from} />
                             <span
                                 className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
                                     selectedThread.status === "open"

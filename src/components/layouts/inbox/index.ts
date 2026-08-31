@@ -4,4 +4,6 @@ export * from "./Composer";
 export * from "./CustomerProfile";
 export * from "./TicketDetails";
 export * from "./ConversationTags";
+export * from "./ChannelBadge";
 export * from "./InternalNotes";
+export * from "./InboxFilterSidebar";
