@@ -29,6 +29,7 @@ export interface ThreadItem {
     user_email?: string;
     user_phone?: string;
     system_slug: string;
+    received_from: "web" | "whatsapp" | "telegram" | "gmail";
     status: string;
     priority?: string;
     assigned_agent?: AssignedAgent;
@@ -41,6 +42,7 @@ export interface ThreadItem {
 export interface ThreadMessageItem {
     id: string;
     sender_type: "visitor" | "assistant" | "system" | "user" | "agent" | string;
+    received_from: "web" | "whatsapp" | "telegram" | "gmail";
     content: string;
     attachments?: Array<{ url: string; fileName: string; fileType: string }>;
     created_at: string;

@@ -104,7 +104,9 @@ export const ThreadList = ({
                             </div>
 
                             <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                                <span className="font-mono text-primary/90">{thread.system_slug}</span>
+                                <span className="rounded-full bg-primary/10 px-2 py-0.5 font-bold uppercase text-primary">
+                                    {thread.received_from || "web"}
+                                </span>
                                 <span>{formatDate(thread.updated_at)}</span>
                             </div>
                         </div>
