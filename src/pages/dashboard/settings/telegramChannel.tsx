@@ -43,6 +43,7 @@ const TelegramChannel = () => {
     const [aiEngineType, setAiEngineType] = useState<"internal_server" | "openai_api">("openai_api");
     const [openaiApiKey, setOpenaiApiKey] = useState<string>("");
     const [internalServerUrl, setInternalServerUrl] = useState<string>("http://localhost:11434/v1");
+    const [welcomeMessage, setWelcomeMessage] = useState<string>("Hi! Thanks for contacting us. How can we help?");
 
     // Dedicated Test Dispatcher state
     const [selectedBotId, setSelectedBotId] = useState<string>("");
@@ -102,19 +103,24 @@ const TelegramChannel = () => {
         setSuccessMsg("");
 
         try {
-            await createTelegramBot({
+            const created = await createTelegramBot({
                 system_id: activeWorkspace.id,
                 bot_token: botTokenInput.trim(),
                 ai_engine_type: aiEngineType,
                 openai_api_key: openaiApiKey,
                 internal_server_url: internalServerUrl,
+                welcome_message: welcomeMessage,
             });
             setBotTokenInput("");
-            setSuccessMsg("Telegram bot registered and webhook auto-linked!");
+            if (created.status === "active") {
+                setSuccessMsg(`@${created.bot_username} connected. Send the bot a message, then refresh the Inbox.`);
+            } else {
+                setError(created.error_message || "Bot token verified, but webhook registration failed. Check SERVER_URL and re-register the webhook.");
+            }
             setTimeout(() => setSuccessMsg(""), 3500);
             await reloadBots();
-        } catch {
-            setError("Failed to register Telegram bot token.");
+        } catch (err: any) {
+            setError(err?.response?.data?.message || err?.message || "Failed to register Telegram bot token.");
         } finally {
             setSaving(false);
         }
@@ -126,8 +132,8 @@ const TelegramChannel = () => {
             setSuccessMsg("Telegram webhook re-registered successfully!");
             setTimeout(() => setSuccessMsg(""), 3500);
             await reloadBots();
-        } catch {
-            setError("Failed to refresh webhook.");
+        } catch (err: any) {
+            setError(err?.response?.data?.message || err?.message || "Failed to refresh webhook.");
         }
     };
 
@@ -281,7 +287,7 @@ const TelegramChannel = () => {
                                 Telegram Bot Token
                             </label>
                             <input
-                                type="text"
+                                type="password"
                                 required
                                 placeholder="123456789:ABC-DEF1234ghIkl-zyx..."
                                 value={botTokenInput}
@@ -336,6 +342,19 @@ const TelegramChannel = () => {
                         )}
                     </div>
 
+                    <div>
+                        <label className="mb-1 block text-[10px] font-extrabold uppercase text-muted-foreground">
+                            First-message welcome reply
+                        </label>
+                        <textarea
+                            rows={2}
+                            maxLength={1000}
+                            value={welcomeMessage}
+                            onChange={(e) => setWelcomeMessage(e.target.value)}
+                            className="w-full resize-none rounded-xl border border-border bg-surface-elevated px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none"
+                        />
+                    </div>
+
                     <div className="flex justify-end pt-2 border-t border-border">
                         <Button
                             type="submit"
@@ -359,7 +378,7 @@ const TelegramChannel = () => {
                                 Configured Telegram Bots ({bots.length})
                             </span>
                             <span className="rounded bg-sky-500/10 px-2 py-0.5 text-[10px] font-extrabold uppercase text-sky-500">
-                                {bots.length} Active
+                                {bots.filter((bot) => bot.status === "active").length} Active
                             </span>
                         </div>
 

@@ -2,15 +2,17 @@ import api from "@/api";
 
 export interface TelegramBotItem {
     id: string;
-    bot_token: string;
+    telegram_bot_id?: string;
     bot_name: string;
     bot_username: string;
+    welcome_message?: string;
     ai_engine_type: "internal_server" | "openai_api";
     internal_server_url?: string;
     openai_api_key?: string;
     status: "active" | "error" | "pending";
     last_activity_at: string;
     error_message?: string;
+    webhook_url?: string;
     system: {
         id: string;
         name: string;
@@ -43,6 +45,7 @@ export const createTelegramBot = async (payload: {
     ai_engine_type?: "internal_server" | "openai_api";
     internal_server_url?: string;
     openai_api_key?: string;
+    welcome_message?: string;
 }): Promise<TelegramBotItem> => {
     const res = await api.post("/admin/telegram/bots", payload);
     return res.data.data;
