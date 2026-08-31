@@ -25,6 +25,25 @@ import {
     type TelegramBotItem,
 } from "@/services/integrations/telegramBot";
 
+const primaryButtonSx = {
+    borderRadius: "10px",
+    fontWeight: 800,
+    textTransform: "none",
+    backgroundColor: "#0284c7",
+    color: "#ffffff",
+    "&:hover": { backgroundColor: "#0369a1" },
+    "&.Mui-disabled": { backgroundColor: "#334155", color: "#cbd5e1", opacity: 0.75 },
+};
+
+const outlineButtonSx = {
+    textTransform: "none",
+    fontWeight: 700,
+    borderColor: "#0ea5e9",
+    color: "#38bdf8",
+    backgroundColor: "transparent",
+    "&:hover": { borderColor: "#38bdf8", backgroundColor: "rgba(14, 165, 233, 0.12)" },
+};
+
 const TelegramChannel = () => {
     const activeWorkspace = useAppSelector((state) => state.workspace.active);
     const [searchParams, setSearchParams] = useSearchParams();
@@ -62,9 +81,7 @@ const TelegramChannel = () => {
         try {
             const data = await fetchTelegramBots(activeWorkspace?.slug);
             setBots(data);
-            if (data.length > 0 && !selectedBotId) {
-                setSelectedBotId(data[0].id);
-            }
+            setSelectedBotId((current) => data.some((bot) => bot.id === current) ? current : data[0]?.id || "");
         } catch {
             setError("Failed to load Telegram bots.");
         } finally {
@@ -79,7 +96,7 @@ const TelegramChannel = () => {
             .then((data) => {
                 if (isMounted) {
                     setBots(data);
-                    if (data.length > 0) setSelectedBotId(data[0].id);
+                    setSelectedBotId((current) => data.some((bot) => bot.id === current) ? current : data[0]?.id || "");
                     setError("");
                 }
             })
@@ -151,7 +168,7 @@ const TelegramChannel = () => {
 
     const handleDispatchTestMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        const targetBot = selectedBotId || (bots[0] ? bots[0].id : "");
+        const targetBot = bots.find((bot) => bot.id === selectedBotId)?.id || bots[0]?.id || "";
         if (!targetBot || !testChatId.trim() || !testMessageText.trim()) return;
 
         setSendingTest(true);
@@ -172,6 +189,9 @@ const TelegramChannel = () => {
     const switchTab = (tabName: string) => {
         setSearchParams({ tab: tabName });
     };
+
+    const effectiveBotId = bots.find((bot) => bot.id === selectedBotId)?.id || bots[0]?.id || "";
+    const canSendTest = Boolean(effectiveBotId && testChatId.trim() && testMessageText.trim());
 
     if (loading) {
         return (
@@ -204,7 +224,7 @@ const TelegramChannel = () => {
                     variant="outlined"
                     startIcon={<HiOutlineArrowPath />}
                     onClick={reloadBots}
-                    sx={{ textTransform: "none", fontWeight: 700, borderRadius: "8px" }}
+                    sx={{ ...outlineButtonSx, borderRadius: "8px" }}
                 >
                     Refresh List
                 </Button>
@@ -216,7 +236,7 @@ const TelegramChannel = () => {
                     type="button"
                     onClick={() => switchTab("all")}
                     className={`flex-1 rounded-xl py-2 px-3 text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                        activeTab === "all" ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                        activeTab === "all" ? "bg-sky-600 text-white shadow-sm" : "text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500"
                     }`}
                 >
                     📋 Overview All
@@ -226,7 +246,7 @@ const TelegramChannel = () => {
                     type="button"
                     onClick={() => switchTab("platform")}
                     className={`flex-1 rounded-xl py-2 px-3 text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                        activeTab === "platform" ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                        activeTab === "platform" ? "bg-sky-600 text-white shadow-sm" : "text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500"
                     }`}
                 >
                     <HiOutlineCog6Tooth className="text-base" /> Platform Configs
@@ -236,7 +256,7 @@ const TelegramChannel = () => {
                     type="button"
                     onClick={() => switchTab("ai")}
                     className={`flex-1 rounded-xl py-2 px-3 text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                        activeTab === "ai" ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                        activeTab === "ai" ? "bg-sky-600 text-white shadow-sm" : "text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500"
                     }`}
                 >
                     <HiOutlineCpuChip className="text-base" /> AI Integration Options
@@ -246,7 +266,7 @@ const TelegramChannel = () => {
                     type="button"
                     onClick={() => switchTab("test")}
                     className={`flex-1 rounded-xl py-2 px-3 text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                        activeTab === "test" ? "bg-sky-600 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                        activeTab === "test" ? "bg-sky-600 text-white shadow-sm" : "text-muted-foreground hover:bg-sky-500/10 hover:text-sky-500"
                     }`}
                 >
                     <HiOutlineBeaker className="text-base" /> Test Message Dispatcher
@@ -360,7 +380,7 @@ const TelegramChannel = () => {
                             type="submit"
                             disabled={saving || !botTokenInput.trim()}
                             variant="contained"
-                            sx={{ borderRadius: "10px", fontWeight: 800, textTransform: "none", px: 4 }}
+                            sx={{ ...primaryButtonSx, px: 4 }}
                         >
                             {saving ? "Registering Token..." : "Save Bot & Link Webhook"}
                         </Button>
@@ -425,7 +445,7 @@ const TelegramChannel = () => {
                                                 size="small"
                                                 variant="outlined"
                                                 onClick={() => handleRefreshWebhook(bot.id)}
-                                                sx={{ textTransform: "none", fontSize: "0.7rem" }}
+                                                sx={{ ...outlineButtonSx, fontSize: "0.7rem" }}
                                             >
                                                 Re-register Webhook
                                             </Button>
@@ -503,20 +523,21 @@ const TelegramChannel = () => {
 
                                 <Button
                                     type="submit"
-                                    disabled={sendingTest || !testChatId.trim() || !testMessageText.trim() || bots.length === 0}
+                                    disabled={sendingTest || !canSendTest}
                                     variant="contained"
                                     sx={{
                                         width: "100%",
-                                        borderRadius: "10px",
-                                        fontWeight: 800,
-                                        textTransform: "none",
-                                        backgroundColor: "#0284c7",
-                                        "&:hover": { backgroundColor: "#0369a1" },
+                                        ...primaryButtonSx,
                                     }}
                                     startIcon={<HiOutlinePaperAirplane />}
                                 >
                                     {sendingTest ? "Sending..." : "Dispatch Message"}
                                 </Button>
+                                {!effectiveBotId && (
+                                    <p className="text-[10px] font-semibold text-warning">
+                                        Connect a Telegram bot before dispatching a test message.
+                                    </p>
+                                )}
                             </form>
                         </div>
                     </div>
