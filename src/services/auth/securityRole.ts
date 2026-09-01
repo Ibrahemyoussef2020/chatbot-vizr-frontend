@@ -2,7 +2,11 @@ import api from "@/api";
 
 export interface SecurityRoleData {
     id: string;
+    code: string;
     name: string;
+    description: string;
+    scope: "business" | "workspace";
+    is_system: boolean;
     system_id?: string | null;
     permissions: Array<{ id: string; name: string }>;
     users_count: number;
@@ -11,6 +15,9 @@ export interface SecurityRoleData {
 export interface PermissionData {
     id: string;
     name: string;
+    category: string;
+    description: string;
+    scope: "business" | "workspace";
     roles_count: number;
 }
 
@@ -20,7 +27,7 @@ export const fetchSecurityRoles = async (systemSlug?: string): Promise<SecurityR
 };
 
 export const saveSecurityRole = async (
-    payload: { name: string; system_id?: string | null; selectedPermissions?: string[] },
+    payload: { name: string; system_id?: string | null; system_slug?: string; selectedPermissions?: string[] },
     roleId?: string,
 ): Promise<boolean> => {
     if (roleId) {

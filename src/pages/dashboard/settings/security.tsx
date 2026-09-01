@@ -82,6 +82,10 @@ const Security = () => {
     }, [activeWorkspace]);
 
     const filteredRoles = roles.filter((r) => r.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const permissionGroups = permissions.reduce<Record<string, PermissionData[]>>((groups, permission) => {
+        (groups[permission.category] ||= []).push(permission);
+        return groups;
+    }, {});
 
     const handleOpenRoleModal = (role?: SecurityRoleData) => {
         if (role) {
@@ -105,6 +109,7 @@ const Security = () => {
             await saveSecurityRole(
                 {
                     name: roleNameInput,
+                    system_slug: activeWorkspace?.slug,
                     selectedPermissions,
                 },
                 editingRoleId || undefined,
@@ -213,8 +218,9 @@ const Security = () => {
                                     <td className="p-3">
                                         <div className="font-bold text-foreground">{role.name}</div>
                                         <div className="text-[10px] text-muted-foreground">
-                                            Scope: {role.system_id ? "Workspace Tenant" : "Global Platform"}
+                                            Scope: {role.scope === "business" ? "Vizr Business" : "Workspace Tenant"}
                                         </div>
+                                        {role.description && <div className="mt-1 max-w-md text-[10px] text-muted-foreground">{role.description}</div>}
                                     </td>
                                     <td className="p-3 text-center">
                                         <span className="rounded bg-surface-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground border border-border">
@@ -243,6 +249,7 @@ const Security = () => {
                                                 variant="outlined"
                                                 startIcon={<HiOutlineTrash />}
                                                 onClick={() => handleDeleteRole(role.id)}
+                                                disabled={role.is_system}
                                                 sx={{ textTransform: "none", fontSize: "0.7rem" }}
                                             >
                                                 Delete
@@ -267,12 +274,19 @@ const Security = () => {
                     </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                    {permissions.map((perm) => (
-                        <div key={perm.id} className="rounded-xl border border-border bg-surface-elevated p-3 space-y-1">
-                            <div className="text-xs font-bold text-foreground">{perm.name}</div>
-                            <div className="text-[10px] text-muted-foreground">{perm.roles_count || 1} linked roles</div>
-                        </div>
+                <div className="space-y-5">
+                    {Object.entries(permissionGroups).map(([category, items]) => (
+                        <section key={category}>
+                            <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-wider text-primary">{category}</h3>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                {items.map((perm) => (
+                                    <div key={perm.id} className="rounded-xl border border-border bg-surface-elevated p-3 space-y-1">
+                                        <div className="text-xs font-bold text-foreground">{perm.name}</div>
+                                        <div className="text-[10px] leading-5 text-muted-foreground">{perm.description}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
                     ))}
                 </div>
             </div>
@@ -302,8 +316,11 @@ const Security = () => {
                             <label className="block text-xs font-extrabold uppercase tracking-wider text-muted-foreground mb-2">
                                 Assign Access Capabilities
                             </label>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                {permissions.map((p) => {
+                            <div className="max-h-[24rem] space-y-4 overflow-y-auto pr-1">
+                                {Object.entries(permissionGroups).map(([category, items]) => <section key={category}>
+                                    <h3 className="mb-2 text-[10px] font-extrabold uppercase tracking-wider text-primary">{category}</h3>
+                                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                {items.map((p) => {
                                     const checked = selectedPermissions.includes(p.id);
 
                                     return (
@@ -321,6 +338,8 @@ const Security = () => {
                                         </label>
                                     );
                                 })}
+                                    </div>
+                                </section>)}
                             </div>
                         </div>
                     </DialogContent>
