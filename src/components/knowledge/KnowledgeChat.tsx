@@ -15,7 +15,9 @@ const KnowledgeChat = ({ messages, busy, disabled, onAsk }: Props) => {
     const [question, setQuestion] = useState("");
     const endRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, busy]);
+    useEffect(() => {
+        endRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages, busy]);
 
     const submit = async (event: FormEvent) => {
         event.preventDefault();

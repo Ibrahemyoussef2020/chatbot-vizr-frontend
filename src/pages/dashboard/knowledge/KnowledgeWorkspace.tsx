@@ -32,7 +32,10 @@ const KnowledgeWorkspace = () => {
 
     useEffect(() => {
         if (!detail || !window.location.hash) return;
-        requestAnimationFrame(() => document.querySelector(window.location.hash)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+        const frame = requestAnimationFrame(() => {
+            document.querySelector(window.location.hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        return () => cancelAnimationFrame(frame);
     }, [detail]);
 
     const upload = async (files: File[]) => {
