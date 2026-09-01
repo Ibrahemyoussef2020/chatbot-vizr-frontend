@@ -4,12 +4,14 @@ import { HiOutlineArrowUpTray } from "react-icons/hi2";
 
 interface Props {
     busy: boolean;
+    progress?: number;
     onUpload: (files: File[]) => Promise<void>;
+    onCancel: () => void;
 }
 
 const accept = ".pdf,.xls,.xlsx,.csv,.txt,.md,.json,.xml,audio/*,video/*";
 
-const SourceUploader = ({ busy, onUpload }: Props) => {
+const SourceUploader = ({ busy, progress = 0, onUpload, onCancel }: Props) => {
     const input = useRef<HTMLInputElement>(null);
     const [dragging, setDragging] = useState(false);
 
@@ -35,10 +37,14 @@ const SourceUploader = ({ busy, onUpload }: Props) => {
             <HiOutlineArrowUpTray className="mx-auto mb-2 text-3xl text-primary" />
             <p className="m-0 font-bold text-foreground">Drop knowledge files here</p>
             <p className="mb-4 mt-1 text-xs text-muted-foreground">PDF, text, Excel, audio, or video. Up to 10 files per upload.</p>
+            {busy && (
+                <div className="mx-auto mb-4 max-w-xs">
+                    <div className="h-2 overflow-hidden rounded-full bg-surface"><div className="h-full bg-primary transition-[width]" style={{ width: `${progress}%` }} /></div>
+                    <p className="mb-0 mt-1 text-xs font-bold text-primary">{progress}% uploaded</p>
+                </div>
+            )}
             <input ref={input} hidden type="file" multiple accept={accept} onChange={(event: ChangeEvent<HTMLInputElement>) => void send(event.target.files)} />
-            <Button variant="contained" disabled={busy} onClick={() => input.current?.click()}>
-                {busy ? "Processing..." : "Choose files"}
-            </Button>
+            {busy ? <Button color="error" variant="outlined" onClick={onCancel}>Cancel upload</Button> : <Button variant="contained" onClick={() => input.current?.click()}>Choose files</Button>}
         </div>
     );
 };

@@ -6,7 +6,7 @@ import KnowledgeChat from "@/components/knowledge/KnowledgeChat";
 import SourceList from "@/components/knowledge/SourceList";
 import SourceUploader from "@/components/knowledge/SourceUploader";
 import { useAppSelector } from "@/redux/store";
-import { askQuestion, getSession, uploadSources, type KnowledgeSessionDetail } from "@/services/knowledge/knowledgeBase";
+import { askQuestion, getSession, uploadSourcesDirect, type KnowledgeSessionDetail } from "@/services/knowledge/knowledgeBase";
 
 const messageFromError = (error: unknown, fallback: string) => {
     const candidate = error as { response?: { data?: { message?: string } } };
@@ -19,6 +19,8 @@ const KnowledgeWorkspace = () => {
     const [detail, setDetail] = useState<KnowledgeSessionDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadController, setUploadController] = useState<AbortController | null>(null);
     const [asking, setAsking] = useState(false);
     const [error, setError] = useState("");
 
@@ -35,14 +37,21 @@ const KnowledgeWorkspace = () => {
 
     const upload = async (files: File[]) => {
         if (!workspace?.slug) return;
+        const controller = new AbortController();
+        setUploadController(controller);
         setUploading(true);
+        setUploadProgress(0);
         setError("");
         try {
-            setDetail(await uploadSources(workspace.slug, sessionId, files));
+            setDetail(await uploadSourcesDirect(workspace.slug, sessionId, files, {
+                signal: controller.signal,
+                onProgress: (progress) => setUploadProgress(progress.percent),
+            }));
         } catch (cause) {
-            setError(messageFromError(cause, "Files could not be processed."));
+            if (!controller.signal.aborted) setError(messageFromError(cause, "Files could not be uploaded."));
         } finally {
             setUploading(false);
+            setUploadController(null);
         }
     };
 
@@ -77,7 +86,7 @@ const KnowledgeWorkspace = () => {
             {error && <div role="alert" className="rounded-xl border border-danger/20 bg-danger/10 p-3 text-sm text-danger">{error}</div>}
             <div className="grid items-start gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
                 <aside id="sources" className="grid scroll-mt-6 gap-4">
-                    <SourceUploader busy={uploading} onUpload={upload} />
+                    <SourceUploader busy={uploading} progress={uploadProgress} onUpload={upload} onCancel={() => uploadController?.abort()} />
                     <SourceList sources={detail.sources} />
                 </aside>
                 <div id="chat" className="scroll-mt-6">
