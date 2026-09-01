@@ -15,6 +15,7 @@ export interface KnowledgeSession {
 
 export interface KnowledgeSource {
     id: string;
+    upload_id?: string;
     name: string;
     kind: "pdf" | "audio" | "video" | "excel" | "text";
     mime_type: string;
@@ -150,7 +151,19 @@ const completeWithRetry = async (systemSlug: string, sessionId: string, uploadId
     }
 };
 
+const waitForWebhook = async (systemSlug: string, sessionId: string, uploadId: string, signal?: AbortSignal) => {
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+        signal?.throwIfAborted();
+        const detail = await getSession(systemSlug, sessionId);
+        if (detail.sources.some((source) => source.upload_id === uploadId)) return detail;
+        await wait(1_500, signal);
+    }
+    await completeWithRetry(systemSlug, sessionId, uploadId, signal);
+    return getSession(systemSlug, sessionId);
+};
+
 export const uploadSourcesDirect = async (systemSlug: string, sessionId: string, files: File[], options: { signal?: AbortSignal; onProgress?: (progress: UploadProgress) => void } = {}) => {
+    let latestDetail: KnowledgeSessionDetail | undefined;
     for (const file of files) {
         const fingerprint = `${file.name}:${file.size}:${file.lastModified}:${file.type}`;
         const initiated = await api.post(`/admin/knowledge/sessions/${sessionId}/uploads/initiate`, {
@@ -168,12 +181,15 @@ export const uploadSourcesDirect = async (systemSlug: string, sessionId: string,
                     authorization = { ...authorization, ...refreshed.data.data };
                 }
                 const end = Math.min(offset + authorization.chunk_size, file.size);
-                await chunkWithRetry(authorization, file, offset, end, options.signal, options.onProgress);
+                const chunkResult = await chunkWithRetry(authorization, file, offset, end, options.signal, options.onProgress);
                 offset = end;
                 localStorage.setItem(storageKey, String(offset));
                 await api.patch(`/admin/knowledge/sessions/${sessionId}/uploads/${authorization.upload_id}/progress`, { system_slug: systemSlug, bytes: offset }).catch(() => undefined);
+                if (offset === file.size && chunkResult.done === false) {
+                    throw Object.assign(new Error("Cloudinary has not finalized the last upload chunk."), { status: 503 });
+                }
             }
-            await completeWithRetry(systemSlug, sessionId, authorization.upload_id, options.signal);
+            latestDetail = await waitForWebhook(systemSlug, sessionId, authorization.upload_id, options.signal);
             localStorage.removeItem(storageKey);
         } catch (error) {
             if (options.signal?.aborted) {
@@ -183,7 +199,7 @@ export const uploadSourcesDirect = async (systemSlug: string, sessionId: string,
             throw error;
         }
     }
-    return getSession(systemSlug, sessionId);
+    return latestDetail || getSession(systemSlug, sessionId);
 };
 
 export const askQuestion = async (systemSlug: string, sessionId: string, question: string) => {
