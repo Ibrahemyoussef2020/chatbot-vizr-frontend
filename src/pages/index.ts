@@ -7,6 +7,7 @@ export { default as Widget } from "./dashboard/settings/widget";
 export { default as Configs } from "./dashboard/settings/configs";
 export { default as WhatsAppChannel } from "./dashboard/settings/whatsappChannel";
 export { default as TelegramChannel } from "./dashboard/settings/telegramChannel";
+export { default as GmailChannel } from "./dashboard/settings/gmailChannel";
 export { default as Inbox } from "./dashboard/Inbox";
 export { default as Tags } from "./dashboard/Tags";
 export { default as TokenManagement } from "./dashboard/TokenManagement";

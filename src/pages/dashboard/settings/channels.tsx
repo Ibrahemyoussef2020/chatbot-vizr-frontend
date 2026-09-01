@@ -13,6 +13,7 @@ import {
     HiOutlineBeaker,
     HiOutlineCheckCircle,
     HiOutlineArrowRight,
+    HiOutlineEnvelope,
 } from "react-icons/hi2";
 
 const Channels = () => {
@@ -50,6 +51,15 @@ const Channels = () => {
             status2: { label: "Configured", type: "info" },
             targetPath: "/dashboard/settings/widget",
             btnLabel: "Configure Web Widget",
+        },
+        {
+            id: "gmail",
+            name: "Gmail",
+            description: "Connect a Gmail mailbox through Google OAuth and route email conversations into the shared Inbox.",
+            icon: HiOutlineEnvelope,
+            status: { label: "Available", type: "info" },
+            targetPath: "/dashboard/settings/channels/gmail",
+            btnLabel: "Configure Gmail",
         },
     ];
 

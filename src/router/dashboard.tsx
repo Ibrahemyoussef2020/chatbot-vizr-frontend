@@ -9,6 +9,7 @@ import {
     Configs,
     WhatsAppChannel,
     TelegramChannel,
+    GmailChannel,
     Inbox,
     Tags,
     TokenManagement,
@@ -64,6 +65,10 @@ const dashbordRpoter = [
                             {
                                 path: "channels/telegram",
                                 element: <TelegramChannel />,
+                            },
+                            {
+                                path: "channels/gmail",
+                                element: <GmailChannel />,
                             },
                             {
                                 path: "configs",
