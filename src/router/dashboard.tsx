@@ -14,6 +14,9 @@ import {
     Tags,
     TokenManagement,
     Logs,
+    KnowledgeSessions,
+    KnowledgeWorkspace,
+    BusinessPlans,
 } from "@/pages";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -45,6 +48,26 @@ const dashbordRpoter = [
                     {
                         path: "logs",
                         element: <Logs />,
+                    },
+                    {
+                        path: "knowledge",
+                        element: <KnowledgeSessions />,
+                    },
+                    {
+                        path: "knowledge/upload",
+                        element: <KnowledgeSessions mode="upload" />,
+                    },
+                    {
+                        path: "knowledge/chat",
+                        element: <KnowledgeSessions mode="chat" />,
+                    },
+                    {
+                        path: "knowledge/:sessionId",
+                        element: <KnowledgeWorkspace />,
+                    },
+                    {
+                        path: "business/plans",
+                        element: <BusinessPlans />,
                     },
                     {
                         path: "settings",

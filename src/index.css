@@ -135,6 +135,31 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.theme-scrollbar {
+  scrollbar-color: color-mix(in srgb, var(--primary) 65%, var(--border)) var(--surface-muted);
+  scrollbar-width: thin;
+}
+
+.theme-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.theme-scrollbar::-webkit-scrollbar-track {
+  background: var(--surface-muted);
+  border-radius: 999px;
+}
+
+.theme-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--primary) 65%, var(--border));
+  border: 2px solid var(--surface-muted);
+  border-radius: 999px;
+}
+
+.theme-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
 [id] {
   scroll-margin-top: 5rem;
 }

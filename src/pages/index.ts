@@ -12,6 +12,9 @@ export { default as Inbox } from "./dashboard/Inbox";
 export { default as Tags } from "./dashboard/Tags";
 export { default as TokenManagement } from "./dashboard/TokenManagement";
 export { default as Logs } from "./dashboard/Logs";
+export { default as KnowledgeSessions } from "./dashboard/knowledge/KnowledgeSessions";
+export { default as KnowledgeWorkspace } from "./dashboard/knowledge/KnowledgeWorkspace";
+export { default as BusinessPlans } from "./dashboard/BusinessPlans";
 
 export { default as Login } from "./auth/Login";
 export { default as Register } from "./auth/Register";

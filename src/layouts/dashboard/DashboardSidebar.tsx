@@ -6,7 +6,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Drawer from "@mui/material/Drawer";
 import TextField from "@mui/material/TextField";
 import { useState, type FormEvent } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
     HiOutlineChatBubbleLeftRight,
     HiOutlineChartBarSquare,
@@ -16,6 +16,13 @@ import {
     HiOutlineTag,
     HiOutlineArrowRightStartOnRectangle,
     HiOutlinePlus,
+    HiOutlineBookOpen,
+    HiOutlineArrowUpTray,
+    HiOutlineChatBubbleBottomCenterText,
+    HiOutlineRectangleStack,
+    HiOutlineBriefcase,
+    HiOutlineChevronDown,
+    HiOutlineCreditCard,
 } from "react-icons/hi2";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { logoutAsync } from "@/redux/authThunk";
@@ -44,8 +51,14 @@ interface SidebarContentProps {
     canCreateWorkspace: boolean;
 }
 
-const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspace }: SidebarContentProps) => (
-    <div className="flex h-full w-64 flex-col border-r border-border bg-surface text-foreground">
+const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspace }: SidebarContentProps) => {
+    const location = useLocation();
+    const isKnowledgeRoute = location.pathname.startsWith("/dashboard/knowledge");
+    const [businessOpen, setBusinessOpen] = useState(isKnowledgeRoute || location.pathname.startsWith("/dashboard/business"));
+    const [knowledgeOpen, setKnowledgeOpen] = useState(isKnowledgeRoute);
+
+    return (
+    <div className="flex h-full w-72 flex-col border-r border-border bg-surface text-foreground">
         <NavLink className="flex items-center gap-3 border-b border-border px-6 py-5 no-underline" to="/" onClick={onClose}>
             <img className="h-9 w-9 object-contain" src="/robot.png" alt="Vizr" />
             <div>
@@ -54,7 +67,7 @@ const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspa
             </div>
         </NavLink>
 
-        <nav className="flex-1 overflow-y-auto px-4 py-5" aria-label="Dashboard navigation">
+        <nav className="theme-scrollbar flex-1 overflow-y-auto px-4 py-5" aria-label="Dashboard navigation">
             <p className="mb-2 px-3 text-[.62rem] font-extrabold uppercase tracking-[.14em] text-muted-foreground">Navigation</p>
             <div className="grid gap-1">
                 {navigation.map(({ label, to, icon: Icon, end }) => (
@@ -75,6 +88,43 @@ const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspa
                         {label}
                     </NavLink>
                 ))}
+                {canCreateWorkspace && (
+                    <div className="my-1 p-1.5">
+                        <button type="button" onClick={() => setBusinessOpen((open) => !open)} className="flex w-full items-center gap-3 rounded-lg border-0 bg-transparent px-2 py-2 text-left text-sm font-bold text-foreground">
+                            <HiOutlineBriefcase className="text-xl text-primary" aria-hidden="true" />
+                            <span className="flex-1">Business Owner</span>
+                            <HiOutlineChevronDown className={`transition-transform ${businessOpen ? "rotate-180" : ""}`} />
+                        </button>
+                        {businessOpen && <div className="grid gap-1 border-l border-border pl-3">
+                            <button type="button" onClick={() => setKnowledgeOpen((open) => !open)} className="flex w-full items-center gap-2 rounded-lg border-0 bg-transparent px-2.5 py-2 text-left text-xs font-semibold text-muted-foreground hover:bg-surface-muted hover:text-foreground">
+                                <HiOutlineBookOpen className="text-base" />
+                                <span className="flex-1">Knowledge Base</span>
+                                <HiOutlineChevronDown className={`transition-transform ${knowledgeOpen ? "rotate-180" : ""}`} />
+                            </button>
+                            {knowledgeOpen && <div className="grid gap-1 border-l border-border pl-3">
+                        {[
+                            { label: "Upload files", to: "/dashboard/knowledge/upload", icon: HiOutlineArrowUpTray },
+                            { label: "Knowledge chat", to: "/dashboard/knowledge/chat", icon: HiOutlineChatBubbleBottomCenterText },
+                            { label: "Knowledge sessions", to: "/dashboard/knowledge", icon: HiOutlineRectangleStack, end: true },
+                        ].map(({ label, to, icon: Icon, end }) => (
+                            <NavLink
+                                key={to}
+                                to={to}
+                                end={end}
+                                onClick={onClose}
+                                className={({ isActive }) => `flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold no-underline transition-colors ${isActive ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-surface-muted hover:text-foreground"}`}
+                            >
+                                <Icon className="text-base" aria-hidden="true" />
+                                {label}
+                            </NavLink>
+                        ))}
+                            </div>}
+                            <NavLink to="/dashboard/business/plans" onClick={onClose} className={({ isActive }) => `flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold no-underline ${isActive ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-surface-muted hover:text-foreground"}`}>
+                                <HiOutlineCreditCard className="text-base" /> Plans
+                            </NavLink>
+                        </div>}
+                    </div>
+                )}
             </div>
         </nav>
 
@@ -89,7 +139,8 @@ const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspa
             </Button>
         </div>
     </div>
-);
+    );
+};
 
 const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
     const dispatch = useAppDispatch();
@@ -136,7 +187,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
 
     return (
         <>
-            <aside className="hidden h-screen w-64 shrink-0 xl:block">
+            <aside className="hidden h-screen w-72 shrink-0 xl:block">
                 <SidebarContent {...contentProps} />
             </aside>
             <Drawer open={mobileOpen} onClose={onClose}>
