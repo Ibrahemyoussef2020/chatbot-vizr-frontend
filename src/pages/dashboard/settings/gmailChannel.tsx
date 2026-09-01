@@ -90,11 +90,12 @@ const GmailChannel = () => {
     }, [searchParams, setSearchParams]);
 
     const canSend = useMemo(
-        () => status.connected && /^\S+@\S+\.\S+$/.test(recipient.trim()) && Boolean(subject.trim() && content.trim()),
-        [status.connected, recipient, subject, content],
+        () => /^\S+@\S+\.\S+$/.test(recipient.trim()) && Boolean(subject.trim() && content.trim()),
+        [recipient, subject, content],
     );
 
     const connect = async () => {
+        if (working) return;
         setWorking(true);
         setError("");
         try {
@@ -204,7 +205,7 @@ const GmailChannel = () => {
                             <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-xs leading-relaxed text-muted-foreground">
                                 Connect Gmail once. Google will return to the configured callback, then the backend stores the refresh token and starts the mailbox watch automatically.
                             </div>
-                            <Button disabled={working} variant="contained" startIcon={<HiOutlineLink />} onClick={connect} sx={primaryButtonSx}>
+                            <Button aria-disabled={working} variant="contained" startIcon={working ? <CircularProgress size={16} color="inherit" /> : <HiOutlineLink />} onClick={connect} sx={primaryButtonSx}>
                                 {working ? "Opening Google..." : "Connect Gmail with Google"}
                             </Button>
                         </div>
@@ -235,7 +236,7 @@ const GmailChannel = () => {
                         <Button type="submit" fullWidth disabled={sending || !canSend} variant="contained" startIcon={<HiOutlinePaperAirplane />} sx={primaryButtonSx}>
                             {sending ? "Sending..." : "Send Gmail test message"}
                         </Button>
-                        {!status.connected && <p className="text-[10px] font-semibold text-warning">Connect Gmail first; the button will enable immediately when the account and fields are ready.</p>}
+                        {!status.connected && <p className="text-[10px] font-semibold text-warning">Complete the fields to enable the test button. Gmail must be connected before the backend can deliver the message.</p>}
                     </form>
                 </section>
             </div>
