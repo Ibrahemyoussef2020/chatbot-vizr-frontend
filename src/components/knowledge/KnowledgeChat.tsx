@@ -1,17 +1,16 @@
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { HiOutlinePaperAirplane } from "react-icons/hi2";
+import { HiOutlineArrowUp, HiOutlinePaperClip } from "react-icons/hi2";
 import type { KnowledgeMessage } from "@/services/knowledge/knowledgeBase";
 
 interface Props {
+    sessionTitle: string;
     messages: KnowledgeMessage[];
     busy: boolean;
     disabled: boolean;
     onAsk: (question: string) => Promise<void>;
 }
 
-const KnowledgeChat = ({ messages, busy, disabled, onAsk }: Props) => {
+const KnowledgeChat = ({ sessionTitle, messages, busy, disabled, onAsk }: Props) => {
     const [question, setQuestion] = useState("");
     const endRef = useRef<HTMLDivElement>(null);
 
@@ -28,19 +27,19 @@ const KnowledgeChat = ({ messages, busy, disabled, onAsk }: Props) => {
     };
 
     return (
-        <section className="flex min-h-[620px] flex-col overflow-hidden rounded-2xl border border-border bg-surface-elevated">
-            <header className="border-b border-border px-5 py-4">
-                <h2 className="m-0 text-lg font-extrabold text-foreground">Knowledge chatbot</h2>
-                <p className="m-0 text-xs text-muted-foreground">Answers are grounded in this session's ready sources.</p>
-            </header>
-            <div className="flex-1 space-y-4 overflow-y-auto p-5">
+        <section className="flex min-h-0 flex-1 flex-col bg-background">
+            <div className="theme-scrollbar flex-1 space-y-5 overflow-y-auto px-5 py-7 sm:px-8 lg:px-[8%]">
                 {!messages.length && (
-                    <div className="grid h-full place-content-center text-center text-sm text-muted-foreground">
-                        <p className="m-0">Upload a source, then ask a question about its content.</p>
+                    <div className="grid min-h-[420px] place-content-center px-4 text-center">
+                        <div className="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-[24px] border border-primary/20 bg-primary/10 shadow-[0_16px_50px_var(--shadow-color)]">
+                            <img src="/robot.png" alt="" className="h-12 w-12 object-contain" />
+                        </div>
+                        <h2 className="m-0 max-w-2xl text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">What would you like to know about {sessionTitle}?</h2>
+                        <p className="mx-auto mb-0 mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Ask questions and explore answers grounded only in the ready sources saved in this session.</p>
                     </div>
                 )}
                 {messages.map((message) => (
-                    <article key={message.id} className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-6 ${message.role === "user" ? "ml-auto bg-primary text-white" : "bg-surface-muted text-foreground"}`}>
+                    <article key={message.id} className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6 ${message.role === "user" ? "ml-auto bg-primary text-primary-foreground" : "border border-border bg-surface text-foreground"}`}>
                         <p className="m-0 whitespace-pre-wrap">{message.content}</p>
                         {message.role === "assistant" && message.citations?.length > 0 && (
                             <div className="mt-3 flex flex-wrap gap-1 border-t border-border pt-2">
@@ -49,13 +48,17 @@ const KnowledgeChat = ({ messages, busy, disabled, onAsk }: Props) => {
                         )}
                     </article>
                 ))}
-                {busy && <div className="w-fit rounded-2xl bg-surface-muted px-4 py-3 text-sm text-muted-foreground">Thinking...</div>}
+                {busy && <div className="w-fit rounded-2xl border border-border bg-surface px-4 py-3 text-sm text-muted-foreground">Thinking...</div>}
                 <div ref={endRef} />
             </div>
-            <form className="flex gap-2 border-t border-border p-4" onSubmit={submit}>
-                <TextField fullWidth size="small" placeholder={disabled ? "Upload a ready source first" : "Ask from your knowledge..."} value={question} disabled={disabled || busy} onChange={(event) => setQuestion(event.target.value)} />
-                <Button type="submit" variant="contained" disabled={disabled || busy || !question.trim()} aria-label="Send question"><HiOutlinePaperAirplane /></Button>
-            </form>
+            <div className="bg-gradient-to-t from-background via-background to-transparent px-4 pb-5 pt-3 sm:px-8 lg:px-[6%]">
+                <form className="mx-auto flex max-w-5xl items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2 shadow-[0_12px_40px_var(--shadow-color)] focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10" onSubmit={submit}>
+                    <button type="button" className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border-0 bg-transparent text-xl text-muted-foreground" aria-label="Attachments are added from the Upload files page" title="Upload files from the session sources panel"><HiOutlinePaperClip /></button>
+                    <input className="min-w-0 flex-1 border-0 bg-transparent py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground" placeholder={disabled ? "Upload a ready source first" : "Ask about this session..."} value={question} disabled={disabled || busy} onChange={(event) => setQuestion(event.target.value)} />
+                    <button type="submit" disabled={disabled || busy || !question.trim()} aria-label="Send question" className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border-0 bg-primary text-lg text-primary-foreground transition hover:brightness-110 disabled:bg-muted disabled:text-muted-foreground"><HiOutlineArrowUp /></button>
+                </form>
+                <p className="mb-0 mt-2 text-center text-[10px] text-muted-foreground">Answers are generated from your uploaded knowledge. Verify important information.</p>
+            </div>
         </section>
     );
 };

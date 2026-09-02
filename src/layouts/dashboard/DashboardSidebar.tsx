@@ -22,7 +22,9 @@ import {
     HiOutlineRectangleStack,
     HiOutlineBriefcase,
     HiOutlineChevronDown,
-    HiOutlineCreditCard,
+    HiOutlineClipboardDocumentList,
+    HiOutlinePresentationChartLine,
+    HiOutlineBookmark,
 } from "react-icons/hi2";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { logoutAsync } from "@/redux/authThunk";
@@ -49,9 +51,10 @@ interface SidebarContentProps {
     onCreateWorkspace: () => void;
     onLogout: () => void;
     canCreateWorkspace: boolean;
+    canAccessBusinessTools: boolean;
 }
 
-const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspace }: SidebarContentProps) => {
+const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspace, canAccessBusinessTools }: SidebarContentProps) => {
     const location = useLocation();
     const isKnowledgeRoute = location.pathname.startsWith("/dashboard/knowledge");
     const [businessOpen, setBusinessOpen] = useState(isKnowledgeRoute || location.pathname.startsWith("/dashboard/business"));
@@ -88,7 +91,7 @@ const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspa
                         {label}
                     </NavLink>
                 ))}
-                {canCreateWorkspace && (
+                {canAccessBusinessTools && (
                     <div className="my-1 p-1.5">
                         <button type="button" onClick={() => setBusinessOpen((open) => !open)} className="flex w-full items-center gap-3 rounded-lg border-0 bg-transparent px-2 py-2 text-left text-sm font-bold text-foreground">
                             <HiOutlineBriefcase className="text-xl text-primary" aria-hidden="true" />
@@ -106,6 +109,9 @@ const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspa
                             { label: "Upload files", to: "/dashboard/knowledge/upload", icon: HiOutlineArrowUpTray },
                             { label: "Knowledge chat", to: "/dashboard/knowledge/chat", icon: HiOutlineChatBubbleBottomCenterText },
                             { label: "Knowledge sessions", to: "/dashboard/knowledge", icon: HiOutlineRectangleStack, end: true },
+                            { label: "Plans", to: "/dashboard/knowledge/plans", icon: HiOutlineClipboardDocumentList },
+                            { label: "Reports", to: "/dashboard/knowledge/reports", icon: HiOutlinePresentationChartLine },
+                            { label: "Saved", to: "/dashboard/knowledge/saved", icon: HiOutlineBookmark },
                         ].map(({ label, to, icon: Icon, end }) => (
                             <NavLink
                                 key={to}
@@ -119,9 +125,7 @@ const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspa
                             </NavLink>
                         ))}
                             </div>}
-                            <NavLink to="/dashboard/business/plans" onClick={onClose} className={({ isActive }) => `flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold no-underline ${isActive ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-surface-muted hover:text-foreground"}`}>
-                                <HiOutlineCreditCard className="text-base" /> Plans
-                            </NavLink>
+                      
                         </div>}
                     </div>
                 )}
@@ -146,6 +150,8 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const role = useAppSelector((state) => state.auth.user?.role);
+    const canCreateWorkspace = role === "super_admin";
+    const canAccessBusinessTools = role === "super_admin" || role === "admin";
     const [createOpen, setCreateOpen] = useState(false);
     const [creating, setCreating] = useState(false);
     const [error, setError] = useState("");
@@ -182,7 +188,8 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
         onClose,
         onCreateWorkspace: () => setCreateOpen(true),
         onLogout: logout,
-        canCreateWorkspace: role === "super_admin",
+        canCreateWorkspace,
+        canAccessBusinessTools,
     };
 
     return (

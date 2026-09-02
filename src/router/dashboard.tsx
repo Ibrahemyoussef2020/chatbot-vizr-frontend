@@ -16,6 +16,9 @@ import {
     Logs,
     KnowledgeSessions,
     KnowledgeWorkspace,
+    KnowledgePlans,
+    KnowledgeReports,
+    SavedKnowledgeOutputs,
     BusinessPlans,
 } from "@/pages";
 import ProtectedRoute from "./ProtectedRoute";
@@ -64,6 +67,34 @@ const dashbordRpoter = [
                     {
                         path: "knowledge/:sessionId",
                         element: <KnowledgeWorkspace />,
+                    },
+                    {
+                        path: "knowledge/plans",
+                        element: <KnowledgeSessions mode="plans" />,
+                    },
+                    {
+                        path: "knowledge/reports",
+                        element: <KnowledgeSessions mode="reports" />,
+                    },
+                    {
+                        path: "knowledge/saved",
+                        element: <SavedKnowledgeOutputs />,
+                    },
+                    {
+                        path: "knowledge/:sessionId/plans",
+                        element: <KnowledgePlans />,
+                    },
+                    {
+                        path: "knowledge/:sessionId/plans/:outputId",
+                        element: <KnowledgePlans />,
+                    },
+                    {
+                        path: "knowledge/:sessionId/reports",
+                        element: <KnowledgeReports />,
+                    },
+                    {
+                        path: "knowledge/:sessionId/reports/:outputId",
+                        element: <KnowledgeReports />,
                     },
                     {
                         path: "business/plans",
