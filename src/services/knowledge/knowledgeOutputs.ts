@@ -56,6 +56,11 @@ export const saveOutput = async (systemSlug: string, sessionId: string, kind: Ou
     return mapOutput(response.data.data as ApiOutput);
 };
 
+export const generateOutput = async (systemSlug: string, sessionId: string, kind: OutputKind, instruction?: string) => {
+    const response = await api.post(`${basePath(sessionId, kind)}/generate`, { system_slug: systemSlug, instruction });
+    return mapOutput(response.data.data as ApiOutput);
+};
+
 export const createOutputSchema = async (systemSlug: string, sessionId: string, kind: OutputKind, outputId: string, payload: unknown) => {
     const response = await api.post(`${basePath(sessionId, kind)}/${outputId}/schemas`, { ...(payload as object), system_slug: systemSlug });
     return mapSection(response.data.data as ApiSection);
