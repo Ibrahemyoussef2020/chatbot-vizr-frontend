@@ -7,7 +7,7 @@ type Section = "chat" | "plans" | "reports";
 
 const sessionHref = (sessionId: string, section: Section) => section === "chat" ? `/dashboard/knowledge/${sessionId}#chat` : `/dashboard/knowledge/${sessionId}/${section}`;
 
-const KnowledgeSessionRail = ({ sessions, activeSessionId, section }: { sessions: KnowledgeSession[]; activeSessionId: string; section: Section }) => {
+const KnowledgeSessionRail = ({ sessions, activeSessionId, section, loading = false }: { sessions: KnowledgeSession[]; activeSessionId: string; section: Section; loading?: boolean }) => {
     const [query, setQuery] = useState("");
     const visible = sessions.filter((session) => session.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
     const labels = { chat: "Knowledge chat", plans: "Knowledge plans", reports: "Knowledge reports" };
@@ -24,13 +24,26 @@ const KnowledgeSessionRail = ({ sessions, activeSessionId, section }: { sessions
                 </label>
             </div>
             <nav className="theme-scrollbar flex-1 space-y-2 overflow-y-auto p-3" aria-label={`Sessions for ${section}`}>
-                {visible.map((session) => (
+                {loading && (
+                    <div className="space-y-2" aria-label="Loading sessions" aria-busy="true">
+                        {[0, 1, 2, 3].map((item) => (
+                            <div key={item} className="flex animate-pulse items-center gap-3 rounded-xl p-3">
+                                <span className="h-9 w-9 shrink-0 rounded-lg bg-surface-muted" />
+                                <span className="min-w-0 flex-1 space-y-2">
+                                    <span className="block h-3 w-3/4 rounded bg-surface-muted" />
+                                    <span className="block h-2 w-1/2 rounded bg-surface-muted" />
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                {!loading && visible.map((session) => (
                     <Link key={session.id} to={sessionHref(session.id, section)} className={`flex items-center gap-3 rounded-xl border p-3 no-underline transition ${session.id === activeSessionId ? "border-primary/30 bg-primary/10" : "border-transparent text-muted-foreground hover:border-border hover:bg-surface-muted"}`}>
                         <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${session.id === activeSessionId ? "bg-primary text-primary-foreground" : "bg-surface-muted text-primary"}`}><HiOutlineBookOpen /></span>
                         <span className="min-w-0 flex-1"><strong className={`block truncate text-sm ${session.id === activeSessionId ? "text-foreground" : "text-inherit"}`}>{session.title}</strong><small className="mt-0.5 block text-[10px] text-muted-foreground">{session.ready_source_count} of {session.source_count} sources ready</small></span>
                     </Link>
                 ))}
-                {!visible.length && <p className="px-3 py-8 text-center text-xs text-muted-foreground">No matching sessions.</p>}
+                {!loading && !visible.length && <p className="px-3 py-8 text-center text-xs text-muted-foreground">No matching sessions.</p>}
             </nav>
         </aside>
     );

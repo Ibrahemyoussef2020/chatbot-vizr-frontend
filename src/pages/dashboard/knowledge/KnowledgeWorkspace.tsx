@@ -1,4 +1,3 @@
-import CircularProgress from "@mui/material/CircularProgress";
 import { useEffect, useState } from "react";
 import { HiOutlineArrowLeft, HiOutlineDocumentText } from "react-icons/hi2";
 import { Link, useLocation, useParams } from "react-router-dom";
@@ -29,6 +28,9 @@ const KnowledgeWorkspace = () => {
 
     useEffect(() => {
         if (!workspace?.slug || !sessionId) return;
+        setLoading(true);
+        setError("");
+        setDetail(null);
         Promise.all([getSession(workspace.slug, sessionId), listSessions(workspace.slug)])
             .then(([sessionDetail, sessionList]) => { setDetail(sessionDetail); setSessions(sessionList); })
             .catch((cause) => setError(messageFromError(cause, "Knowledge session could not be loaded.")))
@@ -62,7 +64,24 @@ const KnowledgeWorkspace = () => {
         finally { setAsking(false); }
     };
 
-    if (loading || detail?.session.id !== sessionId) return <div className="grid h-[70vh] place-content-center"><CircularProgress /></div>;
+    const sessionLoading = loading || Boolean(detail && detail.session.id !== sessionId);
+
+    if (sessionLoading) return (
+        <div className="mx-auto h-[calc(100vh-6.5rem)] min-h-[650px] w-full max-w-[1600px] overflow-hidden rounded-2xl border border-border bg-surface shadow-[var(--shadow)]">
+            <div className="grid h-full min-h-0 lg:grid-cols-[320px_minmax(0,1fr)]">
+                <KnowledgeSessionRail sessions={[]} activeSessionId={sessionId} section="chat" loading />
+                <main id="chat" className="flex min-h-0 min-w-0 flex-col bg-background" aria-busy="true">
+                    <header className="flex min-h-[82px] items-center gap-4 border-b border-border bg-surface px-5 py-4 sm:px-7">
+                        <div className="min-w-0 flex-1">
+                            <span className="text-[10px] font-extrabold uppercase tracking-[.14em] text-primary">Knowledge conversation</span>
+                            <div className="mt-1 h-6 w-52 max-w-full animate-pulse rounded-md bg-surface-muted" />
+                        </div>
+                    </header>
+                    <KnowledgeChat sessionTitle="" messages={[]} busy={false} disabled loading onAsk={async () => undefined} />
+                </main>
+            </div>
+        </div>
+    );
     if (!detail) return <div className="rounded-xl bg-danger/10 p-4 text-danger">{error || "Knowledge session not found."}</div>;
 
     const sourcesMode = location.hash === "#sources";
