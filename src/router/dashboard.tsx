@@ -12,7 +12,6 @@ import {
     GmailChannel,
     Inbox,
     Tags,
-    TokenManagement,
     Logs,
     KnowledgeSessions,
     KnowledgeWorkspace,
@@ -20,8 +19,14 @@ import {
     KnowledgeReports,
     SavedKnowledgeOutputs,
     BusinessPlans,
+    AIManagement,
 } from "@/pages";
 import ProtectedRoute from "./ProtectedRoute";
+import { Navigate } from "react-router-dom";
+import { AgentsView, ModelsView, RequestLogsView, RoutingView } from "@/features/ai-management/AIManagementViews";
+import QuotasView from "@/features/ai-management/views/QuotasView";
+import OverviewView from "@/features/ai-management/views/OverviewView";
+import ProvidersView from "@/features/ai-management/views/ProvidersView";
 
 const dashbordRpoter = [
     {
@@ -32,6 +37,17 @@ const dashbordRpoter = [
                 element: <Dashboard />,
                 children: [
                     { index: true, element: <Overview /> },
+                    { path: "ai-management", element: <AIManagement />, children: [
+                        { index: true, element: <Navigate to="overview" replace /> },
+                        { path: "overview", element: <OverviewView /> },
+                        { path: "providers", element: <ProvidersView /> },
+                        { path: "models", element: <ModelsView /> },
+                        { path: "agents", element: <AgentsView /> },
+                        { path: "routing", element: <RoutingView /> },
+                        { path: "quotas", element: <QuotasView /> },
+                        { path: "analytics", element: <Navigate to="../overview" replace /> },
+                        { path: "request-logs", element: <RequestLogsView /> },
+                    ] },
                     {
                         path: "analytics",
                         element: <Analytics />,
@@ -46,7 +62,7 @@ const dashbordRpoter = [
                     },
                     {
                         path: "token-management",
-                        element: <TokenManagement />,
+                        element: <Navigate to="/dashboard/ai-management" replace />,
                     },
                     {
                         path: "logs",

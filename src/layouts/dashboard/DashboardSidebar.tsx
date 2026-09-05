@@ -25,6 +25,7 @@ import {
     HiOutlineClipboardDocumentList,
     HiOutlinePresentationChartLine,
     HiOutlineBookmark,
+    HiOutlineCpuChip,
 } from "react-icons/hi2";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { logoutAsync } from "@/redux/authThunk";
@@ -39,9 +40,9 @@ interface DashboardSidebarProps {
 const navigation = [
     { label: "Dashboard", to: "/dashboard", icon: HiOutlineHome, end: true },
     { label: "Analytics", to: "/dashboard/analytics", icon: HiOutlineChartBarSquare },
+    { label: "AI Management", to: "/dashboard/ai-management", icon: HiOutlineCpuChip },
     { label: "Inbox", to: "/dashboard/inbox", icon: HiOutlineChatBubbleLeftRight },
     { label: "Tags", to: "/dashboard/tags", icon: HiOutlineTag },
-    { label: "Token management", to: "/dashboard/token-management", icon: HiOutlineChartBarSquare },
     { label: "System logs", to: "/dashboard/logs", icon: HiOutlineQueueList },
     { label: "Settings", to: "/dashboard/settings", icon: HiOutlineCog6Tooth },
 ];

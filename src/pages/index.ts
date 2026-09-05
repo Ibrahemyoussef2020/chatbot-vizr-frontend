@@ -10,7 +10,6 @@ export { default as TelegramChannel } from "./dashboard/settings/telegramChannel
 export { default as GmailChannel } from "./dashboard/settings/gmailChannel";
 export { default as Inbox } from "./dashboard/Inbox";
 export { default as Tags } from "./dashboard/Tags";
-export { default as TokenManagement } from "./dashboard/TokenManagement";
 export { default as Logs } from "./dashboard/Logs";
 export { default as KnowledgeSessions } from "./dashboard/knowledge/KnowledgeSessions";
 export { default as KnowledgeWorkspace } from "./dashboard/knowledge/KnowledgeWorkspace";
@@ -18,6 +17,7 @@ export { default as KnowledgePlans } from "./dashboard/knowledge/KnowledgePlans"
 export { default as KnowledgeReports } from "./dashboard/knowledge/KnowledgeReports";
 export { default as SavedKnowledgeOutputs } from "./dashboard/knowledge/SavedKnowledgeOutputs";
 export { default as BusinessPlans } from "./dashboard/BusinessPlans";
+export { default as AIManagement } from "./dashboard/AIManagement";
 
 export { default as Login } from "./auth/Login";
 export { default as Register } from "./auth/Register";

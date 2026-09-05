@@ -44,6 +44,67 @@
   --theme-accent-strong: color-mix(in srgb, var(--primary) 47%, transparent);
 }
 
+/* Dense AI operations layout: mirrors the compact Token Management and Tags surfaces. */
+.ai-management-dashboard article {
+  min-height: 0;
+}
+
+.ai-management-dashboard article > div.p-5,
+.ai-management-dashboard article > div.p-4 {
+  padding: 0.875rem;
+}
+
+.ai-management-dashboard article h3 {
+  margin-top: 0.625rem;
+}
+
+.ai-management-dashboard main > .grid {
+  align-items: start;
+}
+
+.ai-management-dashboard article .overflow-x-auto > .flex,
+.ai-management-dashboard article .overflow-x-auto > div.flex {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* MUI dialogs render in a body portal, so bind their surfaces to the active app theme. */
+.MuiDialog-root .MuiDialog-paper {
+  background: var(--surface-elevated) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow) !important;
+}
+
+.MuiDialog-root .MuiDialogTitle-root,
+.MuiDialog-root .MuiDialogContent-root,
+.MuiDialog-root .MuiDialogActions-root {
+  background: var(--surface-elevated);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+.MuiDialog-root input,
+.MuiDialog-root select,
+.MuiDialog-root textarea {
+  color-scheme: inherit;
+  background-color: var(--surface) !important;
+  color: var(--foreground) !important;
+}
+
+.MuiDialog-root select option {
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+@media (min-width: 1280px) {
+  .ai-management-dashboard main > .grid.grid-cols-1,
+  .ai-management-dashboard main > .grid.sm\:grid-cols-2,
+  .ai-management-dashboard main > .grid.md\:grid-cols-2 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 body.light-theme {
   color-scheme: light;
   --background: #f8fafc;
