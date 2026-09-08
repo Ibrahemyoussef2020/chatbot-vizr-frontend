@@ -22,8 +22,8 @@ function AIManagementLayout(){
     <option value="runtime">Real executions</option>
     <option value="demo">Seeded demo traffic</option>
    </select>
+   {!state.loading && state.trafficSource === "demo" && <span className="rounded bg-primary/10 px-2 py-1 text-[10px] text-primary">Demo</span>}
   </label>
-  {!state.loading && state.trafficSource === "demo" && <Alert severity="info">Demo traffic: requests, tokens, latency and costs are simulated. Agent configuration and quota limits remain real.</Alert>}
   {state.loading?<div className="grid h-64 place-items-center"><CircularProgress/></div>:state.error?<Alert severity="error">{state.error}</Alert>:<Outlet/>}
  </div>;
 }
