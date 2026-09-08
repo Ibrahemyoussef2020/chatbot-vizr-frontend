@@ -6,8 +6,8 @@ export default function RequestLogsView() {
     return (
         <section className="overflow-hidden rounded-xl border border-border bg-card">
             <header className="border-b border-border p-4">
-                <h2 className="m-0 text-sm font-bold">Runtime execution logs</h2>
-                <p className="mb-0 text-xs text-muted-foreground">Latest 200 attempts. Use Refresh to load new records. Demo records are excluded.</p>
+                <h2 className="m-0 text-sm font-bold">{context.trafficSource === "demo" ? "Demo execution logs" : "Runtime execution logs"}</h2>
+                <p className="mb-0 text-xs text-muted-foreground">Latest 200 attempts. Use Refresh to load new records. The selected traffic source is shown.</p>
             </header>
             <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
@@ -28,7 +28,7 @@ export default function RequestLogsView() {
                     </tbody>
                 </table>
             </div>
-            {!logs.length && <p className="p-4 text-sm text-muted-foreground">No runtime executions match these filters.</p>}
+            {!logs.length && <p className="p-4 text-sm text-muted-foreground">No executions match these filters.</p>}
         </section>
     );
 }
