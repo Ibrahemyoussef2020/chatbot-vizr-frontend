@@ -12,24 +12,13 @@ const Panel=({title,subtitle,children,className=""}:any)=><section className={`r
 export default function OverviewView(){
  const c=useAIManagement();const o=c.overview;if(!o)return null;
  const maxDaily=Math.max(1,...c.analytics.daily.map((d:any)=>d.requests));const totalStatuses=c.analytics.statuses.reduce((n:number,s:any)=>n+s.count,0);
- const demoUtilization: Record<string, number> = {
-  agent: 0.68,
-  model: 0.82,
-  provider: 0.46,
-  workspace: 0.57,
- };
- const quotaPosture = c.quotas.map(quota => ({
-  ...quota,
-  usedTokens: c.trafficSource === "demo"
-   ? Math.round((quota.tokenLimit ?? 0) * (demoUtilization[quota.scope ?? ""] ?? 0.35))
-   : quota.usedTokens ?? 0,
- }));
+ const quotaPosture = c.quotas;
  const failed=c.analytics.statuses.find((s:any)=>s._id==="failed")?.count||0;const quotaRisk=quotaPosture.filter((q:any)=>q.tokenLimit&&q.usedTokens/q.tokenLimit>=.7).length;
  return <div className="space-y-4">
   <section className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-8">
    <Metric label="AI requests" value={compact(o.requests)} detail="All executions" icon={<HiOutlineBolt/>}/><Metric label="Success rate" value={`${o.success_rate}%`} detail={`${failed} failed`} icon={<HiOutlineCheckCircle/>}/><Metric label="Tokens" value={compact(o.total_tokens)} detail="AI request logs" icon={<HiOutlineCircleStack/>}/><Metric label="Avg latency" value={`${o.average_latency_ms}ms`} detail="Response time" icon={<HiOutlineClock/>}/><Metric label="Agents" value={o.agents} detail="Workspace fleet" icon={<HiOutlineSparkles/>}/><Metric label="Models" value={o.models} detail="Available engines" icon={<HiOutlineCpuChip/>}/><Metric label="Providers" value={o.providers} detail="Connected network" icon={<HiOutlineServerStack/>}/><Metric label="Quota risk" value={quotaRisk} detail="Above 70%" icon={<HiOutlineExclamationTriangle/>}/>
   </section>
-  {c.trafficSource === "runtime" && <AITokenInsights workspace={c.workspace} mode="analytics"/>}
+  <AITokenInsights workspace={c.workspace} mode="analytics"/>
   <section className="grid gap-4 xl:grid-cols-[2fr_1fr]">
    <Panel title="AI request velocity" subtitle="Requests and failures across the last 30 days"><div className="mt-4 flex h-52 items-end gap-1 border-b border-border">{c.analytics.daily.map((day:any)=><div key={day._id} className="group relative flex h-full min-w-1 flex-1 items-end"><i className="block w-full rounded-t bg-primary/70 transition hover:bg-primary" style={{height:`${Math.max(3,day.requests/maxDaily*100)}%`}}/><span className="absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-foreground px-2 py-1 text-[8px] text-background group-hover:block">{day._id}: {day.requests} requests · {day.failures} failed</span></div>)}</div></Panel>
    <Panel title="Execution outcomes" subtitle="Reliability distribution for AI traffic"><div className="mt-5 grid grid-cols-[130px_1fr] items-center gap-5"><div className="grid h-32 w-32 place-items-center rounded-full" style={{background:`conic-gradient(var(--success) 0 ${totalStatuses?(totalStatuses-failed)/totalStatuses*100:0}%, var(--danger) 0 100%)`}}><div className="grid h-24 w-24 place-items-center rounded-full bg-card text-center"><div><strong className="block text-xl">{compact(totalStatuses)}</strong><span className="text-[8px] uppercase text-muted-foreground">Executions</span></div></div></div><div>{c.analytics.statuses.map((status:any)=><div key={status._id} className="mb-2 flex items-center justify-between text-[10px]"><Badge value={status._id}/><b>{status.count}</b></div>)}</div></div></Panel>

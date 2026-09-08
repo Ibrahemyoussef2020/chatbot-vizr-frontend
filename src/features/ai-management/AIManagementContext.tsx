@@ -6,9 +6,6 @@ import { isAxiosError } from "axios";
 type State = {
     workspace?: string;
     workspaceName: string;
-    trafficSource: "runtime" | "demo";
-    trafficMode: "auto" | "runtime" | "demo";
-    setTrafficMode: (value: "auto" | "runtime" | "demo") => void;
     loading: boolean;
     error: string;
     overview: AIOverview | null;
@@ -45,11 +42,8 @@ const optionalAnalytics = async <T,>(request: Promise<T>, fallback: T): Promise<
 export function AIManagementProvider({ children }: { children: ReactNode }) {
     const active = useAppSelector(state => state.workspace.active);
     const workspaceSlug = active?.slug;
-    const [trafficMode, setTrafficMode] = useState<"auto" | "runtime" | "demo">("auto");
-    const [trafficSource, setTrafficSource] = useState<"runtime" | "demo">("runtime");
     const requestId = useRef(0);
     const [loading, setLoading] = useState(true);
-    const [loadedTrafficMode, setLoadedTrafficMode] = useState<string | null>(null);
     const [loadedWorkspace, setLoadedWorkspace] = useState<string | undefined | null>(null);
     const [error, setError] = useState("");
     const [overview, setOverview] = useState<AIOverview | null>(null);
@@ -67,27 +61,14 @@ export function AIManagementProvider({ children }: { children: ReactNode }) {
 
     const load = useCallback(() => {
         const currentRequest = ++requestId.current;
-        return (async () => {
-            let source: "runtime" | "demo" = trafficMode === "demo" ? "demo" : "runtime";
-            let summary = await fetchAIOverview(workspaceSlug, source);
-            if (trafficMode === "auto" && summary.requests === 0) {
-                const demo = await fetchAIOverview(workspaceSlug, "demo");
-                if (demo.requests > 0) {
-                    source = "demo";
-                    summary = demo;
-                }
-            }
-            const data = await Promise.all([
-                Promise.resolve(summary), fetchAIProviders(), fetchAIModels(),
+        return Promise.all([
+                fetchAIOverview(workspaceSlug), fetchAIProviders(), fetchAIModels(),
                 fetchAIAgents(workspaceSlug), fetchAIRouting(workspaceSlug), fetchAIQuotas(workspaceSlug),
-                optionalAnalytics(fetchAIRequestLogs(workspaceSlug, source), []),
-                optionalAnalytics(fetchAIAnalytics(workspaceSlug, source), { providers: [], daily: [], statuses: [] }),
+                optionalAnalytics(fetchAIRequestLogs(workspaceSlug), []),
+                optionalAnalytics(fetchAIAnalytics(workspaceSlug), { providers: [], daily: [], statuses: [] }),
                 fetchAIRuntime(workspaceSlug),
-            ]);
-            return { data, source };
-        })().then(({ data, source }) => {
+            ]).then(data => {
             if (currentRequest !== requestId.current) return;
-            setTrafficSource(source);
             setOverview(data[0]);
             setProviders(data[1]);
             setModels(data[2]);
@@ -104,10 +85,9 @@ export function AIManagementProvider({ children }: { children: ReactNode }) {
             if (currentRequest === requestId.current) {
                 setLoading(false);
                 setLoadedWorkspace(workspaceSlug);
-                setLoadedTrafficMode(trafficMode);
             }
         });
-    }, [workspaceSlug, trafficMode]);
+    }, [workspaceSlug]);
 
     const reload = useCallback(async () => {
         setLoading(true);
@@ -144,8 +124,7 @@ export function AIManagementProvider({ children }: { children: ReactNode }) {
 
     return (
         <Context.Provider value={{
-            workspace: workspaceSlug, workspaceName: active?.name || "Global", loading: loading || loadedWorkspace !== workspaceSlug || loadedTrafficMode !== trafficMode, error,
-            trafficSource, trafficMode, setTrafficMode,
+            workspace: workspaceSlug, workspaceName: active?.name || "Global", loading: loading || loadedWorkspace !== workspaceSlug, error,
             overview, providers, models, agents, routing, quotas, logs, analytics, runtime,
             search, setSearch, providerFilter, setProviderFilter, statusFilter, setStatusFilter,
             providerCodes, filter, reload, toggleProvider,

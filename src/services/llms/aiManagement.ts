@@ -70,7 +70,7 @@ export const updateAIRuntime = async (defaultAgentId: string | null, systemSlug?
 export interface AIProviderItem { id: string; code: string; name: string; enabled: boolean; configured: boolean; priority: number; health: string; last_error: string; }
 export interface AIOverview { providers: number; models: number; agents: number; requests: number; success_rate: number; total_tokens: number; average_latency_ms: number; fallback_attempts: number; }
 const params = (systemSlug?: string) => ({ system_slug: systemSlug });
-export const fetchAIOverview = async (systemSlug?: string, source: "runtime" | "demo" = "runtime"): Promise<AIOverview> => (await api.get("/admin/ai-management/overview", { params: { ...params(systemSlug), source } })).data.data;
+export const fetchAIOverview = async (systemSlug?: string, source: "runtime" | "demo" | "all" = "all"): Promise<AIOverview> => (await api.get("/admin/ai-management/overview", { params: { ...params(systemSlug), source } })).data.data;
 export const fetchAIProviders = async (): Promise<AIProviderItem[]> => (await api.get("/admin/ai-management/providers")).data.data;
 export const updateAIProvider = async (id: string, payload: Partial<AIProviderItem>): Promise<AIProviderItem> => (await api.patch(`/admin/ai-management/providers/${id}`, payload)).data.data;
 export const fetchAIModels = async () => (await api.get("/admin/ai-management/models")).data.data;
@@ -81,7 +81,7 @@ export const fetchAIAgents = async (systemSlug?: string) => (await api.get("/adm
 export const createAIAgent = async (payload: Record<string, unknown>, systemSlug?: string) => (await api.post("/admin/ai-management/agents", payload, { params: params(systemSlug) })).data.data;
 export const updateAIAgent = async (id: string, payload: Record<string, unknown>, systemSlug?: string) => (await api.patch(`/admin/ai-management/agents/${id}`, payload, { params: params(systemSlug) })).data.data;
 export const deleteAIAgent = async (id: string, systemSlug?: string) => (await api.delete(`/admin/ai-management/agents/${id}`, { params: params(systemSlug) })).data.data;
-export const fetchAIRequestLogs = async (systemSlug?: string, source: "runtime" | "demo" = "runtime") => (await api.get("/admin/ai-management/logs", { params: { ...params(systemSlug), source } })).data.data;
+export const fetchAIRequestLogs = async (systemSlug?: string, source: "runtime" | "demo" | "all" = "all") => (await api.get("/admin/ai-management/logs", { params: { ...params(systemSlug), source } })).data.data;
 export const fetchAIRouting = async (systemSlug?: string) => (await api.get("/admin/ai-management/routing", { params: params(systemSlug) })).data.data;
 export const fetchAIQuotas = async (systemSlug?: string) => (await api.get("/admin/ai-management/quotas", { params: params(systemSlug) })).data.data;
 export const createAIRouting = async (payload: Record<string, unknown>, systemSlug?: string) => (await api.post("/admin/ai-management/routing", payload, { params: params(systemSlug) })).data.data;
@@ -90,4 +90,4 @@ export const deleteAIRouting = async (id: string, systemSlug?: string) => (await
 export const createAIQuota = async (payload: Record<string, unknown>, systemSlug?: string) => (await api.post("/admin/ai-management/quotas", payload, { params: params(systemSlug) })).data.data;
 export const updateAIQuota = async (id: string, payload: Record<string, unknown>, systemSlug?: string) => (await api.patch(`/admin/ai-management/quotas/${id}`, payload, { params: params(systemSlug) })).data.data;
 export const deleteAIQuota = async (id: string, systemSlug?: string) => (await api.delete(`/admin/ai-management/quotas/${id}`, { params: params(systemSlug) })).data.data;
-export const fetchAIAnalytics = async (systemSlug?: string, source: "runtime" | "demo" = "runtime") => (await api.get("/admin/ai-management/analytics", { params: { ...params(systemSlug), source } })).data.data;
+export const fetchAIAnalytics = async (systemSlug?: string, source: "runtime" | "demo" | "all" = "all") => (await api.get("/admin/ai-management/analytics", { params: { ...params(systemSlug), source } })).data.data;
