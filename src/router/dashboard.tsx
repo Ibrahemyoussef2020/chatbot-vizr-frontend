@@ -23,7 +23,9 @@ import {
 } from "@/pages";
 import ProtectedRoute from "./ProtectedRoute";
 import { Navigate } from "react-router-dom";
-import { AgentsView, ModelsView, RequestLogsView, RoutingView } from "@/features/ai-management/AIManagementViews";
+import { ModelsView, RoutingView } from "@/features/ai-management/AIManagementViews";
+import AgentsView from "@/features/ai-management/views/AgentsView";
+import RequestLogsView from "@/features/ai-management/views/RequestLogsView";
 import QuotasView from "@/features/ai-management/views/QuotasView";
 import OverviewView from "@/features/ai-management/views/OverviewView";
 import ProvidersView from "@/features/ai-management/views/ProvidersView";

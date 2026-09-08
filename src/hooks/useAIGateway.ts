@@ -5,6 +5,7 @@ import {
     type AIGatewayOptions,
     generateAICompletion,
     streamAICompletion,
+    aiGatewayErrorMessage,
 } from "@/services/llms/aiGateway";
 
 export interface UseAIGatewayOptions {
@@ -29,10 +30,10 @@ export const useAIGateway = (config?: UseAIGatewayOptions) => {
                     { ...options, ...overrideOptions }
                 );
                 return text;
-            } catch (err: any) {
-                const msg = err?.response?.data?.error || err?.message || "Failed to generate AI completion.";
+            } catch (err) {
+                const msg = aiGatewayErrorMessage(err);
                 setError(msg);
-                throw new Error(msg);
+                throw new Error(msg, { cause: err });
             } finally {
                 setIsLoading(false);
             }
@@ -66,6 +67,7 @@ export const useAIGateway = (config?: UseAIGatewayOptions) => {
                 (err) => {
                     setIsLoading(false);
                     setError(err.message);
+                    throw err;
                 }
             );
         },
@@ -76,7 +78,8 @@ export const useAIGateway = (config?: UseAIGatewayOptions) => {
         async (
             chatMessages: Array<{ sender_type: string; agent_type?: "human" | "bot"; content: string }>,
             systemInstructions?: string,
-            onChunk?: (chunk: string) => void
+            onChunk?: (chunk: string) => void,
+            contextOptions?: AIGatewayOptions,
         ): Promise<string> => {
             setIsLoading(true);
             setError(null);
@@ -90,6 +93,7 @@ export const useAIGateway = (config?: UseAIGatewayOptions) => {
 
             const finalOptions: AIGatewayOptions = {
                 ...options,
+                ...contextOptions,
                 systemPrompt: systemInstructions || "You are a helpful customer support AI copilot. Generate a polite, concise, and professional reply.",
             };
 

@@ -68,6 +68,7 @@ const InboxPage = () => {
         provider: aiProvider,
         setProvider: setAiProvider,
         isLoading: isAILoading,
+        error: aiError,
         suggestReply,
     } = useAIGateway({ defaultProvider: "vercel" });
 
@@ -125,10 +126,11 @@ const InboxPage = () => {
                 "You are an AI Copilot assisting a human support agent. Write a helpful, professional, and clear response to the customer on behalf of the agent.",
                 (chunk) => {
                     dispatch(appendReplyChunk(chunk));
-                }
+                },
+                { threadId: selectedThread?.id, systemSlug: activeWorkspace?.slug },
             );
         } catch {
-            // Handled via useAIGateway error state
+            dispatch(setReplyText(""));
         }
     };
 
@@ -165,6 +167,7 @@ const InboxPage = () => {
             </header>
 
             {error && <Alert severity="error" className="mb-2">{error}</Alert>}
+            {aiError && <Alert severity="error" className="mb-2">{aiError}</Alert>}
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-210px)] min-h-[620px]">
                 {filtersOpen && (

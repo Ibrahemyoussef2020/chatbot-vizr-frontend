@@ -1,4 +1,16 @@
 import api from "@/api";
+import { isAxiosError } from "axios";
+
+export const aiGatewayErrorMessage = (error: unknown): string => {
+    if (isAxiosError(error)) {
+        let data = error.response?.data;
+        if (typeof data === "string") {
+            try { data = JSON.parse(data); } catch { data = undefined; }
+        }
+        return data?.message || "AI request failed. Please retry.";
+    }
+    return error instanceof Error ? error.message : "AI request failed. Please retry.";
+};
 
 export interface CoreMessage {
     role: "system" | "user" | "assistant" | "tool";
@@ -10,7 +22,8 @@ export interface AIGatewayOptions {
     temperature?: number;
     maxTokens?: number;
     systemPrompt?: string;
-    [key: string]: any;
+    threadId?: string;
+    systemSlug?: string;
 }
 
 export type AIProvider = "vercel" | "custom" | string;
@@ -57,6 +70,7 @@ export const streamAICompletion = async (
                 responseType: "text",
                 onDownloadProgress: (progressEvent) => {
                     const target = progressEvent.event?.target as XMLHttpRequest | undefined;
+                    if (target && target.status >= 400) return;
                     const fullText = target?.responseText || "";
                     const chunk = fullText.slice(lastSeenIndex);
                     lastSeenIndex = fullText.length;
@@ -69,10 +83,9 @@ export const streamAICompletion = async (
         );
 
         if (onFinish) onFinish();
-    } catch (err: any) {
-        const error = err instanceof Error ? err : new Error(err?.response?.data?.error || String(err));
+    } catch (err) {
+        const error = new Error(aiGatewayErrorMessage(err));
         if (onError) onError(error);
         else throw error;
     }
 };
-
