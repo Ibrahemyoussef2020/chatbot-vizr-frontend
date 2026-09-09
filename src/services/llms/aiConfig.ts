@@ -20,6 +20,15 @@ export interface AIConfigData {
     uploaded_files?: Array<{ name: string; url: string; size: number }>;
 }
 
+export interface AIConfigKnowledgeSource {
+    id: string;
+    name: string;
+    size: number;
+    kind: string;
+    status: "processing" | "ready" | "failed";
+    error_message?: string;
+}
+
 export const fetchAIConfig = async (systemSlug?: string): Promise<AIConfigData> => {
     const res = await api.get("/admin/ai-configs", { params: { system_slug: systemSlug } });
     return res.data.data;
@@ -36,4 +45,20 @@ export const saveAIConfig = async (
 export const deleteAIConfig = async (configId: string): Promise<boolean> => {
     await api.delete(`/admin/ai-configs/${configId}`);
     return true;
+};
+
+export const fetchAIConfigKnowledgeSources = async (systemSlug?: string): Promise<AIConfigKnowledgeSource[]> =>
+    (await api.get("/admin/ai-configs/knowledge/sources", { params: { system_slug: systemSlug } })).data.data;
+
+export const uploadAIConfigKnowledgeSources = async (systemSlug: string | undefined, files: File[]): Promise<AIConfigKnowledgeSource[]> => {
+    const body = new FormData();
+    files.forEach(file => body.append("files", file));
+    return (await api.post("/admin/ai-configs/knowledge/sources", body, {
+        params: { system_slug: systemSlug },
+        headers: { "Content-Type": "multipart/form-data" },
+    })).data.data;
+};
+
+export const deleteAIConfigKnowledgeSource = async (systemSlug: string | undefined, id: string) => {
+    await api.delete(`/admin/ai-configs/knowledge/sources/${id}`, { params: { system_slug: systemSlug } });
 };

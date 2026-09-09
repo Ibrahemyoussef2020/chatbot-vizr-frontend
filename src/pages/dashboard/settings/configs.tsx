@@ -10,7 +10,7 @@ import {
     HiOutlineCheckCircle,
 } from "react-icons/hi2";
 import { useAppSelector } from "@/redux/store";
-import { fetchAIConfig, saveAIConfig, type AIConfigData } from "@/services/llms/aiConfig";
+import { deleteAIConfigKnowledgeSource, fetchAIConfig, fetchAIConfigKnowledgeSources, saveAIConfig, uploadAIConfigKnowledgeSources, type AIConfigData, type AIConfigKnowledgeSource } from "@/services/llms/aiConfig";
 
 import StructuredKnowledgeEditor from "@/components/dashboard/StructuredKnowledgeEditor";
 import { fieldsFromJson, fieldsToJson, type KnowledgeField, type JsonValue } from "@/utils/structuredKnowledge";
@@ -24,6 +24,8 @@ const Configs = () => {
     const [saving, setSaving] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
     const [successMsg, setSuccessMsg] = useState<string>("");
+    const [knowledgeSources, setKnowledgeSources] = useState<AIConfigKnowledgeSource[]>([]);
+    const [uploading, setUploading] = useState(false);
 
     const [form, setForm] = useState<AIConfigData>({
         company_name: "My Company LLC",
@@ -62,6 +64,10 @@ const Configs = () => {
             isMounted = false;
         };
     }, [activeWorkspace]);
+
+    useEffect(() => {
+        fetchAIConfigKnowledgeSources(activeWorkspace?.slug).then(setKnowledgeSources).catch(() => setKnowledgeSources([]));
+    }, [activeWorkspace?.slug]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -105,29 +111,24 @@ const Configs = () => {
         });
     };
 
-    const handleFileUploadSimulated = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files) return;
-
-        const newFiles = Array.from(files).map((f) => ({
-            name: f.name,
-            url: `https://cdn.example.com/docs/${f.name}`,
-            size: f.size,
-        }));
-
-        setForm((prev) => ({
-            ...prev,
-            uploaded_files: [...(prev.uploaded_files || []), ...newFiles],
-        }));
-
+        setUploading(true);
+        setError("");
+        try {
+            setKnowledgeSources(await uploadAIConfigKnowledgeSources(activeWorkspace?.slug, Array.from(files)));
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : "Failed to process configuration documents.");
+        } finally {
+            setUploading(false);
+        }
         e.target.value = "";
     };
 
-    const removeUploadedFile = (index: number) => {
-        setForm((prev) => ({
-            ...prev,
-            uploaded_files: (prev.uploaded_files || []).filter((_, i) => i !== index),
-        }));
+    const removeUploadedFile = async (source: AIConfigKnowledgeSource) => {
+        await deleteAIConfigKnowledgeSource(activeWorkspace?.slug, source.id);
+        setKnowledgeSources(items => items.filter(item => item.id !== source.id));
     };
 
     if (loading || loadedSlug !== activeWorkspace?.slug) {
@@ -289,33 +290,35 @@ const Configs = () => {
                 {/* Section 3: Knowledge Documents */}
                 <div className="space-y-4">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-primary border-b border-border pb-1">
-                        Knowledge Base PDF Documents
+                        Customer Chat Knowledge Documents
                     </h3>
 
                     <div>
                         <input
                             type="file"
                             multiple
-                            accept=".pdf"
-                            onChange={handleFileUploadSimulated}
+                            accept=".pdf,.json,.txt,.md,.csv,.xls,.xlsx"
+                            onChange={handleFileUpload}
+                            disabled={uploading}
                             className="w-full rounded-xl border border-border bg-card p-2 text-xs text-foreground file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-primary hover:file:bg-primary/20"
                         />
 
-                        {form.uploaded_files && form.uploaded_files.length > 0 && (
+                        {knowledgeSources.length > 0 && (
                             <div className="mt-3 space-y-2">
-                                {form.uploaded_files.map((file, i) => (
+                                {knowledgeSources.map((file) => (
                                     <div
-                                        key={i}
+                                        key={file.id}
                                         className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3.5 py-2 text-xs"
                                     >
                                         <div className="flex items-center gap-2 font-semibold text-foreground">
                                             <HiOutlineDocumentText className="text-primary text-base" />
                                             <span>{file.name}</span>
                                             <span className="text-[10px] text-muted-foreground">({Math.round(file.size / 1024)} KB)</span>
+                                            <span className="text-[10px] text-muted-foreground">{file.status}</span>
                                         </div>
                                         <button
                                             type="button"
-                                            onClick={() => removeUploadedFile(i)}
+                                            onClick={() => void removeUploadedFile(file)}
                                             className="text-red-500 hover:text-red-600 transition-colors"
                                         >
                                             <HiOutlineTrash className="text-base" />
