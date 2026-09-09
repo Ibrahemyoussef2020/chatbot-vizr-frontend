@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HiOutlineArrowLeft, HiOutlineDocumentText } from "react-icons/hi2";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import KnowledgeChat from "@/components/knowledge/KnowledgeChat";
 import KnowledgeSessionRail from "@/components/knowledge/KnowledgeSessionRail";
 import SourceList from "@/components/knowledge/SourceList";
 import SourceUploader from "@/components/knowledge/SourceUploader";
 import { useAppSelector } from "@/redux/store";
-import { askQuestion, getSession, listSessions, uploadSourcesDirect, type KnowledgeSession, type KnowledgeSessionDetail } from "@/services/knowledge/knowledgeBase";
+import { askQuestion, getSession, listSessions, selectSessionModel, uploadSourcesDirect, type KnowledgeSession, type KnowledgeSessionDetail } from "@/services/knowledge/knowledgeBase";
+import { fetchAIModels, type AIManagementEntity } from "@/services/llms/aiManagement";
 
 const messageFromError = (error: unknown, fallback: string) => {
     const candidate = error as { response?: { data?: { message?: string } } };
@@ -16,6 +17,7 @@ const messageFromError = (error: unknown, fallback: string) => {
 const KnowledgeWorkspace = () => {
     const { sessionId = "" } = useParams();
     const location = useLocation();
+    const navigate = useNavigate();
     const workspace = useAppSelector((state) => state.workspace.active);
     const [detail, setDetail] = useState<KnowledgeSessionDetail | null>(null);
     const [sessions, setSessions] = useState<KnowledgeSession[]>([]);
@@ -24,6 +26,8 @@ const KnowledgeWorkspace = () => {
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploadController, setUploadController] = useState<AbortController | null>(null);
     const [asking, setAsking] = useState(false);
+    const [selectingModel, setSelectingModel] = useState(false);
+    const [availableModels, setAvailableModels] = useState<AIManagementEntity[]>([]);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -31,8 +35,8 @@ const KnowledgeWorkspace = () => {
         setLoading(true);
         setError("");
         setDetail(null);
-        Promise.all([getSession(workspace.slug, sessionId), listSessions(workspace.slug)])
-            .then(([sessionDetail, sessionList]) => { setDetail(sessionDetail); setSessions(sessionList); })
+        Promise.all([getSession(workspace.slug, sessionId), listSessions(workspace.slug), fetchAIModels()])
+            .then(([sessionDetail, sessionList, models]) => { setDetail(sessionDetail); setSessions(sessionList); setAvailableModels(models); })
             .catch((cause) => setError(messageFromError(cause, "Knowledge session could not be loaded.")))
             .finally(() => setLoading(false));
     }, [workspace?.slug, sessionId]);
@@ -65,6 +69,26 @@ const KnowledgeWorkspace = () => {
     };
 
     const sessionLoading = loading || Boolean(detail && detail.session.id !== sessionId);
+    const modelOptions = useMemo(() => availableModels
+        .filter((model) => model.enabled !== false && (model.providerId as AIManagementEntity | undefined)?.enabled !== false)
+        .map((model) => ({
+            id: String(model._id || model.id),
+            name: String(model.displayName || model.externalId || model.name || "Model"),
+            provider: String((model.providerId as AIManagementEntity | undefined)?.code || "AI"),
+        })), [availableModels]);
+
+    const selectModel = async (modelId: string) => {
+        if (!workspace?.slug || !detail) return;
+        setSelectingModel(true);
+        setError("");
+        try {
+            const session = await selectSessionModel(workspace.slug, sessionId, modelId);
+            setDetail((current) => current ? { ...current, session } : current);
+            setSessions((current) => current.map((item) => item.id === session.id ? session : item));
+        } catch (cause) {
+            setError(messageFromError(cause, "The conversation model could not be changed."));
+        } finally { setSelectingModel(false); }
+    };
 
     if (sessionLoading) return (
         <div className="mx-auto h-[calc(100vh-6.5rem)] min-h-[650px] w-full max-w-[1600px] overflow-hidden rounded-2xl border border-border bg-surface shadow-[var(--shadow)]">
@@ -110,7 +134,7 @@ const KnowledgeWorkspace = () => {
                             <Link to={`/dashboard/knowledge/${sessionId}#sources`} className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-bold text-foreground no-underline transition hover:border-primary hover:text-primary"><HiOutlineDocumentText className="text-base" /><span className="hidden sm:inline">Manage sources</span></Link>
                         </header>
                         {error && <div role="alert" className="m-4 rounded-xl border border-danger/20 bg-danger/10 p-3 text-sm text-danger">{error}</div>}
-                        <KnowledgeChat sessionTitle={detail.session.title} messages={detail.messages} busy={asking} disabled={!detail.sources.some((source) => source.status === "ready")} onAsk={ask} />
+                        <KnowledgeChat sessionTitle={detail.session.title} messages={detail.messages} busy={asking} disabled={false} onAsk={ask} models={modelOptions} selectedModelId={detail.session.selected_model_id} selectingModel={selectingModel} onSelectModel={selectModel} onManageSources={() => navigate(`/dashboard/knowledge/${sessionId}#sources`)} />
                     </main>
                 </div>
             )}

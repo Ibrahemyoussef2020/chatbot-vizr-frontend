@@ -7,6 +7,7 @@ export interface AIEntityReference {
     externalId?: string;
     code?: string;
     permissions?: string[];
+    enabled?: boolean;
 }
 export interface AIManagementEntity extends AIEntityReference {
     slug?: string;

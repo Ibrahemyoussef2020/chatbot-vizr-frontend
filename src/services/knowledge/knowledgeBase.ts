@@ -9,6 +9,7 @@ export interface KnowledgeSession {
     source_count: number;
     ready_source_count: number;
     total_bytes: number;
+    selected_model_id: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -77,6 +78,11 @@ export const createSession = async (systemSlug: string, title: string) => {
 export const getSession = async (systemSlug: string, sessionId: string) => {
     const response = await api.get(`/admin/knowledge/sessions/${sessionId}`, { params: { system_slug: systemSlug } });
     return response.data.data as KnowledgeSessionDetail;
+};
+
+export const selectSessionModel = async (systemSlug: string, sessionId: string, modelId: string | null) => {
+    const response = await api.patch(`/admin/knowledge/sessions/${sessionId}/model`, { system_slug: systemSlug, model_id: modelId });
+    return response.data.data as KnowledgeSession;
 };
 
 export const uploadSources = async (systemSlug: string, sessionId: string, files: File[]) => {
