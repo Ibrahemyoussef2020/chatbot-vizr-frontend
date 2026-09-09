@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { HiOutlineArrowLeft, HiOutlineDocumentText } from "react-icons/hi2";
+import { HiOutlineArrowLeft, HiOutlineDocumentText, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi2";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import KnowledgeChat from "@/components/knowledge/KnowledgeChat";
 import KnowledgeSessionRail from "@/components/knowledge/KnowledgeSessionRail";
 import SourceList from "@/components/knowledge/SourceList";
 import SourceUploader from "@/components/knowledge/SourceUploader";
 import { useAppSelector } from "@/redux/store";
-import { askQuestion, getSession, listSessions, selectSessionModel, uploadSourcesDirect, type KnowledgeSession, type KnowledgeSessionDetail } from "@/services/knowledge/knowledgeBase";
+import { askQuestion, deleteSession, getSession, listSessions, selectSessionModel, updateSession, uploadSourcesDirect, type KnowledgeSession, type KnowledgeSessionDetail } from "@/services/knowledge/knowledgeBase";
 import { fetchAIModels, type AIManagementEntity } from "@/services/llms/aiManagement";
 
 const messageFromError = (error: unknown, fallback: string) => {
@@ -90,6 +90,25 @@ const KnowledgeWorkspace = () => {
         } finally { setSelectingModel(false); }
     };
 
+    const renameConversation = async () => {
+        if (!workspace?.slug || !detail) return;
+        const title = window.prompt("Rename Knowledge conversation", detail.session.title)?.trim();
+        if (!title || title === detail.session.title) return;
+        try {
+            const session = await updateSession(workspace.slug, sessionId, title);
+            setDetail((current) => current ? { ...current, session } : current);
+            setSessions((current) => current.map((item) => item.id === session.id ? session : item));
+        } catch (cause) { setError(messageFromError(cause, "The conversation could not be renamed.")); }
+    };
+
+    const removeConversation = async () => {
+        if (!workspace?.slug || !detail || !window.confirm(`Delete “${detail.session.title}” and all of its messages, files, plans, and reports?`)) return;
+        try {
+            await deleteSession(workspace.slug, sessionId);
+            navigate("/dashboard/knowledge/chat");
+        } catch (cause) { setError(messageFromError(cause, "The conversation could not be deleted.")); }
+    };
+
     if (sessionLoading) return (
         <div className="mx-auto h-[calc(100vh-6.5rem)] min-h-[650px] w-full max-w-[1600px] overflow-hidden rounded-2xl border border-border bg-surface shadow-[var(--shadow)]">
             <div className="grid h-full min-h-0 lg:grid-cols-[320px_minmax(0,1fr)]">
@@ -131,7 +150,11 @@ const KnowledgeWorkspace = () => {
                     <main id="chat" className="flex min-h-0 min-w-0 flex-col bg-background">
                         <header className="flex min-h-[82px] items-center justify-between gap-4 border-b border-border bg-surface px-5 py-4 sm:px-7">
                             <div className="min-w-0"><span className="text-[10px] font-extrabold uppercase tracking-[.14em] text-primary">Knowledge conversation</span><h1 className="m-0 truncate text-xl font-extrabold text-foreground">{detail.session.title}</h1><p className="mb-0 mt-0.5 text-xs text-muted-foreground">{detail.session.ready_source_count} ready sources · {detail.session.status}</p></div>
-                            <Link to={`/dashboard/knowledge/${sessionId}#sources`} className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-bold text-foreground no-underline transition hover:border-primary hover:text-primary"><HiOutlineDocumentText className="text-base" /><span className="hidden sm:inline">Manage sources</span></Link>
+                            <div className="flex shrink-0 items-center gap-2">
+                                <Link to={`/dashboard/knowledge/${sessionId}#sources`} className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-bold text-foreground no-underline transition hover:border-primary hover:text-primary"><HiOutlineDocumentText className="text-base" /><span className="hidden sm:inline">Manage sources</span></Link>
+                                <button type="button" onClick={() => void renameConversation()} aria-label="Rename conversation" className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-transparent text-muted-foreground hover:border-primary hover:text-primary"><HiOutlinePencil /></button>
+                                <button type="button" onClick={() => void removeConversation()} aria-label="Delete conversation" className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-transparent text-muted-foreground hover:border-danger hover:text-danger"><HiOutlineTrash /></button>
+                            </div>
                         </header>
                         {error && <div role="alert" className="m-4 rounded-xl border border-danger/20 bg-danger/10 p-3 text-sm text-danger">{error}</div>}
                         <KnowledgeChat sessionTitle={detail.session.title} messages={detail.messages} busy={asking} disabled={false} onAsk={ask} models={modelOptions} selectedModelId={detail.session.selected_model_id} selectingModel={selectingModel} onSelectModel={selectModel} onManageSources={() => navigate(`/dashboard/knowledge/${sessionId}#sources`)} />

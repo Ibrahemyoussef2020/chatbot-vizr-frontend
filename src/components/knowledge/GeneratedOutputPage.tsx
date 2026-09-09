@@ -19,11 +19,13 @@ interface GeneratedOutputPageProps {
     onRegenerate: () => Promise<void>;
     onShare: () => Promise<string | undefined>;
     onUnshare: () => Promise<void>;
+    onEditOutput: () => Promise<void>;
+    onRemoveOutput: () => Promise<void>;
 }
 
-const GeneratedOutputPage = ({ output, sessionTitle, kind, mutatingSchemaId, outputAction, onRetrySchema, onEditSchema, onRemoveSchema, onToggleSaved, onRegenerate, onShare, onUnshare }: GeneratedOutputPageProps) => (
+const GeneratedOutputPage = ({ output, sessionTitle, kind, mutatingSchemaId, outputAction, onRetrySchema, onEditSchema, onRemoveSchema, onToggleSaved, onRegenerate, onShare, onUnshare, onEditOutput, onRemoveOutput }: GeneratedOutputPageProps) => (
     <div className="mx-auto w-full max-w-[1500px]">
-        <OutputHeader output={output} sessionTitle={sessionTitle} kind={kind} action={outputAction} onToggleSaved={onToggleSaved} onRegenerate={onRegenerate} onShare={onShare} onUnshare={onUnshare} />
+        <OutputHeader output={output} sessionTitle={sessionTitle} kind={kind} action={outputAction} onToggleSaved={onToggleSaved} onRegenerate={onRegenerate} onShare={onShare} onUnshare={onUnshare} onEdit={onEditOutput} onDelete={onRemoveOutput} />
         <OutputNavigation sections={output.sections} kind={kind} />
         <div className="grid gap-5">
             {output.sections.map((section, index) => <GeneratedSectionView key={section.schemaId} section={section} index={index} busy={mutatingSchemaId === section.schemaId} onRetry={() => onRetrySchema(section.schemaId)} onEdit={(mode, payload) => onEditSchema(section.schemaId, mode, payload)} onRemove={() => onRemoveSchema(section.schemaId)} />)}

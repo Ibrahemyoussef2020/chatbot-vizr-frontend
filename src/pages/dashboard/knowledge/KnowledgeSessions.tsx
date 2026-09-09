@@ -6,10 +6,10 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { HiOutlineArrowRight, HiOutlineBookOpen, HiOutlineClock, HiOutlineDocumentText, HiOutlineMagnifyingGlass, HiOutlinePlus, HiOutlineRectangleStack } from "react-icons/hi2";
+import { HiOutlineArrowRight, HiOutlineBookOpen, HiOutlineClock, HiOutlineDocumentText, HiOutlineMagnifyingGlass, HiOutlinePencil, HiOutlinePlus, HiOutlineRectangleStack, HiOutlineTrash } from "react-icons/hi2";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppSelector } from "@/redux/store";
-import { createSession, listSessions, type KnowledgeSession, type KnowledgeStatus } from "@/services/knowledge/knowledgeBase";
+import { createSession, deleteSession, listSessions, updateSession, type KnowledgeSession, type KnowledgeStatus } from "@/services/knowledge/knowledgeBase";
 
 interface Props { mode?: "sessions" | "upload" | "chat" | "plans" | "reports"; }
 
@@ -64,6 +64,24 @@ const KnowledgeSessions = ({ mode = "sessions" }: Props) => {
         finally { setCreating(false); }
     };
 
+    const rename = async (session: KnowledgeSession) => {
+        if (!workspace?.slug) return;
+        const title = window.prompt("Rename knowledge session", session.title)?.trim();
+        if (!title || title === session.title) return;
+        try {
+            const updated = await updateSession(workspace.slug, session.id, title);
+            setSessions((current) => current.map((item) => item.id === session.id ? updated : item));
+        } catch { setError("The knowledge session could not be renamed."); }
+    };
+
+    const remove = async (session: KnowledgeSession) => {
+        if (!workspace?.slug || !window.confirm(`Delete “${session.title}” and all of its messages, files, plans, and reports?`)) return;
+        try {
+            await deleteSession(workspace.slug, session.id);
+            setSessions((current) => current.filter((item) => item.id !== session.id));
+        } catch { setError("The knowledge session could not be deleted."); }
+    };
+
     return (
         <div className="mx-auto grid w-full max-w-[1400px] gap-5 p-2">
             <section className="rounded-2xl border border-border bg-surface px-5 py-4 shadow-sm sm:px-6">
@@ -92,17 +110,21 @@ const KnowledgeSessions = ({ mode = "sessions" }: Props) => {
                 {loading ? <div className="grid h-64 place-content-center"><CircularProgress /></div> : visibleSessions.length ? (
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {visibleSessions.map((session) => (
-                            <Link key={session.id} to={`/dashboard/knowledge/${session.id}${content.hash}`} aria-label={`${content.action}: ${session.title}`} className="group relative min-w-0 overflow-hidden rounded-2xl border border-border bg-surface p-5 text-inherit no-underline shadow-sm transition duration-200 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_18px_45px_var(--shadow-color)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/25">
-                                <div className="mb-6 flex items-start justify-between gap-3">
+                            <Link key={session.id} to={`/dashboard/knowledge/${session.id}${content.hash}`} aria-label={`${content.action}: ${session.title}`} className="group relative min-w-0 self-start overflow-hidden rounded-2xl border border-border bg-surface p-4 text-inherit no-underline shadow-sm transition duration-200 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_18px_45px_var(--shadow-color)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/25">
+                                <div className="mb-3 flex items-start justify-between gap-3">
                                     <div className="grid h-11 w-11 place-items-center rounded-xl border border-primary/15 bg-primary/10 text-xl text-primary transition group-hover:bg-primary group-hover:text-primary-foreground"><HiOutlineBookOpen /></div>
-                                    <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide ${statusStyles[session.status]}`}>{statusLabels[session.status]}</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide ${statusStyles[session.status]}`}>{statusLabels[session.status]}</span>
+                                        <button type="button" aria-label={`Rename ${session.title}`} className="grid h-8 w-8 place-items-center rounded-lg border border-border bg-surface p-0 text-muted-foreground hover:border-primary hover:text-primary" onClick={(event) => { event.preventDefault(); event.stopPropagation(); void rename(session); }}><HiOutlinePencil /></button>
+                                        <button type="button" aria-label={`Delete ${session.title}`} className="grid h-8 w-8 place-items-center rounded-lg border border-border bg-surface p-0 text-muted-foreground hover:border-danger hover:text-danger" onClick={(event) => { event.preventDefault(); event.stopPropagation(); void remove(session); }}><HiOutlineTrash /></button>
+                                    </div>
                                 </div>
                                 <h3 className="m-0 truncate text-lg font-extrabold text-foreground">{session.title}</h3>
                                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
                                     <span className="inline-flex items-center gap-1.5"><HiOutlineDocumentText /> {session.ready_source_count} of {session.source_count} sources ready</span>
                                     <span className="inline-flex items-center gap-1.5"><HiOutlineClock /> {formatUpdatedAt(session.updated_at)}</span>
                                 </div>
-                                <div className="mt-6 flex items-center justify-between border-t border-border pt-4 text-sm font-extrabold text-primary"><span>{content.action}</span><HiOutlineArrowRight className="text-lg transition-transform group-hover:translate-x-1" /></div>
+                                <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-sm font-extrabold text-primary"><span>{content.action}</span><HiOutlineArrowRight className="text-lg transition-transform group-hover:translate-x-1" /></div>
                             </Link>
                         ))}
                     </div>

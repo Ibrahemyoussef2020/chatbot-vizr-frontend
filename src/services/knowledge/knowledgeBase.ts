@@ -75,6 +75,15 @@ export const createSession = async (systemSlug: string, title: string) => {
     return response.data.data as KnowledgeSession;
 };
 
+export const updateSession = async (systemSlug: string, sessionId: string, title: string) => {
+    const response = await api.patch(`/admin/knowledge/sessions/${sessionId}`, { system_slug: systemSlug, title });
+    return response.data.data as KnowledgeSession;
+};
+
+export const deleteSession = async (systemSlug: string, sessionId: string) => {
+    await api.delete(`/admin/knowledge/sessions/${sessionId}`, { data: { system_slug: systemSlug } });
+};
+
 export const getSession = async (systemSlug: string, sessionId: string) => {
     const response = await api.get(`/admin/knowledge/sessions/${sessionId}`, { params: { system_slug: systemSlug } });
     return response.data.data as KnowledgeSessionDetail;

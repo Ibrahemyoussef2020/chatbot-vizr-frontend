@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/redux/store";
-import { deleteOutputSchema, editOutputSchema, getOutput, regenerateOutput, retryOutputSchema, setOutputSaved, shareOutput, unshareOutput, type EditMode, type OutputKind } from "@/services/knowledge/knowledgeOutputs";
+import { deleteOutput, deleteOutputSchema, editOutputSchema, getOutput, regenerateOutput, retryOutputSchema, setOutputSaved, shareOutput, unshareOutput, updateOutput, type EditMode, type OutputKind } from "@/services/knowledge/knowledgeOutputs";
 import type { GeneratedOutput, GeneratedSectionInput } from "@/services/knowledge/generatedOutputs";
 import useKnowledgePageData from "./useKnowledgePageData";
 
@@ -12,6 +13,7 @@ const errorMessage = (error: unknown) => (error as { response?: { data?: { messa
 
 const useGeneratedOutput = (sessionId: string, kind: GeneratedOutputKind, outputId: string) => {
     const workspace = useAppSelector((state) => state.workspace.active);
+    const navigate = useNavigate();
     const sessionState = useKnowledgePageData(sessionId);
     const requestKey = `${sessionId}:${kind}:${outputId}`;
     const [state, setState] = useState<OutputState>({ key: "", data: null, error: "", notFound: false });
@@ -103,7 +105,32 @@ const useGeneratedOutput = (sessionId: string, kind: GeneratedOutputKind, output
         finally { setOutputAction(""); }
     };
 
-    return { ...sessionState, output: state.data, outputError: state.error, outputNotFound: state.notFound, outputLoading: state.key !== requestKey, mutatingSchemaId, outputAction, reload: () => setReloadVersion((version) => version + 1), retrySchema, editSchema, removeSchema, toggleSaved, regenerateAll, share, unshare };
+    const editOutput = async () => {
+        if (!workspace?.slug || !state.data) return;
+        const title = window.prompt(`Edit ${kind} title`, state.data.title)?.trim();
+        if (!title) return;
+        const description = window.prompt(`Edit ${kind} description`, state.data.description);
+        if (description === null) return;
+        setOutputAction("edit");
+        try {
+            const data = await updateOutput(workspace.slug, sessionId, kind, outputId, { title, description });
+            setState((current) => ({ ...current, data }));
+            toast.success(`${kind === "plan" ? "Plan" : "Report"} updated`);
+        } catch (error) { toast.error(errorMessage(error)); }
+        finally { setOutputAction(""); }
+    };
+
+    const removeOutput = async () => {
+        if (!workspace?.slug || !state.data || !window.confirm(`Delete this ${kind} and all of its sections?`)) return;
+        setOutputAction("delete");
+        try {
+            await deleteOutput(workspace.slug, sessionId, kind, outputId);
+            toast.success(`${kind === "plan" ? "Plan" : "Report"} deleted`);
+            navigate(`/dashboard/knowledge/${sessionId}/${kind}s`);
+        } catch (error) { toast.error(errorMessage(error)); setOutputAction(""); }
+    };
+
+    return { ...sessionState, output: state.data, outputError: state.error, outputNotFound: state.notFound, outputLoading: state.key !== requestKey, mutatingSchemaId, outputAction, reload: () => setReloadVersion((version) => version + 1), retrySchema, editSchema, removeSchema, toggleSaved, regenerateAll, share, unshare, editOutput, removeOutput };
 };
 
 export default useGeneratedOutput;

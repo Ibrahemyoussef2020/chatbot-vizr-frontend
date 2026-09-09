@@ -51,6 +51,15 @@ export const getOutput = async (systemSlug: string, sessionId: string, kind: Out
     return mapOutput(response.data.data as ApiOutput);
 };
 
+export const updateOutput = async (systemSlug: string, sessionId: string, kind: OutputKind, outputId: string, payload: { title?: string; description?: string; category?: string }) => {
+    const response = await api.patch(`${basePath(sessionId, kind)}/${outputId}`, { ...payload, system_slug: systemSlug });
+    return mapOutput(response.data.data as ApiOutput);
+};
+
+export const deleteOutput = async (systemSlug: string, sessionId: string, kind: OutputKind, outputId: string) => {
+    await api.delete(`${basePath(sessionId, kind)}/${outputId}`, { data: { system_slug: systemSlug } });
+};
+
 export const saveOutput = async (systemSlug: string, sessionId: string, kind: OutputKind, payload: unknown) => {
     const response = await api.post(basePath(sessionId, kind), { ...(payload as object), system_slug: systemSlug });
     return mapOutput(response.data.data as ApiOutput);

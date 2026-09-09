@@ -1,20 +1,20 @@
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { useState, type MouseEvent } from "react";
-import { HiBookmark, HiChevronDown, HiOutlineArrowDownTray, HiOutlineArrowLeft, HiOutlineArrowPath, HiOutlineBookmark, HiOutlineClipboardDocument, HiOutlineCodeBracket, HiOutlineDocumentText, HiOutlineLink, HiOutlineShare, HiOutlineXMark } from "react-icons/hi2";
+import { HiBookmark, HiChevronDown, HiOutlineArrowDownTray, HiOutlineArrowLeft, HiOutlineArrowPath, HiOutlineBookmark, HiOutlineClipboardDocument, HiOutlineCodeBracket, HiOutlineDocumentText, HiOutlineLink, HiOutlinePencil, HiOutlineShare, HiOutlineTrash, HiOutlineXMark } from "react-icons/hi2";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import type { GeneratedOutput } from "@/services/knowledge/generatedOutputs";
 import type { GeneratedOutputKind } from "@/hooks/useGeneratedOutput";
 
-interface Props { output: GeneratedOutput; sessionTitle: string; kind: GeneratedOutputKind; action: string; onToggleSaved: () => Promise<void>; onRegenerate: () => Promise<void>; onShare: () => Promise<string | undefined>; onUnshare: () => Promise<void>; }
+interface Props { output: GeneratedOutput; sessionTitle: string; kind: GeneratedOutputKind; action: string; onToggleSaved: () => Promise<void>; onRegenerate: () => Promise<void>; onShare: () => Promise<string | undefined>; onUnshare: () => Promise<void>; onEdit: () => Promise<void>; onDelete: () => Promise<void>; }
 const menuPaper = { sx: { mt: 0.5, minWidth: 190, color: "var(--foreground)", backgroundColor: "var(--surface-elevated)", backgroundImage: "none", border: "1px solid var(--border)", borderRadius: "10px", boxShadow: "var(--shadow)", ".MuiMenuItem-root": { gap: 1.25, fontSize: 13, fontWeight: 700, "&:hover, &.Mui-focusVisible": { backgroundColor: "var(--surface-muted)" } } } };
 const safeName = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const download = (name: string, content: string, type: string) => { const url = URL.createObjectURL(new Blob([content], { type })); const link = document.createElement("a"); link.href = url; link.download = name; link.click(); URL.revokeObjectURL(url); };
 const markdown = (output: GeneratedOutput) => [`# ${output.title}`, "", output.description, "", ...output.sections.flatMap((section) => [`## ${section.title}`, "", section.description, "", ...section.notes.flatMap((note) => [`### ${note.title}`, note.description, note.meta || "", ""]), ...section.charts.flatMap((chart) => [`### ${chart.title}`, chart.description || "", ...chart.items.map((item) => `- ${item.label}: ${item.value}${item.detail ? ` (${item.detail})` : ""}`), ""]), ""])].join("\n");
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character] || character));
 
-const OutputHeader = ({ output, sessionTitle, kind, action, onToggleSaved, onRegenerate, onShare, onUnshare }: Props) => {
+const OutputHeader = ({ output, sessionTitle, kind, action, onToggleSaved, onRegenerate, onShare, onUnshare, onEdit, onDelete }: Props) => {
     const [exportAnchor, setExportAnchor] = useState<HTMLElement | null>(null);
     const [shareAnchor, setShareAnchor] = useState<HTMLElement | null>(null);
     const baseName = safeName(output.title) || output.kind;
@@ -47,6 +47,8 @@ const OutputHeader = ({ output, sessionTitle, kind, action, onToggleSaved, onReg
                 <Menu anchorEl={shareAnchor} open={Boolean(shareAnchor)} onClose={() => setShareAnchor(null)} slotProps={{ paper: menuPaper }}><MenuItem onClick={() => { setShareAnchor(null); void onShare(); }}><HiOutlineLink /> {output.isShared ? "Copy share link" : "Create share link"}</MenuItem>{output.isShared && <MenuItem onClick={() => { setShareAnchor(null); void onUnshare(); }} sx={{ color: "var(--danger) !important" }}><HiOutlineXMark /> Disable sharing</MenuItem>}</Menu>
                 <button type="button" disabled={Boolean(action)} onClick={regenerate} className={buttonClass}><HiOutlineArrowPath className={action === "regenerate" ? "animate-spin text-base" : "text-base"} />{action === "regenerate" ? "Regenerating..." : "Regenerate"}</button>
                 <button type="button" disabled={Boolean(action)} onClick={() => void onToggleSaved()} className={`${buttonClass} ${output.isSaved ? "!border-warning/40 !bg-warning/10 !text-warning" : ""}`}>{output.isSaved ? <HiBookmark className="text-base" /> : <HiOutlineBookmark className="text-base" />}{action === "save" ? "Saving..." : output.isSaved ? "Saved" : "Save"}</button>
+                <button type="button" disabled={Boolean(action)} onClick={() => void onEdit()} className={buttonClass}><HiOutlinePencil className="text-base" />{action === "edit" ? "Updating..." : "Edit"}</button>
+                <button type="button" disabled={Boolean(action)} onClick={() => void onDelete()} className={`${buttonClass} hover:!border-danger hover:!text-danger`}><HiOutlineTrash className="text-base" />{action === "delete" ? "Deleting..." : "Delete"}</button>
             </div>
         </div>
     </div></header>;

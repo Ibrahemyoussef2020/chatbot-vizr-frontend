@@ -14,7 +14,7 @@ const KnowledgeOutputRoute = ({ kind }: { kind: GeneratedOutputKind }) => {
     const [outputs, setOutputs] = useState<GeneratedOutput[] | null>(null);
     const [listError, setListError] = useState("");
     const [generating, setGenerating] = useState(false);
-    const { detail, output, error, loading, outputError, outputNotFound, outputLoading, mutatingSchemaId, outputAction, retrySchema, editSchema, removeSchema, toggleSaved, regenerateAll, share, unshare } = useGeneratedOutput(sessionId, kind, outputId);
+    const { detail, output, error, loading, outputError, outputNotFound, outputLoading, mutatingSchemaId, outputAction, retrySchema, editSchema, removeSchema, toggleSaved, regenerateAll, share, unshare, editOutput, removeOutput } = useGeneratedOutput(sessionId, kind, outputId);
 
     useEffect(() => {
         if (outputId || !workspace?.slug || !sessionId) return;
@@ -56,7 +56,7 @@ const KnowledgeOutputRoute = ({ kind }: { kind: GeneratedOutputKind }) => {
     if (!detail) return <div className="rounded-xl bg-danger/10 p-4 text-danger">{error || "Knowledge session not found."}</div>;
     if (!output) return <div className="mx-auto grid min-h-[60vh] max-w-3xl place-items-center rounded-2xl border border-dashed border-border bg-surface p-8 text-center"><div><h1 className="m-0 text-2xl font-extrabold text-foreground">{outputNotFound ? `No ${kind} exists yet` : `Unable to load ${kind}`}</h1><p className="mb-0 mt-2 text-sm text-muted-foreground">{outputError || `A generated ${kind} for ${detail.session.title} will appear here after it is created.`}</p></div></div>;
 
-    return <GeneratedOutputPage output={output} sessionTitle={detail.session.title} kind={kind} mutatingSchemaId={mutatingSchemaId} outputAction={outputAction} onRetrySchema={retrySchema} onEditSchema={editSchema} onRemoveSchema={removeSchema} onToggleSaved={toggleSaved} onRegenerate={regenerateAll} onShare={share} onUnshare={unshare} />;
+    return <GeneratedOutputPage output={output} sessionTitle={detail.session.title} kind={kind} mutatingSchemaId={mutatingSchemaId} outputAction={outputAction} onRetrySchema={retrySchema} onEditSchema={editSchema} onRemoveSchema={removeSchema} onToggleSaved={toggleSaved} onRegenerate={regenerateAll} onShare={share} onUnshare={unshare} onEditOutput={editOutput} onRemoveOutput={removeOutput} />;
 };
 
 export default KnowledgeOutputRoute;
