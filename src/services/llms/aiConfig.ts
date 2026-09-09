@@ -1,6 +1,8 @@
+import type { JsonValue } from "@/utils/structuredKnowledge";
 import api from "@/api";
 
 export interface AIConfigData {
+    structured_knowledge?: { [key: string]: JsonValue };
     id?: string;
     system_id?: string;
     tenant_name?: string;

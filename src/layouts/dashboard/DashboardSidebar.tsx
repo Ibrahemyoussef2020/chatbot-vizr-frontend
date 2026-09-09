@@ -6,7 +6,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Drawer from "@mui/material/Drawer";
 import TextField from "@mui/material/TextField";
 import { useState, type FormEvent } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
     HiOutlineChatBubbleLeftRight,
     HiOutlineChartBarSquare,
@@ -16,17 +16,19 @@ import {
     HiOutlineTag,
     HiOutlineArrowRightStartOnRectangle,
     HiOutlinePlus,
-    HiOutlineBookOpen,
     HiOutlineArrowUpTray,
     HiOutlineChatBubbleBottomCenterText,
     HiOutlineRectangleStack,
-    HiOutlineBriefcase,
-    HiOutlineChevronDown,
     HiOutlineClipboardDocumentList,
     HiOutlinePresentationChartLine,
     HiOutlineBookmark,
     HiOutlineCpuChip,
+    HiOutlineServerStack,
+    HiOutlineSparkles,
+    HiOutlineArrowsRightLeft,
+    HiOutlineChartPie,
 } from "react-icons/hi2";
+import type { IconType } from "react-icons";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { logoutAsync } from "@/redux/authThunk";
 import { fetchWorkspaces } from "@/redux/workspaceThunk";
@@ -37,14 +39,54 @@ interface DashboardSidebarProps {
     onClose: () => void;
 }
 
-const navigation = [
-    { label: "Dashboard", to: "/dashboard", icon: HiOutlineHome, end: true },
-    { label: "Analytics", to: "/dashboard/analytics", icon: HiOutlineChartBarSquare },
-    { label: "AI Management", to: "/dashboard/ai-management", icon: HiOutlineCpuChip },
-    { label: "Inbox", to: "/dashboard/inbox", icon: HiOutlineChatBubbleLeftRight },
-    { label: "Tags", to: "/dashboard/tags", icon: HiOutlineTag },
-    { label: "System logs", to: "/dashboard/logs", icon: HiOutlineQueueList },
-    { label: "Settings", to: "/dashboard/settings", icon: HiOutlineCog6Tooth },
+interface NavigationItem {
+    label: string;
+    to: string;
+    icon: IconType;
+    end?: boolean;
+}
+
+const navigationSections: { label: string; businessOnly?: boolean; items: NavigationItem[] }[] = [
+    {
+        label: "Workspace",
+        items: [
+            { label: "Dashboard", to: "/dashboard", icon: HiOutlineHome, end: true },
+            { label: "Analytics", to: "/dashboard/analytics", icon: HiOutlineChartBarSquare },
+            { label: "Inbox", to: "/dashboard/inbox", icon: HiOutlineChatBubbleLeftRight },
+            { label: "Tags", to: "/dashboard/tags", icon: HiOutlineTag },
+        ],
+    },
+    {
+        label: "AI Management",
+        items: [
+            { label: "Overview", to: "/dashboard/ai-management/overview", icon: HiOutlineChartBarSquare },
+            { label: "Providers", to: "/dashboard/ai-management/providers", icon: HiOutlineServerStack },
+            { label: "Models", to: "/dashboard/ai-management/models", icon: HiOutlineCpuChip },
+            { label: "Agents", to: "/dashboard/ai-management/agents", icon: HiOutlineSparkles },
+            { label: "Routing", to: "/dashboard/ai-management/routing", icon: HiOutlineArrowsRightLeft },
+            { label: "Quotas", to: "/dashboard/ai-management/quotas", icon: HiOutlineChartPie },
+            { label: "Request Logs", to: "/dashboard/ai-management/request-logs", icon: HiOutlineQueueList },
+        ],
+    },
+    {
+        label: "Knowledge Base",
+        businessOnly: true,
+        items: [
+            { label: "Upload files", to: "/dashboard/knowledge/upload", icon: HiOutlineArrowUpTray },
+            { label: "Knowledge chat", to: "/dashboard/knowledge/chat", icon: HiOutlineChatBubbleBottomCenterText },
+            { label: "Knowledge sessions", to: "/dashboard/knowledge", icon: HiOutlineRectangleStack, end: true },
+            { label: "Plans", to: "/dashboard/knowledge/plans", icon: HiOutlineClipboardDocumentList },
+            { label: "Reports", to: "/dashboard/knowledge/reports", icon: HiOutlinePresentationChartLine },
+            { label: "Saved", to: "/dashboard/knowledge/saved", icon: HiOutlineBookmark },
+        ],
+    },
+    {
+        label: "Administration",
+        items: [
+            { label: "System logs", to: "/dashboard/logs", icon: HiOutlineQueueList },
+            { label: "Settings", to: "/dashboard/settings", icon: HiOutlineCog6Tooth },
+        ],
+    },
 ];
 
 interface SidebarContentProps {
@@ -56,11 +98,6 @@ interface SidebarContentProps {
 }
 
 const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspace, canAccessBusinessTools }: SidebarContentProps) => {
-    const location = useLocation();
-    const isKnowledgeRoute = location.pathname.startsWith("/dashboard/knowledge");
-    const [businessOpen, setBusinessOpen] = useState(isKnowledgeRoute || location.pathname.startsWith("/dashboard/business"));
-    const [knowledgeOpen, setKnowledgeOpen] = useState(isKnowledgeRoute);
-
     return (
     <div className="flex h-full w-72 flex-col border-r border-border bg-surface text-foreground">
         <NavLink className="flex items-center gap-3 border-b border-border px-6 py-5 no-underline" to="/" onClick={onClose}>
@@ -72,64 +109,36 @@ const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspa
         </NavLink>
 
         <nav className="theme-scrollbar flex-1 overflow-y-auto px-4 py-5" aria-label="Dashboard navigation">
-            <p className="mb-2 px-3 text-[.62rem] font-extrabold uppercase tracking-[.14em] text-muted-foreground">Navigation</p>
-            <div className="grid gap-1">
-                {navigation.map(({ label, to, icon: Icon, end }) => (
-                    <NavLink
-                        className={({ isActive }) =>
-                            `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold no-underline transition-colors ${
-                                isActive
-                                    ? "bg-primary/15 text-primary"
-                                    : "text-muted-foreground hover:bg-surface-muted hover:text-foreground"
-                            }`
-                        }
-                        end={end}
-                        key={to}
-                        to={to}
-                        onClick={onClose}
-                    >
-                        <Icon className="text-xl" aria-hidden="true" />
-                        {label}
-                    </NavLink>
-                ))}
-                {canAccessBusinessTools && (
-                    <div className="my-1 p-1.5">
-                        <button type="button" onClick={() => setBusinessOpen((open) => !open)} className="flex w-full items-center gap-3 rounded-lg border-0 bg-transparent px-2 py-2 text-left text-sm font-bold text-foreground">
-                            <HiOutlineBriefcase className="text-xl text-primary" aria-hidden="true" />
-                            <span className="flex-1">Business Owner</span>
-                            <HiOutlineChevronDown className={`transition-transform ${businessOpen ? "rotate-180" : ""}`} />
-                        </button>
-                        {businessOpen && <div className="grid gap-1 border-l border-border pl-3">
-                            <button type="button" onClick={() => setKnowledgeOpen((open) => !open)} className="flex w-full items-center gap-2 rounded-lg border-0 bg-transparent px-2.5 py-2 text-left text-xs font-semibold text-muted-foreground hover:bg-surface-muted hover:text-foreground">
-                                <HiOutlineBookOpen className="text-base" />
-                                <span className="flex-1">Knowledge Base</span>
-                                <HiOutlineChevronDown className={`transition-transform ${knowledgeOpen ? "rotate-180" : ""}`} />
-                            </button>
-                            {knowledgeOpen && <div className="grid gap-1 border-l border-border pl-3">
-                        {[
-                            { label: "Upload files", to: "/dashboard/knowledge/upload", icon: HiOutlineArrowUpTray },
-                            { label: "Knowledge chat", to: "/dashboard/knowledge/chat", icon: HiOutlineChatBubbleBottomCenterText },
-                            { label: "Knowledge sessions", to: "/dashboard/knowledge", icon: HiOutlineRectangleStack, end: true },
-                            { label: "Plans", to: "/dashboard/knowledge/plans", icon: HiOutlineClipboardDocumentList },
-                            { label: "Reports", to: "/dashboard/knowledge/reports", icon: HiOutlinePresentationChartLine },
-                            { label: "Saved", to: "/dashboard/knowledge/saved", icon: HiOutlineBookmark },
-                        ].map(({ label, to, icon: Icon, end }) => (
-                            <NavLink
-                                key={to}
-                                to={to}
-                                end={end}
-                                onClick={onClose}
-                                className={({ isActive }) => `flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold no-underline transition-colors ${isActive ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-surface-muted hover:text-foreground"}`}
-                            >
-                                <Icon className="text-base" aria-hidden="true" />
-                                {label}
-                            </NavLink>
-                        ))}
-                            </div>}
-                      
-                        </div>}
-                    </div>
-                )}
+            <div className="space-y-6">
+                {navigationSections
+                    .filter(section => !section.businessOnly || canAccessBusinessTools)
+                    .map(section => (
+                        <section key={section.label} aria-label={section.label}>
+                            <h2 className="mb-2 mt-0 px-3 text-[.62rem] font-extrabold uppercase tracking-[.14em] text-muted-foreground">
+                                {section.label}
+                            </h2>
+                            <div className="grid gap-1">
+                                {section.items.map(({ label, to, icon: Icon, end }) => (
+                                    <NavLink
+                                        key={to}
+                                        to={to}
+                                        end={end}
+                                        onClick={onClose}
+                                        className={({ isActive }) =>
+                                            `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold no-underline transition-colors ${
+                                                isActive
+                                                    ? "bg-primary/15 text-primary"
+                                                    : "text-muted-foreground hover:bg-surface-muted hover:text-foreground"
+                                            }`
+                                        }
+                                    >
+                                        <Icon className="text-lg" aria-hidden="true" />
+                                        {label}
+                                    </NavLink>
+                                ))}
+                            </div>
+                        </section>
+                    ))}
             </div>
         </nav>
 

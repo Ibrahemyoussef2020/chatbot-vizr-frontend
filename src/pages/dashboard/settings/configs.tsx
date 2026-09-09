@@ -12,7 +12,12 @@ import {
 import { useAppSelector } from "@/redux/store";
 import { fetchAIConfig, saveAIConfig, type AIConfigData } from "@/services/llms/aiConfig";
 
+import StructuredKnowledgeEditor from "@/components/dashboard/StructuredKnowledgeEditor";
+import { fieldsFromJson, fieldsToJson, type KnowledgeField, type JsonValue } from "@/utils/structuredKnowledge";
+
 const Configs = () => {
+    const [knowledgeFields, setKnowledgeFields] = useState<KnowledgeField[]>([]);
+    const [loadedSlug, setLoadedSlug] = useState<string | undefined | null>(null);
     const activeWorkspace = useAppSelector((state) => state.workspace.active);
 
     const [loading, setLoading] = useState<boolean>(true);
@@ -42,6 +47,7 @@ const Configs = () => {
             .then((data) => {
                 if (isMounted && data) {
                     setForm(data);
+                    setKnowledgeFields(fieldsFromJson(data.structured_knowledge ?? {}));
                     setError("");
                 }
             })
@@ -49,7 +55,7 @@ const Configs = () => {
                 if (isMounted) setError("Failed to load AI Website Configurations.");
             })
             .finally(() => {
-                if (isMounted) setLoading(false);
+                if (isMounted) { setLoading(false); setLoadedSlug(activeWorkspace?.slug); }
             });
 
         return () => {
@@ -64,12 +70,14 @@ const Configs = () => {
         setSuccessMsg("");
 
         try {
-            const saved = await saveAIConfig(activeWorkspace?.slug, form);
+            const structured_knowledge = fieldsToJson(knowledgeFields) as { [key: string]: JsonValue };
+            if (new TextEncoder().encode(JSON.stringify(structured_knowledge)).length > 50000) throw new Error("Structured knowledge must be under 50 KB.");
+            const saved = await saveAIConfig(activeWorkspace?.slug, { ...form, structured_knowledge });
             setForm(saved);
             setSuccessMsg("Website AI Configuration saved successfully!");
             setTimeout(() => setSuccessMsg(""), 3500);
-        } catch {
-            setError("Failed to save AI configuration.");
+        } catch (cause) {
+            setError(cause instanceof Error ? cause.message : "Failed to save AI configuration.");
         } finally {
             setSaving(false);
         }
@@ -122,7 +130,7 @@ const Configs = () => {
         }));
     };
 
-    if (loading) {
+    if (loading || loadedSlug !== activeWorkspace?.slug) {
         return (
             <div className="flex h-64 items-center justify-center">
                 <CircularProgress size={36} />
@@ -318,6 +326,12 @@ const Configs = () => {
                         )}
                     </div>
                 </div>
+
+                <section className="space-y-4">
+                    <h3 className="border-b border-border pb-1 text-xs font-bold uppercase tracking-wider text-primary">Structured knowledge</h3>
+                    <p className="text-xs text-muted-foreground">Add business facts, products and FAQs. Drag fields to reorder them, or use the arrow buttons. Objects and lists can contain more fields.</p>
+                    <StructuredKnowledgeEditor fields={knowledgeFields} onChange={setKnowledgeFields} />
+                </section>
 
                 {/* Section 4: Actions Data */}
                 <div className="space-y-4">
