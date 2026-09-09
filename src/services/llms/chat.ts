@@ -16,6 +16,8 @@ export interface PublicMessage {
 }
 
 const SESSION_KEY = "leadbot_public_chat";
+const DEFAULT_PUBLIC_CHAT_SYSTEM_SLUG =
+    import.meta.env.VITE_PUBLIC_CHAT_SYSTEM_SLUG || "brand-ecommerce";
 
 const session = () => {
     try {
@@ -40,7 +42,7 @@ export interface PublicChatVisitor {
 
 export const createPublicChat = async (visitor: PublicChatVisitor, systemSlug?: string) => {
     const { data } = await api.post("/system/chat/thread/create", {
-        systemSlug: systemSlug || "demo",
+        systemSlug: systemSlug || DEFAULT_PUBLIC_CHAT_SYSTEM_SLUG,
         user_name: visitor.name,
         user_email: visitor.email || null,
         user_phone: visitor.phone || null,
