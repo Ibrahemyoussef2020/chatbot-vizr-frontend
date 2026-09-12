@@ -7,6 +7,7 @@ import type { ThreadItem } from "@/services/dashboard/analytics";
 import { ChannelBadge } from "./ChannelBadge";
 
 export interface ThreadListProps {
+    onPageChange: (page: number) => void;
     search: string;
     onSearchChange: (search: string) => void;
     formatDate: (date?: string) => string;
@@ -16,6 +17,7 @@ export interface ThreadListProps {
 }
 
 export const ThreadList = ({
+    onPageChange,
     search,
     onSearchChange,
     formatDate,
@@ -116,6 +118,13 @@ export const ThreadList = ({
                     </div>
                 )}
             </div>
+            {threadsData && (
+                <div className="flex items-center justify-between gap-2 border-t border-border p-3 text-xs text-muted-foreground">
+                    <button type="button" disabled={loadingThreads || threadsData.page <= 1} onClick={() => onPageChange(threadsData.page - 1)} className="rounded-lg border border-border px-2 py-1 disabled:opacity-40">Previous</button>
+                    <span>{threadsData.total} threads · {threadsData.page} / {threadsData.totalPages}</span>
+                    <button type="button" disabled={loadingThreads || threadsData.page >= threadsData.totalPages} onClick={() => onPageChange(threadsData.page + 1)} className="rounded-lg border border-border px-2 py-1 disabled:opacity-40">Next</button>
+                </div>
+            )}
         </Card>
     );
 };

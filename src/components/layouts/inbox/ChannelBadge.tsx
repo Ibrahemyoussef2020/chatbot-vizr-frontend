@@ -1,13 +1,14 @@
-import { FaTelegram, FaWhatsapp } from "react-icons/fa6";
+import { FaInstagram, FaTelegram, FaWhatsapp } from "react-icons/fa6";
 import { HiOutlineEnvelope, HiOutlineGlobeAlt } from "react-icons/hi2";
 
-type Channel = "web" | "whatsapp" | "telegram" | "gmail";
+type Channel = "web" | "whatsapp" | "telegram" | "instagram" | "gmail";
 
 const channelStyles: Record<Channel, string> = {
     web: "bg-sky-500/15 text-sky-600 dark:text-sky-400",
     whatsapp: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
     telegram: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
     gmail: "bg-red-500/15 text-red-600 dark:text-red-400",
+    instagram: "bg-pink-500/15 text-pink-600 dark:text-pink-400",
 };
 
 const channelIcons = {
@@ -15,6 +16,7 @@ const channelIcons = {
     whatsapp: FaWhatsapp,
     telegram: FaTelegram,
     gmail: HiOutlineEnvelope,
+    instagram: FaInstagram,
 };
 
 export const ChannelBadge = ({ channel = "web", compact = false }: { channel?: string; compact?: boolean }) => {

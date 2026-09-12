@@ -37,6 +37,7 @@ export const InboxFilterSidebar = ({ filters, setFilter, resetFilters, onClose }
                     <option value="web">Web</option>
                     <option value="whatsapp">WhatsApp</option>
                     <option value="telegram">Telegram</option>
+                    <option value="instagram">Instagram</option>
                     <option value="gmail">Gmail</option>
                 </select>
             </FilterField>

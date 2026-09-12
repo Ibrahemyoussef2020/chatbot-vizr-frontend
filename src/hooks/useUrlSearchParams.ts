@@ -14,14 +14,14 @@ export interface ThreadFilterParams {
     limit: number;
 }
 
-export const useUrlSearchParams = () => {
+export const useUrlSearchParams = (defaultChannel = "all") => {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const filters: ThreadFilterParams = useMemo(() => {
         return {
             status: searchParams.get("status") || "all",
             assigned: searchParams.get("assigned") || "all",
-            channel: searchParams.get("channel") || "all",
+            channel: searchParams.get("channel") || defaultChannel,
             priority: searchParams.get("priority") || "all",
             topic: searchParams.get("topic") || "all",
             days: Number(searchParams.get("days")) || 30,
@@ -30,15 +30,16 @@ export const useUrlSearchParams = () => {
             page: Number(searchParams.get("page")) || 1,
             limit: Number(searchParams.get("limit")) || 15,
         };
-    }, [searchParams]);
+    }, [searchParams, defaultChannel]);
 
     const setFilter = (key: keyof ThreadFilterParams, value: string | number) => {
         const nextParams = new URLSearchParams(searchParams);
+        if (key !== "page") nextParams.delete("page");
 
         if (
             value === undefined ||
             value === null ||
-            value === "all" ||
+            (value === "all" && (key !== "channel" || defaultChannel === "all")) ||
             value === "" ||
             (key === "days" && Number(value) === 30) ||
             (key === "page" && Number(value) === 1) ||
@@ -59,7 +60,7 @@ export const useUrlSearchParams = () => {
             if (
                 value === undefined ||
                 value === null ||
-                value === "all" ||
+                (value === "all" && (key !== "channel" || defaultChannel === "all")) ||
                 value === "" ||
                 (key === "days" && Number(value) === 30) ||
                 (key === "page" && Number(value) === 1) ||

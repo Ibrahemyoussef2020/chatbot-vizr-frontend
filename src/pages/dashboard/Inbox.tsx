@@ -87,7 +87,21 @@ const InboxPage = () => {
     }), [activeWorkspace?.slug, filters]);
 
     useEffect(() => {
-        void dispatch(fetchInboxThreads(getFilterParams()));
+        let stopped = false;
+        let timer: ReturnType<typeof setTimeout>;
+        let cancelRequest: (() => void) | undefined;
+        const refresh = async (background = false) => {
+            const request = dispatch(fetchInboxThreads({ ...getFilterParams(), background }));
+            cancelRequest = request.abort;
+            await request;
+            if (!stopped) timer = setTimeout(() => { void refresh(true); }, 5000);
+        };
+        void refresh();
+        return () => {
+            stopped = true;
+            clearTimeout(timer);
+            cancelRequest?.();
+        };
     }, [dispatch, getFilterParams]);
 
     useEffect(() => {
@@ -181,6 +195,7 @@ const InboxPage = () => {
 
                 {/* Conversation list */}
                 <ThreadList
+                    onPageChange={(page) => setFilter("page", page)}
                     search={filters.search || ""}
                     onSearchChange={(s) => setFilter("search", s)}
                     formatDate={formatDate}

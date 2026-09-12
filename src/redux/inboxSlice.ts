@@ -15,6 +15,7 @@ export interface InboxState {
     selectedThread: ThreadItem | null;
     messages: ThreadMessageItem[];
     loadingThreads: boolean;
+    threadsRequestId?: string;
     loadingMessages: boolean;
     sendingReply: boolean;
     savingSidebar: boolean;
@@ -53,9 +54,10 @@ const initialState: InboxState = {
 // Async Thunks
 export const fetchInboxThreads = createAsyncThunk(
     "inbox/fetchInboxThreads",
-    async (params: FilterThreadsParams, { rejectWithValue }) => {
+    async (params: FilterThreadsParams & { background?: boolean }, { rejectWithValue }) => {
         try {
-            const data = await getFilteredThreadsApi(params);
+            const { background: _background, ...filters } = params;
+            const data = await getFilteredThreadsApi(filters);
             return data;
         } catch (err: any) {
             return rejectWithValue(err?.response?.data?.message || "Failed to fetch conversations list.");
@@ -265,11 +267,13 @@ export const inboxSlice = createSlice({
     extraReducers: (builder) => {
         builder
             // Fetch Threads
-            .addCase(fetchInboxThreads.pending, (state) => {
-                state.loadingThreads = true;
+            .addCase(fetchInboxThreads.pending, (state, action) => {
+                state.threadsRequestId = action.meta.requestId;
+                if (!action.meta.arg.background) state.loadingThreads = true;
                 state.error = "";
             })
             .addCase(fetchInboxThreads.fulfilled, (state, action) => {
+                if (state.threadsRequestId !== action.meta.requestId) return;
                 state.loadingThreads = false;
                 state.threadsData = action.payload;
                 const threads = action.payload?.threads || [];
@@ -285,7 +289,9 @@ export const inboxSlice = createSlice({
                 }
             })
             .addCase(fetchInboxThreads.rejected, (state, action) => {
+                if (state.threadsRequestId !== action.meta.requestId) return;
                 state.loadingThreads = false;
+                if (action.meta.aborted) return;
                 state.error = action.payload as string;
             })
 
