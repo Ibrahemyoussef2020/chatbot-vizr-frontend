@@ -31,6 +31,7 @@ export const checkAuthStatus = createAsyncThunk(
                     email: user.email,
                     role: user.role,
                     workspaceId: user.workspaceId,
+                    permissions: user.permissions,
                 };
             }
 
@@ -62,6 +63,7 @@ export const login = createAsyncThunk(
                 email: user.email,
                 role: user.role,
                 workspaceId: user.workspaceId,
+                permissions: user.permissions,
             };
         } catch (error: unknown) {
             return rejectWithValue(extractErrorMessage(error, "Failed to login"));
@@ -98,6 +100,7 @@ export const signup = createAsyncThunk(
                 email: user.email,
                 role: user.role,
                 workspaceId: user.workspaceId,
+                permissions: user.permissions,
             };
         } catch (error: unknown) {
             return rejectWithValue(extractErrorMessage(error, "Failed to signup"));

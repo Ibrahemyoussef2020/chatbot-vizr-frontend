@@ -40,6 +40,7 @@ interface DashboardSidebarProps {
 }
 
 interface NavigationItem {
+    permission?: string;
     label: string;
     to: string;
     icon: IconType;
@@ -81,6 +82,15 @@ const navigationSections: { label: string; businessOnly?: boolean; items: Naviga
         ],
     },
     {
+        label: "Payment",
+        items: [
+            { label: "Pricings", to: "/dashboard/business/pricings", icon: HiOutlineClipboardDocumentList, permission: "plans.manage" },
+            { label: "Payments", to: "/dashboard/business/payments", icon: HiOutlineQueueList, permission: "payments.view" },
+            { label: "Payment Methods", to: "/dashboard/business/payment-methods", icon: HiOutlineCog6Tooth, permission: "payment_methods.manage" },
+            { label: "Subscriptions", to: "/dashboard/business/subscriptions", icon: HiOutlineRectangleStack, permission: "subscriptions.view" },
+        ],
+    },
+    {
         label: "Administration",
         items: [
             { label: "System logs", to: "/dashboard/logs", icon: HiOutlineQueueList },
@@ -98,6 +108,7 @@ interface SidebarContentProps {
 }
 
 const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspace, canAccessBusinessTools }: SidebarContentProps) => {
+    const permissions = useAppSelector(state => state.auth.user?.permissions || []);
     return (
     <div className="flex h-full w-72 flex-col border-r border-border bg-surface text-foreground">
         <NavLink className="flex items-center gap-3 border-b border-border px-6 py-5 no-underline" to="/" onClick={onClose}>
@@ -112,13 +123,14 @@ const SidebarContent = ({ onClose, onCreateWorkspace, onLogout, canCreateWorkspa
             <div className="space-y-6">
                 {navigationSections
                     .filter(section => !section.businessOnly || canAccessBusinessTools)
+                    .filter(section => section.items.some(item => !item.permission || permissions.includes(item.permission)))
                     .map(section => (
                         <section key={section.label} aria-label={section.label}>
                             <h2 className="mb-2 mt-0 px-3 text-[.62rem] font-extrabold uppercase tracking-[.14em] text-muted-foreground">
                                 {section.label}
                             </h2>
                             <div className="grid gap-1">
-                                {section.items.map(({ label, to, icon: Icon, end }) => (
+                                {section.items.filter(item => !item.permission || permissions.includes(item.permission)).map(({ label, to, icon: Icon, end }) => (
                                     <NavLink
                                         key={to}
                                         to={to}

@@ -9,6 +9,7 @@ import {
 import { authHelpers } from "@/helpers";
 
 export interface User {
+  permissions?: string[];
   id?: string;
   name: string;
   email: string;

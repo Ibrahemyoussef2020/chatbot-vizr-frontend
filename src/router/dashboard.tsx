@@ -1,4 +1,7 @@
 import { Dashboard, Settings } from "@/layouts";
+import BusinessPayments from "@/pages/dashboard/BusinessPayments";
+import BusinessPaymentMethods from "@/pages/dashboard/BusinessPaymentMethods";
+import BusinessSubscriptions from "@/pages/dashboard/BusinessSubscriptions";
 import {
     Overview,
     Analytics,
@@ -38,6 +41,9 @@ const dashbordRpoter = [
             {
                 element: <Dashboard />,
                 children: [
+                    { path: "business/payments", element: <BusinessPayments /> },
+                    { path: "business/payment-methods", element: <BusinessPaymentMethods /> },
+                    { path: "business/subscriptions", element: <BusinessSubscriptions /> },
                     { index: true, element: <Overview /> },
                     { path: "ai-management", element: <AIManagement />, children: [
                         { index: true, element: <Navigate to="overview" replace /> },
@@ -115,8 +121,12 @@ const dashbordRpoter = [
                         element: <KnowledgeReports />,
                     },
                     {
-                        path: "business/plans",
+                        path: "business/pricings",
                         element: <BusinessPlans />,
+                    },
+                    {
+                        path: "business/plans",
+                        element: <Navigate to="/dashboard/business/pricings" replace />,
                     },
                     {
                         path: "settings",
