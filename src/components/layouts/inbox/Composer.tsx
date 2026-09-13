@@ -28,7 +28,7 @@ export const Composer = ({
     const { selectedThread, replyText, sendingReply, messages } = useAppSelector((state) => state.inbox);
 
     const handleSendReply = () => {
-        if (!replyText.trim() || !selectedThread) return;
+        if (!replyText.trim() || replyText.trim().length > 4000 || !selectedThread) return;
         void dispatch(
             sendThreadReply({
                 threadId: selectedThread.id,
@@ -64,7 +64,7 @@ export const Composer = ({
                 <div className="flex items-center gap-1.5 ml-auto">
                     <Select
                         value={aiProvider}
-                        onChange={(e) => onAIProviderChange(e.target.value as any)}
+                        onChange={(e) => onAIProviderChange(e.target.value as AIProvider)}
                         size="small"
                         sx={{
                             height: "24px",
@@ -112,6 +112,9 @@ export const Composer = ({
                     fullWidth
                     placeholder="Type your message reply here..."
                     value={replyText}
+                    error={replyText.trim().length > 4000}
+                    helperText={replyText.trim().length > 4000 ? "Replies must be 4,000 characters or fewer." : undefined}
+                    slotProps={{ htmlInput: { maxLength: 4000 } }}
                     onChange={(e) => dispatch(setReplyText(e.target.value))}
                     sx={{
                         "& .MuiOutlinedInput-root": {
@@ -127,7 +130,7 @@ export const Composer = ({
                 <Button
                     variant="contained"
                     onClick={handleSendReply}
-                    disabled={sendingReply || !replyText.trim()}
+                    disabled={sendingReply || !replyText.trim() || replyText.trim().length > 4000}
                     sx={{
                         height: "38px",
                         minWidth: "44px",

@@ -42,7 +42,7 @@ export const ReplyThreadModal: React.FC<ReplyThreadModalProps> = ({
     if (!thread) return null;
 
     const handleSend = async () => {
-        if (!content.trim()) return;
+        if (!content.trim() || content.trim().length > 4000) return;
 
         setLoading(true);
         setError(null);
@@ -142,6 +142,9 @@ export const ReplyThreadModal: React.FC<ReplyThreadModalProps> = ({
                     fullWidth
                     placeholder="Type your message reply here..."
                     value={content}
+                    error={content.trim().length > 4000}
+                    helperText={content.trim().length > 4000 ? "Replies must be 4,000 characters or fewer." : undefined}
+                    slotProps={{ htmlInput: { maxLength: 4000 } }}
                     onChange={(e) => setContent(e.target.value)}
                     sx={{
                         "& .MuiOutlinedInput-root": {
@@ -166,7 +169,7 @@ export const ReplyThreadModal: React.FC<ReplyThreadModalProps> = ({
                 <Button
                     variant="contained"
                     onClick={handleSend}
-                    disabled={loading || !content.trim()}
+                    disabled={loading || !content.trim() || content.trim().length > 4000}
                     startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <HiOutlinePaperAirplane />}
                     sx={{
                         bgcolor: "var(--primary)",

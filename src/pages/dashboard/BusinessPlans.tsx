@@ -4,6 +4,7 @@ import { useAppSelector } from "@/redux/store";
 import getErrorText from "@/utils/typeErrorText";
 import { deletePlan, listPlans, savePlan, type BusinessPlan, type PlanInput } from "@/services/core/businessPlans";
 import PlanForm from "@/components/plans/PlanForm";
+import CrudActionButton from "@/components/shared/CrudActionButton";
 
 const BusinessPlans = () => {
     const allowed = useAppSelector(state => state.auth.user?.permissions?.includes("plans.manage") === true);
@@ -82,7 +83,10 @@ const BusinessPlans = () => {
                 </div>
                 <div className="flex gap-2">
                     <Button onClick={() => setYearly(value => !value)}>{yearly ? "Yearly" : "Monthly"}</Button>
-                    <Button variant="contained" onClick={() => { setError(""); setEditor(null); }}>Add plan</Button>
+                    <CrudActionButton action="create" label="Add pricing plan" onClick={() => {
+                        setError("");
+                        setEditor(null);
+                    }} />
                 </div>
             </header>
             {error && editor === undefined && !pendingDelete && <Alert severity="error" action={<Button onClick={() => setReload(value => value + 1)}>Retry</Button>}>{error}</Alert>}
@@ -100,8 +104,14 @@ const BusinessPlans = () => {
                                 <ul className="mb-4 list-inside list-disc text-sm">
                                     {plan.features.map((feature, index) => <li key={index}>{feature}</li>)}
                                 </ul>
-                                <Button onClick={() => { setError(""); setEditor(plan); }}>Edit</Button>
-                                <Button color="error" onClick={() => { setError(""); setPendingDelete(plan); }}>Delete</Button>
+                                <CrudActionButton action="edit" label={`Edit ${plan.name}`} onClick={() => {
+                                    setError("");
+                                    setEditor(plan);
+                                }} />
+                                <CrudActionButton action="delete" label={`Delete ${plan.name}`} onClick={() => {
+                                    setError("");
+                                    setPendingDelete(plan);
+                                }} />
                             </article>
                         );
                     })}
@@ -117,7 +127,7 @@ const BusinessPlans = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button disabled={busy} onClick={() => setPendingDelete(null)}>Cancel</Button>
-                    <Button disabled={busy} color="error" onClick={() => void confirmDelete()}>{busy ? "Deleting…" : "Delete plan"}</Button>
+                    <CrudActionButton action="delete" label={busy ? "Deleting plan" : `Confirm deletion of ${pendingDelete?.name || "plan"}`} busy={busy} onClick={() => void confirmDelete()} />
                 </DialogActions>
             </Dialog>
         </div>

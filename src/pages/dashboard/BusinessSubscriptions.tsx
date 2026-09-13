@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, TextField } from "@mui/material";
 import { useAppSelector } from "@/redux/store";
+import CrudActionButton from "@/components/shared/CrudActionButton";
 import getErrorText from "@/utils/typeErrorText";
 import { listSubscriptions, type SubscriptionItem } from "@/services/core/businessSubscriptions";
 import type { PagedResult } from "@/services/core/businessPayments";
@@ -62,7 +63,7 @@ const BusinessSubscriptions = () => {
                                     <td className="p-4">{subscription.status.replaceAll("_", " ")}{subscription.cancelAtPeriodEnd ? " · Cancels at period end" : ""}</td>
                                     <td className="p-4">{subscription.billingCycle}</td>
                                     <td className="p-4">{date(subscription.currentPeriodEnd)}</td>
-                                    <td className="p-4"><Button onClick={() => setSelected(subscription)}>View</Button></td>
+                                    <td className="p-4"><CrudActionButton action="read" label={`View ${subscription.planCode} subscription for ${subscription.workspaceId?.name || "workspace"}`} onClick={() => setSelected(subscription)} /></td>
                                 </tr>
                             ))}</tbody>
                         </table>

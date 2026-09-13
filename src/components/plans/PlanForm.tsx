@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Alert, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, MenuItem, TextField } from "@mui/material";
 import type { BusinessPlan, PlanInput } from "@/services/core/businessPlans";
+import CrudActionButton from "@/components/shared/CrudActionButton";
 
 interface Props {
     plan: BusinessPlan | null;
@@ -75,7 +76,7 @@ const PlanForm = ({ plan, busy, error, onSave, onClose }: Props) => {
                 </DialogContent>
                 <DialogActions>
                     <Button disabled={busy} onClick={onClose}>Cancel</Button>
-                    <Button disabled={busy} type="submit" variant="contained">{busy ? "Saving…" : "Save plan"}</Button>
+                    <CrudActionButton action="save" label={busy ? "Saving plan" : "Save plan"} busy={busy} type="submit" />
                 </DialogActions>
             </form>
         </Dialog>
