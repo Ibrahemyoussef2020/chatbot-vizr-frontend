@@ -12,6 +12,7 @@ export interface PlanInput {
     trialDays: number;
     sortOrder: number;
     features: string[];
+    featureIds?: string[];
 }
 
 export interface BusinessPlan extends PlanInput {

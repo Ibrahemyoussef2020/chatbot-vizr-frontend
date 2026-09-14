@@ -45,6 +45,29 @@
 }
 
 /* Dense AI operations layout: mirrors the compact Token Management and Tags surfaces. */
+.dashboard-content > :first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.dashboard-content header:has(h1) {
+  margin-top: 0;
+  padding-top: 0.25rem;
+  padding-bottom: 0.75rem;
+  min-height: 0;
+}
+
+.dashboard-content h1 {
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-content .pricing-page-header {
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: 0.5rem;
+}
+
 .ai-management-dashboard article {
   min-height: 0;
 }
@@ -96,6 +119,62 @@
   background: var(--surface);
   color: var(--foreground);
 }
+
+.plan-form-dialog .MuiInputBase-root,
+.plan-form-dialog input,
+.plan-form-dialog textarea,
+.plan-form-dialog .MuiSelect-select {
+  background-color: var(--surface-elevated) !important;
+}
+
+/* Select and autocomplete menus render in separate portals under body. */
+.MuiMenu-paper,
+.MuiAutocomplete-paper {
+  background: var(--surface-elevated) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow) !important;
+}
+
+.MuiMenu-paper .MuiMenuItem-root,
+.MuiAutocomplete-paper .MuiAutocomplete-option {
+  color: var(--foreground);
+}
+
+.MuiMenu-paper .MuiMenuItem-root:hover,
+.MuiMenu-paper .MuiMenuItem-root.Mui-focusVisible,
+.MuiAutocomplete-paper .MuiAutocomplete-option.Mui-focused {
+  background: var(--surface-muted) !important;
+}
+
+.MuiMenu-paper .MuiMenuItem-root.Mui-selected,
+.MuiAutocomplete-paper .MuiAutocomplete-option[aria-selected="true"] {
+  background: color-mix(in srgb, var(--primary) 18%, var(--surface-elevated)) !important;
+}
+
+.MuiAutocomplete-paper .MuiAutocomplete-groupLabel {
+  background: var(--surface-elevated);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.MuiAutocomplete-paper .MuiAutocomplete-noOptions,
+.MuiAutocomplete-paper .MuiAutocomplete-loading {
+  color: var(--muted-foreground);
+}
+
+.plan-form-dialog .MuiInputLabel-root,
+.plan-form-dialog .MuiFormHelperText-root,
+.plan-form-dialog .MuiSelect-icon,
+.plan-form-dialog .MuiAutocomplete-popupIndicator,
+.plan-form-dialog .MuiAutocomplete-clearIndicator {
+  color: var(--muted-foreground);
+}
+
+.plan-form-dialog .MuiInputBase-root { color: var(--foreground); }
+.plan-form-dialog .MuiOutlinedInput-notchedOutline { border-color: var(--border); }
+.plan-form-dialog .MuiChip-root { background: var(--surface-muted); color: var(--foreground); }
+.plan-form-dialog .MuiChip-deleteIcon { color: var(--muted-foreground); }
 
 @media (min-width: 1280px) {
   .ai-management-dashboard main > .grid.grid-cols-1,
@@ -186,6 +265,25 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+input[type="number"] {
+  color-scheme: dark !important;
+}
+
+body.light-theme input[type="number"] {
+  color-scheme: light !important;
+}
+
+.themed-number-field input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.themed-number-field input::-webkit-inner-spin-button,
+.themed-number-field input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 button:not(:disabled) {

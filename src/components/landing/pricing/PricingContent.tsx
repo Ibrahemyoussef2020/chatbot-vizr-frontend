@@ -14,7 +14,7 @@ const PricingContent = ({ page }: PricingContentProps) => {
     const plans = (plansSection?.items || []) as PlanItem[];
 
     return (
-        <main className="mx-auto w-[calc(100%_-_2rem)] max-w-7xl py-20 pb-32 max-sm:py-14">
+        <main className="mx-auto w-[calc(100%_-_2rem)] max-w-7xl pt-3 pb-12 sm:pt-4">
             <PricingHero
                 eyebrow={page.eyebrow}
                 title={page.title}

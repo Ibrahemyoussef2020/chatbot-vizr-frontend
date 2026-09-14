@@ -18,7 +18,7 @@ const Dashboard = () => {
             <DashboardSidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
             <main className="flex min-w-0 flex-1 flex-col bg-background text-foreground">
                 <DashboardHeader onMenu={() => setMobileOpen(true)} />
-                <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-8">
+                <div className="dashboard-content min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 pt-2 lg:px-8 lg:pb-8 lg:pt-3">
                     <Outlet />
                 </div>
             </main>

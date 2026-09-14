@@ -1,5 +1,6 @@
 import { Dashboard, Settings } from "@/layouts";
 import BusinessPayments from "@/pages/dashboard/BusinessPayments";
+import BusinessFeatures from "@/pages/dashboard/BusinessFeatures";
 import BusinessPaymentMethods from "@/pages/dashboard/BusinessPaymentMethods";
 import BusinessPaymentMethodEdit from "@/pages/dashboard/BusinessPaymentMethodEdit";
 import BusinessSubscriptions from "@/pages/dashboard/BusinessSubscriptions";
@@ -43,6 +44,9 @@ const dashbordRpoter = [
                 element: <Dashboard />,
                 children: [
                     { path: "business/payments", element: <BusinessPayments /> },
+                    { path: "business/pricings-features", element: <BusinessFeatures /> },
+                    { path: "features", element: <Navigate to="/dashboard/business/pricings-features" replace /> },
+                    { path: "business/features", element: <Navigate to="/dashboard/business/pricings-features" replace /> },
                     { path: "business/payment-methods", element: <BusinessPaymentMethods /> },
                     { path: "business/payment-methods/:provider/edit", element: <BusinessPaymentMethodEdit /> },
                     { path: "business/subscriptions", element: <BusinessSubscriptions /> },

@@ -1,3 +1,4 @@
+import Button from "@mui/material/Button";
 import type { BillingCycle } from "./types";
 
 interface PricingHeroProps {
@@ -17,7 +18,7 @@ const PricingHero = ({
     billingCycle,
     onBillingCycleChange,
 }: PricingHeroProps) => (
-    <section className="mx-auto mb-16 max-w-[850px] text-center">
+    <section className="mx-auto mb-6 max-w-[850px] text-center">
         {eyebrow && <span className="text-xs font-extrabold uppercase tracking-[.15em] text-[var(--theme-accent)]">{eyebrow}</span>}
         <h1 className="my-3 text-[clamp(1.875rem,4vw,3rem)] font-extrabold leading-[1.15]">{title}</h1>
         {description && <p className="mx-auto max-w-2xl text-base leading-7 text-[var(--theme-copy)]">{description}</p>}
@@ -37,4 +38,3 @@ const PricingHero = ({
 );
 
 export default PricingHero;
-import Button from "@mui/material/Button";

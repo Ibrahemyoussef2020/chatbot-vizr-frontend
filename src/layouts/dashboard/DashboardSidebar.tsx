@@ -85,6 +85,7 @@ const navigationSections: { label: string; businessOnly?: boolean; items: Naviga
         label: "Payment",
         items: [
             { label: "Pricings", to: "/dashboard/business/pricings", icon: HiOutlineClipboardDocumentList, permission: "plans.manage" },
+            { label: "Pricings Features", to: "/dashboard/business/pricings-features", icon: HiOutlineRectangleStack, permission: "plans.manage" },
             { label: "Payments", to: "/dashboard/business/payments", icon: HiOutlineQueueList, permission: "payments.view" },
             { label: "Payment Methods", to: "/dashboard/business/payment-methods", icon: HiOutlineCog6Tooth, permission: "payment_methods.manage" },
             { label: "Subscriptions", to: "/dashboard/business/subscriptions", icon: HiOutlineRectangleStack, permission: "subscriptions.view" },

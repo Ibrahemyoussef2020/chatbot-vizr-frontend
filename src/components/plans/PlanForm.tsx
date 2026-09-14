@@ -1,7 +1,12 @@
-import { useState, type FormEvent } from "react";
-import { Alert, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, MenuItem, TextField } from "@mui/material";
+import { useEffect, useState, type FormEvent } from "react";
+import { Alert, Autocomplete, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, MenuItem, TextField } from "@mui/material";
+import { Link } from "react-router-dom";
+import { getFeatureOptions, listFeatures, type BusinessFeature, type FeatureOptions } from "@/services/core/businessFeatures";
+import PlanFeatureGroups from "@/components/plans/PlanFeatureGroups";
+import getErrorText from "@/utils/typeErrorText";
 import type { BusinessPlan, PlanInput } from "@/services/core/businessPlans";
 import CrudActionButton from "@/components/shared/CrudActionButton";
+import NumberField from "@/components/shared/NumberField";
 
 interface Props {
     plan: BusinessPlan | null;
@@ -24,14 +29,27 @@ const PlanForm = ({ plan, busy, error, onSave, onClose }: Props) => {
         trialDays: plan?.trialDays || 0,
         sortOrder: plan?.sortOrder || 0,
         features: plan?.features || [],
+        featureIds: plan?.featureIds?.length ? plan.featureIds : plan?.features.length ? undefined : [],
     });
-    const [features, setFeatures] = useState(form.features.join("\n"));
+    const [catalog, setCatalog] = useState<BusinessFeature[]>([]);
+    const [featureOptions, setFeatureOptions] = useState<FeatureOptions>({ metrics: [], agents: [] });
+    const [catalogLoading, setCatalogLoading] = useState(true);
+    const [catalogError, setCatalogError] = useState("");
+    useEffect(() => {
+        const controller = new AbortController();
+        void Promise.all([listFeatures(controller.signal), getFeatureOptions(controller.signal)]).then(([data, options]) => {
+            if (!controller.signal.aborted) { setCatalog(data); setFeatureOptions(options); }
+        })
+            .catch(failure => { if (!controller.signal.aborted) setCatalogError(getErrorText(failure)); })
+            .finally(() => { if (!controller.signal.aborted) setCatalogLoading(false); });
+        return () => controller.abort();
+    }, []);
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        void onSave({ ...form, features: features.split("\n").map(value => value.trim()).filter(Boolean) });
+        void onSave(form);
     };
     return (
-        <Dialog open fullWidth maxWidth="sm" onClose={() => { if (!busy) onClose(); }}>
+        <Dialog className="plan-form-dialog" open fullWidth maxWidth="sm" onClose={() => { if (!busy) onClose(); }}>
             <form onSubmit={submit}>
                 <DialogTitle>{plan ? "Edit plan" : "Add pricing plan"}</DialogTitle>
                 <DialogContent>
@@ -45,10 +63,10 @@ const PlanForm = ({ plan, busy, error, onSave, onClose }: Props) => {
                         ))}
                         <div className="grid gap-4 sm:grid-cols-2">
                             {(["monthly", "yearly"] as const).map(cycle => (
-                                <TextField key={cycle} label={cycle === "monthly" ? "Monthly total" : "Yearly total"}
-                                    type="number" disabled={busy} value={form.pricing[cycle] ?? ""}
-                                    helperText="Blank means contact for pricing." slotProps={{ htmlInput: { min: 0, step: "0.01" } }}
-                                    onChange={event => setForm({ ...form, pricing: { ...form.pricing, [cycle]: event.target.value === "" ? null : Number(event.target.value) } })} />
+                                <NumberField key={cycle} label={cycle === "monthly" ? "Monthly total" : "Yearly total"}
+                                    disabled={busy} value={form.pricing[cycle] ?? ""} min={0} step={0.01}
+                                    helperText="Blank means contact for pricing."
+                                    onValueChange={value => setForm({ ...form, pricing: { ...form.pricing, [cycle]: value === "" ? null : Number(value) } })} />
                             ))}
                             <TextField select label="Status" disabled={busy} value={form.status}
                                 onChange={event => setForm({ ...form, status: event.target.value as PlanInput["status"] })}>
@@ -60,14 +78,26 @@ const PlanForm = ({ plan, busy, error, onSave, onClose }: Props) => {
                                 <MenuItem value="private">Private</MenuItem>
                             </TextField>
                             {(["trialDays", "sortOrder"] as const).map(field => (
-                                <TextField key={field} label={field === "trialDays" ? "Trial days" : "Display order"}
-                                    type="number" required disabled={busy} value={form[field]}
-                                    slotProps={{ htmlInput: { min: 0, step: 1, max: field === "trialDays" ? 365 : undefined } }}
-                                    onChange={event => setForm({ ...form, [field]: Number(event.target.value) })} />
+                                <NumberField key={field} label={field === "trialDays" ? "Trial days" : "Display order"}
+                                    required disabled={busy} value={form[field]}
+                                    min={0} step={1} max={field === "trialDays" ? 365 : undefined}
+                                    onValueChange={value => setForm({ ...form, [field]: Number(value) })} />
                             ))}
                         </div>
-                        <TextField label="Features" multiline rows={4} disabled={busy} value={features}
-                            onChange={event => setFeatures(event.target.value)} helperText="One feature per line." />
+                        <Autocomplete options={catalog} disabled={busy || catalogLoading || !!catalogError}
+                            value={catalog.find(feature => feature._id === form.featureIds?.[0]) || null}
+                            getOptionLabel={feature => feature.name}
+                            isOptionEqualToValue={(a, b) => a._id === b._id}
+                            onChange={(_event, selected) => setForm({ ...form, featureIds: selected ? [selected._id] : [], features: selected ? [selected.name] : [] })}
+                            renderInput={params => <TextField {...params} label="Feature bundle" helperText={catalogLoading ? "Loading features..." : "Choose one bundle from Pricings Features."} />} />
+                        {(form.featureIds?.length || 0) > 1 && <Alert severity="warning">This plan has multiple bundles. Select one bundle before saving.</Alert>}
+                        {catalogError && <Alert severity="error">{catalogError}</Alert>}
+                        <PlanFeatureGroups bundles={(form.featureIds || []).flatMap(id => {
+                            const bundle = catalog.find(feature => feature._id === id);
+                            return bundle ? [bundle] : [];
+                        })} options={featureOptions} />
+                        {!plan?.featureIds?.length && !!plan?.features.length && <Alert severity="info">This plan has existing display features. Select saved features to replace them.</Alert>}
+                        <Button component={Link} to="/dashboard/business/pricings-features">Manage pricings features</Button>
                         <FormControlLabel label="Popular plan" control={
                             <Checkbox disabled={busy} checked={form.popular}
                                 onChange={event => setForm({ ...form, popular: event.target.checked })} />
@@ -76,7 +106,7 @@ const PlanForm = ({ plan, busy, error, onSave, onClose }: Props) => {
                 </DialogContent>
                 <DialogActions>
                     <Button disabled={busy} onClick={onClose}>Cancel</Button>
-                    <CrudActionButton action="save" label={busy ? "Saving plan" : "Save plan"} busy={busy} type="submit" />
+                    <CrudActionButton action="save" label={busy ? "Saving plan" : "Save plan"} busy={busy} disabled={(form.featureIds?.length || 0) > 1} type="submit" />
                 </DialogActions>
             </form>
         </Dialog>
