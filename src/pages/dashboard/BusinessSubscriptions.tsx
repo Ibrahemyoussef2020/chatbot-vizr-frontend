@@ -3,8 +3,8 @@ import { Alert, Button, CircularProgress, Dialog, DialogActions, DialogContent, 
 import { useAppSelector } from "@/redux/store";
 import CrudActionButton from "@/components/shared/CrudActionButton";
 import getErrorText from "@/utils/typeErrorText";
-import { listSubscriptions, type SubscriptionItem } from "@/services/core/businessSubscriptions";
-import type { PagedResult } from "@/services/core/businessPayments";
+import { listSubscriptions, type SubscriptionItem } from "@/services/payments/subscriptions";
+import type { PagedResult } from "@/services/payments/ledger";
 
 const date = (value?: string) => value ? new Date(value).toLocaleDateString() : "—";
 

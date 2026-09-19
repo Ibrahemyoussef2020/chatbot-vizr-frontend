@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { getFeatureOptions, listFeatures, type BusinessFeature, type FeatureOptions } from "@/services/core/businessFeatures";
 import PlanFeatureGroups from "@/components/plans/PlanFeatureGroups";
 import getErrorText from "@/utils/typeErrorText";
-import type { BusinessPlan, PlanInput } from "@/services/core/businessPlans";
+import type { BusinessPlan, PlanInput } from "@/services/plans/plans";
 import CrudActionButton from "@/components/shared/CrudActionButton";
 import NumberField from "@/components/shared/NumberField";
 

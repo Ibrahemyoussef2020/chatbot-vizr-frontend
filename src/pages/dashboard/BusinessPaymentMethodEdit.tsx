@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import CrudActionButton from "@/components/shared/CrudActionButton";
 import { useAppSelector } from "@/redux/store";
 import getErrorText from "@/utils/typeErrorText";
-import { listPaymentMethods, savePaymentMethod, type PaymentMethod } from "@/services/core/businessPaymentMethods";
+import { listPaymentMethods, savePaymentMethod, type PaymentMethod } from "@/services/payments/methods";
 
 const listPath = "/dashboard/business/payment-methods";
 

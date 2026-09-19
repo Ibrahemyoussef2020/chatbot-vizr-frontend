@@ -1,5 +1,5 @@
 import api from "@/api";
-import type { PagedResult } from "./businessPayments";
+import type { PagedResult } from "./ledger";
 
 export interface SubscriptionItem {
     _id: string;

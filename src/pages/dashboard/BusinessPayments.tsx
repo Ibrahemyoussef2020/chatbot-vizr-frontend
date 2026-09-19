@@ -4,7 +4,7 @@ import { HiOutlineArrowPath, HiOutlineBanknotes, HiOutlineChevronLeft, HiOutline
 import { useAppSelector } from "@/redux/store";
 import { PaymentProviderBadge, PaymentStatusBadge, PaymentSummary, PaymentTable } from "@/components/dashboard/PaymentLedger";
 import { formatPaymentAmount, formatPaymentDate, paymentStatuses } from "@/helpers/paymentPresentation";
-import { listPayments, type PaymentItem, type PagedResult } from "@/services/core/businessPayments";
+import { listPayments, type PaymentItem, type PagedResult } from "@/services/payments/ledger";
 import getErrorText from "@/utils/typeErrorText";
 
 const quickStatuses = [

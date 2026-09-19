@@ -3,7 +3,7 @@ import { Alert, Button, CircularProgress } from "@mui/material";
 import CrudActionButton from "@/components/shared/CrudActionButton";
 import { useAppSelector } from "@/redux/store";
 import getErrorText from "@/utils/typeErrorText";
-import { listPaymentMethods, type PaymentMethod } from "@/services/core/businessPaymentMethods";
+import { listPaymentMethods, type PaymentMethod } from "@/services/payments/methods";
 
 const BusinessPaymentMethods = () => {
     const allowed = useAppSelector(state => state.auth.user?.permissions?.includes("payment_methods.manage"));

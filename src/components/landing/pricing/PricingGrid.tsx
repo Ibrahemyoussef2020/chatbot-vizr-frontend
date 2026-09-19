@@ -1,8 +1,10 @@
 import Button from "@mui/material/Button";
+import MenuItem from "@mui/material/MenuItem";
+import TextField from "@mui/material/TextField";
 import Card from "@mui/material/Card";
 import { useState } from "react";
 import type { PlanItem } from "@/services/core/landing";
-import { subscribeToPlan } from "@/services/core/subscription";
+import { subscribeToPlan } from "@/services/payments/checkout";
 import type { BillingCycle } from "./types";
 
 interface PricingGridProps {
@@ -73,6 +75,7 @@ const PricingCard = ({
 const PricingGrid = ({ plans, billingCycle }: PricingGridProps) => {
     const [submittingPlan, setSubmittingPlan] = useState<string | null>(null);
     const [notification, setNotification] = useState<string | null>(null);
+    const [provider, setProvider] = useState<"stripe" | "vodafone_cash">("stripe");
 
     const handleSubscribe = async (planCode: string) => {
         setSubmittingPlan(planCode);
@@ -81,14 +84,15 @@ const PricingGrid = ({ plans, billingCycle }: PricingGridProps) => {
         try {
             const res = await subscribeToPlan({
                 planCode,
+                provider,
                 billingCycle,
             });
 
-            if (res.success && res.subscription?.checkoutUrl) {
-                setNotification(`Subscribed to ${res.subscription.planName} (${res.subscription.billingCycle})! Redirecting…`);
-                setTimeout(() => {
-                    window.location.href = res.subscription.checkoutUrl;
-                }, 1000);
+            if (!res.success) return;
+            if (res.checkout.mode === "redirect" && res.checkout.checkoutUrl) {
+                window.location.href = res.checkout.checkoutUrl;
+            } else {
+                setNotification(res.checkout.instructions || `Payment ${res.checkout.reference} is awaiting review.`);
             }
         } catch {
             setNotification("Subscription request could not be processed. Please try again.");
@@ -99,8 +103,14 @@ const PricingGrid = ({ plans, billingCycle }: PricingGridProps) => {
 
     return (
         <div className="space-y-6">
+            <div className="mx-auto max-w-[1180px]">
+                <TextField select size="small" label="Payment method" value={provider} onChange={event => setProvider(event.target.value as typeof provider)}>
+                    <MenuItem value="stripe">Stripe</MenuItem>
+                    <MenuItem value="vodafone_cash">Vodafone Cash</MenuItem>
+                </TextField>
+            </div>
             {notification && (
-                <div className="mx-auto max-w-[1180px] rounded-xl bg-primary/10 p-4 text-center text-sm font-semibold text-primary">
+                <div className="mx-auto max-w-[1180px] whitespace-pre-line rounded-xl bg-primary/10 p-4 text-center text-sm font-semibold text-primary">
                     {notification}
                 </div>
             )}

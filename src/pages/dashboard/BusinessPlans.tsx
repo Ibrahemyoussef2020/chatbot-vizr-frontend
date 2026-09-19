@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Alert, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 import { useAppSelector } from "@/redux/store";
 import getErrorText from "@/utils/typeErrorText";
-import { deletePlan, listPlans, savePlan, type BusinessPlan, type PlanInput } from "@/services/core/businessPlans";
+import { deletePlan, listPlans, savePlan, type BusinessPlan, type PlanInput } from "@/services/plans/plans";
 import PlanForm from "@/components/plans/PlanForm";
 import CrudActionButton from "@/components/shared/CrudActionButton";
 import PlanFeatureGroups from "@/components/plans/PlanFeatureGroups";

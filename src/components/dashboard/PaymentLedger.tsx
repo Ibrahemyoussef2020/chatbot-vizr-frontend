@@ -1,7 +1,7 @@
 import { Tooltip } from "@mui/material";
 import { HiOutlineBanknotes, HiOutlineCheckCircle, HiOutlineClock, HiOutlineCreditCard, HiOutlineDevicePhoneMobile, HiOutlineExclamationCircle } from "react-icons/hi2";
 import CrudActionButton from "@/components/shared/CrudActionButton";
-import type { PaymentItem } from "@/services/core/businessPayments";
+import type { PaymentItem } from "@/services/payments/ledger";
 import { formatPaymentAmount, formatPaymentDate, paymentProviderName, paymentStatuses, shortenPaymentReference } from "@/helpers/paymentPresentation";
 
 export const PaymentStatusBadge = ({ status }: { status: string }) => {
