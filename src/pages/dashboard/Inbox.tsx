@@ -63,6 +63,7 @@ const InboxPage = () => {
     const [workspaceTags, setWorkspaceTags] = useState<TagItem[]>([]);
     const [filtersOpen, setFiltersOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const shouldAutoScrollMessagesRef = useRef(true);
 
     const {
         provider: aiProvider,
@@ -136,7 +137,9 @@ const InboxPage = () => {
     }, [dispatch, selectedThread?.id]);
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (shouldAutoScrollMessagesRef.current) {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
     }, [messages]);
 
     const handleAISuggestReply = async () => {
@@ -221,6 +224,7 @@ const InboxPage = () => {
                         filterParams={filterParams}
                         formatDate={formatDate}
                         messagesEndRef={messagesEndRef}
+                        shouldAutoScrollRef={shouldAutoScrollMessagesRef}
                     />
 
                     {selectedThread && (

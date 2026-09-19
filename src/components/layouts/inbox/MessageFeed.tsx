@@ -1,4 +1,4 @@
-import { type RefObject } from "react";
+import { type RefObject, type MutableRefObject } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Button from "@mui/material/Button";
@@ -13,12 +13,14 @@ export interface MessageFeedProps {
     filterParams: FilterThreadsParams;
     formatDate: (date?: string) => string;
     messagesEndRef: RefObject<HTMLDivElement | null>;
+    shouldAutoScrollRef: MutableRefObject<boolean>;
 }
 
 export const MessageFeed = ({
     filterParams,
     formatDate,
     messagesEndRef,
+    shouldAutoScrollRef,
 }: MessageFeedProps) => {
     const dispatch = useAppDispatch();
     const { selectedThread, messages, loadingMessages } = useAppSelector((state) => state.inbox);
@@ -85,7 +87,13 @@ export const MessageFeed = ({
                 </div>
             </header>
 
-            <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-surface-muted/20">
+            <div
+                className="flex-1 p-4 overflow-y-auto space-y-3 bg-surface-muted/20"
+                onScroll={(event) => {
+                    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+                    shouldAutoScrollRef.current = scrollHeight - scrollTop - clientHeight < 80;
+                }}
+            >
                 {loadingMessages && messages.length === 0 && (
                     <div className="flex h-full items-center justify-center">
                         <CircularProgress size={28} />
@@ -111,7 +119,7 @@ export const MessageFeed = ({
                             <div
                                 className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs font-medium leading-relaxed shadow-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 ${
                                     isClient
-                                        ? "bg-card text-foreground border border-border rounded-tl-sm"
+                                        ? "bg-surface text-foreground border border-border rounded-tl-sm"
                                         : "bg-primary text-white rounded-tr-sm"
                                 }`}
                             >
