@@ -86,13 +86,13 @@ export const MessageFeed = ({
             </header>
 
             <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-surface-muted/20">
-                {loadingMessages && (
+                {loadingMessages && messages.length === 0 && (
                     <div className="flex h-full items-center justify-center">
                         <CircularProgress size={28} />
                     </div>
                 )}
 
-                {!loadingMessages && messages.map((msg) => {
+                {messages.map((msg) => {
                     // Only assistant replies belong on the bot side. Treat legacy
                     // or provider-specific sender labels as customer messages.
                     const isClient = msg.sender_type !== "assistant";
