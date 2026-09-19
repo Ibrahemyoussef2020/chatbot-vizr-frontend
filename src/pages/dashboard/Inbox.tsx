@@ -119,9 +119,20 @@ const InboxPage = () => {
     }, [activeWorkspace?.slug]);
 
     useEffect(() => {
-        if (selectedThread?.id) {
-            void dispatch(fetchInboxMessages(selectedThread.id));
-        }
+        if (!selectedThread?.id) return;
+
+        let stopped = false;
+        let timer: ReturnType<typeof setTimeout>;
+        const refreshMessages = async () => {
+            await dispatch(fetchInboxMessages(selectedThread.id));
+            if (!stopped) timer = setTimeout(() => { void refreshMessages(); }, 5000);
+        };
+
+        void refreshMessages();
+        return () => {
+            stopped = true;
+            clearTimeout(timer);
+        };
     }, [dispatch, selectedThread?.id]);
 
     useEffect(() => {
