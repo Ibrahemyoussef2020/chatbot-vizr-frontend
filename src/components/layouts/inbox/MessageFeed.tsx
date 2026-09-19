@@ -93,7 +93,9 @@ export const MessageFeed = ({
                 )}
 
                 {!loadingMessages && messages.map((msg) => {
-                    const isClient = msg.sender_type === "user" || msg.sender_type === "visitor";
+                    // Only assistant replies belong on the bot side. Treat legacy
+                    // or provider-specific sender labels as customer messages.
+                    const isClient = msg.sender_type !== "assistant";
                     const agentLabel = (msg as any).agent_type === "human" ? "Human Support Agent" : "Vizr AI Bot";
 
                     return (
