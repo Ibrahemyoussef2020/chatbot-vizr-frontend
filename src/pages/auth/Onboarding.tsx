@@ -1,12 +1,13 @@
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
+import { Alert, FormControlLabel, Radio, RadioGroup } from "@mui/material";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/redux";
 import { fetchWorkspaces } from "@/redux/workspaceThunk";
 import { workspaceServices } from "@/services";
-import { startFreePlan, subscribeToPlan } from "@/services/payments/checkout";
+import { getCheckoutPaymentMethods, startFreePlan, subscribeToPlan, type CheckoutPaymentMethod } from "@/services/payments/checkout";
 import type { PlanItem } from "@/services/core/landing";
 import { useLandingPage } from "@/hooks/useLandingPage";
 import getErrorText from "@/utils/typeErrorText";
@@ -26,14 +27,29 @@ const Onboarding = () => {
         sessionStorage.getItem("onboarding_billing_cycle") === "yearly" ? "yearly" : "monthly",
     );
     const [paymentNote, setPaymentNote] = useState("");
+    const [paymentMethods, setPaymentMethods] = useState<CheckoutPaymentMethod[]>([]);
+    const [paymentProvider, setPaymentProvider] = useState<"stripe" | "vodafone_cash">("stripe");
+    const [paymentMethodsError, setPaymentMethodsError] = useState("");
     const workspacePage = location.pathname.endsWith("/workspace");
     const selectedPlanCode = searchParams.get("plan");
     const selectedCycle = searchParams.get("cycle");
     const plans = (page?.sections.find((section) => section.type === "plans")?.items || []) as PlanItem[];
+    const paymentOptionsForPlan = plan ? paymentMethods.filter(method => method.supportedCurrencies.includes(plan.currency.toUpperCase())) : [];
 
     useEffect(() => {
         dispatch(fetchWorkspaces());
     }, [dispatch]);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        getCheckoutPaymentMethods(controller.signal).then(methods => {
+            setPaymentMethods(methods);
+            setPaymentProvider(current => methods.some(method => method.provider === current) ? current : methods[0]?.provider || "stripe");
+        }).catch(reason => {
+            if (reason?.code !== "ERR_CANCELED") setPaymentMethodsError(getErrorText(reason));
+        });
+        return () => controller.abort();
+    }, []);
 
     useEffect(() => {
         const planCode = selectedPlanCode || sessionStorage.getItem("onboarding_plan_code") || workspace?.selected_plan_code;
@@ -82,13 +98,19 @@ const Onboarding = () => {
             selected_plan_code: plan.code,
         };
 
+        const price = billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
+        const paymentMethod = paymentMethods.find(method => method.provider === paymentProvider && method.supportedCurrencies.includes(plan.currency.toUpperCase()));
+        if (price !== 0 && !paymentMethod) {
+            toast.error(`No enabled payment method accepts ${plan.currency} for this plan.`);
+            return;
+        }
+
         setSubmitting(true);
         setPaymentNote("");
         try {
             await workspaceServices.updateWorkspace(workspace.slug, profile);
             await dispatch(fetchWorkspaces()).unwrap();
 
-            const price = billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
             if (price === 0) {
                 await startFreePlan(plan.code, billingCycle);
                 toast.success("Workspace setup complete.");
@@ -98,10 +120,16 @@ const Onboarding = () => {
 
             const checkout = await subscribeToPlan({
                 planCode: plan.code,
-                provider: "stripe",
+                provider: paymentProvider,
                 billingCycle,
                 email: user.email,
                 name: user.name,
+                payerFields: paymentMethod?.mode === "manual"
+                    ? Object.fromEntries(paymentMethod.payerFields.flatMap(field => {
+                        const value = String(form.get(`payer_${field.key}`) || "").trim();
+                        return value ? [[field.key, value]] : [];
+                    }))
+                    : undefined,
             }, true);
 
             if (checkout.checkout.mode === "redirect" && checkout.checkout.checkoutUrl) {
@@ -170,16 +198,37 @@ const Onboarding = () => {
                                         <p className="mb-1 font-semibold">{bundle.name}</p>
                                         {bundle.description && <p className="mb-2 text-xs text-muted-foreground">{bundle.description}</p>}
                                         <ul className="grid gap-1 pl-5 text-xs text-muted-foreground">
-                                            {(item.featureOptions?.metrics || []).filter(metric => bundle.quotas[metric.key] !== undefined).map(metric => {
+                                            {(item.featureOptions?.metrics || []).map(metric => {
                                                 const value = bundle.quotas[metric.key];
+                                                const included = value !== undefined && value !== 0;
                                                 const unit = metric.unit === "megabytes" ? "MB" : metric.unit;
                                                 const period = { per_second: "/ second", per_day: "/ day", per_month: "/ month", total: "" }[metric.window] || "";
-                                                const allowance = value === -1 ? "Unlimited" : value === 0 ? "Not included" : `${value.toLocaleString()} ${unit}${period ? ` ${period}` : ""}`;
-                                                return <li key={metric.key}>{metric.label}: {allowance}</li>;
+                                                const allowance = value === undefined || value === 0 ? "Not included" : value === -1 ? "Unlimited" : `${value.toLocaleString()} ${unit}${period ? ` ${period}` : ""}`;
+                                                return <li key={metric.key}><span aria-hidden="true" className={included ? "text-emerald-500" : "text-muted-foreground"}>{included ? "✓" : "×"}</span> {metric.label}: {allowance}</li>;
                                             })}
-                                            {bundle.agentSlugs.map(slug => <li key={slug}>Agent: {item.featureOptions?.agents.find(agent => agent.slug === slug)?.name || slug}</li>)}
+                                            {(item.featureOptions?.agents || []).map(agent => { const included = bundle.agentSlugs.includes(agent.slug); return <li key={agent.slug}><span aria-hidden="true" className={included ? "text-emerald-500" : "text-muted-foreground"}>{included ? "✓" : "×"}</span> {agent.name}: {included ? "Included" : "Not included"}</li>; })}
                                         </ul>
                                     </div>)}
+                                    {!item.featureBundles?.length && item.featureOptions?.metrics?.length ? <div className="mt-4 border-t border-border pt-4">
+                                        <p className="mb-1 font-semibold">Usage limits</p>
+                                        <ul className="grid gap-1 pl-5 text-xs text-muted-foreground">
+                                            {item.featureOptions.metrics.map(metric => {
+                                                const value = item.quotas?.[metric.key];
+                                                const included = value !== undefined && value !== 0;
+                                                const unit = metric.unit === "megabytes" ? "MB" : metric.unit;
+                                                const period = { per_second: "/ second", per_day: "/ day", per_month: "/ month", total: "" }[metric.window] || "";
+                                                const allowance = value === undefined || value === 0 ? "Not included" : value === -1 ? "Unlimited" : `${value.toLocaleString()} ${unit}${period ? ` ${period}` : ""}`;
+                                                return <li key={metric.key}><span aria-hidden="true" className={included ? "text-emerald-500" : "text-muted-foreground"}>{included ? "✓" : "×"}</span> {metric.label}: {allowance}</li>;
+                                            })}
+                                            {(item.featureOptions.agents || []).map(agent => <li key={agent.slug}><span aria-hidden="true" className="text-muted-foreground">×</span> {agent.name}: Not included</li>)}
+                                        </ul>
+                                    </div> : null}
+                                    {item.featureOptions?.entitlements?.length ? <div className="mt-4 border-t border-border pt-4">
+                                        <p className="mb-1 font-semibold">Plan features</p>
+                                        <ul className="grid gap-1 pl-5 text-xs text-muted-foreground">
+                                            {item.featureOptions.entitlements.map(entitlement => { const included = Boolean(item.entitlements?.[entitlement.key]); return <li key={entitlement.key}><span aria-hidden="true" className={included ? "text-emerald-500" : "text-muted-foreground"}>{included ? "✓" : "×"}</span> {entitlement.label}</li>; })}
+                                        </ul>
+                                    </div> : null}
                                 </button>
                             );
                         })}
@@ -205,7 +254,25 @@ const Onboarding = () => {
                         <TextField name="website_url" label="Website" placeholder="https://example.com" defaultValue={workspace?.website_url || ""} />
                         <TextField name="country" label="Country" defaultValue={workspace?.country || ""} />
                         <TextField name="timezone" label="Timezone" defaultValue={workspace?.timezone || "Africa/Cairo"} />
-                        {(billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice) !== 0 && <p className="col-span-full m-0 text-sm text-muted-foreground">Secure checkout is handled by Stripe after you save the workspace.</p>}
+                        {(billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice) !== 0 && <div className="col-span-full space-y-4 border-t border-border pt-4">
+                            <div>
+                                <h2 className="mb-1 text-lg font-bold">Payment method</h2>
+                                <p className="m-0 text-sm text-muted-foreground">Choose how you want to pay for this plan.</p>
+                            </div>
+                            {paymentMethodsError && <Alert severity="error">{paymentMethodsError}</Alert>}
+                            {!paymentMethodsError && paymentMethods.length === 0 && <Alert severity="warning">No payment methods are enabled yet. Ask the workspace owner to configure Stripe or Vodafone Cash.</Alert>}
+                            {paymentOptionsForPlan.length > 0 && <RadioGroup value={paymentProvider} onChange={event => setPaymentProvider(event.target.value as "stripe" | "vodafone_cash")}>
+                                {paymentOptionsForPlan.map(method => <FormControlLabel key={method.provider} value={method.provider} control={<Radio />} label={<span><strong>{method.label}</strong><br /><span className="text-sm text-muted-foreground">{method.description}</span></span>} />)}
+                            </RadioGroup>}
+                            {paymentMethods.length > 0 && paymentOptionsForPlan.length === 0 && <Alert severity="warning">No enabled payment method accepts {plan.currency} for this plan. Vodafone Cash accepts EGP only; update the plan currency or enable a supported method.</Alert>}
+                            {paymentOptionsForPlan.find(method => method.provider === paymentProvider)?.mode === "manual" && <div className="grid gap-4 sm:grid-cols-2">
+                                {paymentOptionsForPlan.find(method => method.provider === paymentProvider)?.isTestMode
+                                    ? <Alert className="col-span-full" severity="info">Vodafone Cash test mode simulates payment review. Do not send real money.</Alert>
+                                    : <Alert className="col-span-full" severity="info">After you submit, the receiving Vodafone Cash wallet and transfer instructions will be shown.</Alert>}
+                                {paymentOptionsForPlan.find(method => method.provider === paymentProvider)?.payerFields.map(field => <TextField key={field.key} name={`payer_${field.key}`} label={field.label} type={field.type} required={field.required} placeholder={field.placeholder} helperText={field.helpText} />)}
+                            </div>}
+                            {paymentOptionsForPlan.find(method => method.provider === paymentProvider)?.mode === "redirect" && <p className="m-0 text-sm text-muted-foreground">You will continue to Stripe Checkout after saving your workspace.</p>}
+                        </div>}
                     </div>
                     {paymentNote && <div className="whitespace-pre-line rounded-xl bg-primary/10 p-4 text-sm leading-6 text-foreground">{paymentNote}<p className="mb-0 mt-3"><Link className="font-bold text-primary" to="/dashboard">Continue to dashboard</Link></p></div>}
                     <div className="flex justify-end"><Button type="submit" variant="contained" disabled={submitting} className="!px-6 !py-3 !normal-case">{submitting ? "Saving..." : (billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice) === 0 ? "Finish setup" : "Save workspace and continue to payment"}</Button></div>

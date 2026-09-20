@@ -73,17 +73,44 @@ const PricingCard = ({
                     <h3 className="mb-1 text-sm font-extrabold">{bundle.name}</h3>
                     {bundle.description && <p className="mb-2 text-xs leading-5 text-[var(--theme-copy)]">{bundle.description}</p>}
                     <ul className="m-0 grid list-none gap-2 p-0">
-                        {(plan.featureOptions?.metrics || []).filter(metric => bundle.quotas[metric.key] !== undefined).map(metric => {
+                        {(plan.featureOptions?.metrics || []).map(metric => {
                             const value = bundle.quotas[metric.key];
                             const unit = metric.unit === "megabytes" ? "MB" : metric.unit;
                             const period = { per_second: "/ second", per_day: "/ day", per_month: "/ month", total: "" }[metric.window] || "";
-                            const allowance = value === -1 ? "Unlimited" : value === 0 ? "Not included" : `${value.toLocaleString()} ${unit}${period ? ` ${period}` : ""}`;
-                            return <li key={metric.key} className="text-xs leading-5 text-[var(--theme-copy)]"><strong className="text-[var(--theme-ink)]">{metric.label}:</strong> {allowance}</li>;
+                            const allowance = value === undefined || value === 0 ? "Not included" : value === -1 ? "Unlimited" : `${value.toLocaleString()} ${unit}${period ? ` ${period}` : ""}`;
+                            const included = value !== undefined && value !== 0;
+                            return <li key={metric.key} className="flex gap-2 text-xs leading-5 text-[var(--theme-copy)]"><span aria-hidden="true" className={included ? "text-[#21c884]" : "text-[var(--theme-copy)]"}>{included ? "✓" : "×"}</span><span><strong className="text-[var(--theme-ink)]">{metric.label}:</strong> {allowance}</span></li>;
                         })}
-                        {bundle.agentSlugs.map(slug => <li key={slug} className="text-xs leading-5 text-[var(--theme-copy)]"><strong className="text-[var(--theme-ink)]">Agent:</strong> {plan.featureOptions?.agents.find(agent => agent.slug === slug)?.name || slug}</li>)}
+                        {(plan.featureOptions?.agents || []).map(agent => {
+                            const included = bundle.agentSlugs.includes(agent.slug);
+                            return <li key={agent.slug} className="flex gap-2 text-xs leading-5 text-[var(--theme-copy)]"><span aria-hidden="true" className={included ? "text-[#21c884]" : "text-[var(--theme-copy)]"}>{included ? "✓" : "×"}</span><span><strong className="text-[var(--theme-ink)]">{agent.name}:</strong> {included ? "Included" : "Not included"}</span></li>;
+                        })}
                     </ul>
                 </section>
             ))}
+            {!plan.featureBundles?.length && plan.featureOptions?.metrics?.length ? <section className="mt-5 border-t border-[var(--theme-border)] pt-4">
+                <h3 className="mb-2 text-sm font-extrabold">Usage limits</h3>
+                <ul className="m-0 grid list-none gap-2 p-0">
+                    {plan.featureOptions.metrics.map(metric => {
+                        const value = plan.quotas?.[metric.key];
+                        const unit = metric.unit === "megabytes" ? "MB" : metric.unit;
+                        const period = { per_second: "/ second", per_day: "/ day", per_month: "/ month", total: "" }[metric.window] || "";
+                        const included = value !== undefined && value !== 0;
+                        const allowance = !included ? "Not included" : value === -1 ? "Unlimited" : `${value.toLocaleString()} ${unit}${period ? ` ${period}` : ""}`;
+                        return <li key={metric.key} className="flex gap-2 text-xs leading-5 text-[var(--theme-copy)]"><span aria-hidden="true" className={included ? "text-[#21c884]" : "text-[var(--theme-copy)]"}>{included ? "✓" : "×"}</span><span><strong className="text-[var(--theme-ink)]">{metric.label}:</strong> {allowance}</span></li>;
+                    })}
+                    {(plan.featureOptions.agents || []).map(agent => <li key={agent.slug} className="flex gap-2 text-xs leading-5 text-[var(--theme-copy)]"><span aria-hidden="true" className="text-[var(--theme-copy)]">×</span><span><strong className="text-[var(--theme-ink)]">{agent.name}:</strong> Not included</span></li>)}
+                </ul>
+            </section> : null}
+            {plan.featureOptions?.entitlements?.length ? <section className="mt-5 border-t border-[var(--theme-border)] pt-4">
+                <h3 className="mb-2 text-sm font-extrabold">Included features</h3>
+                <ul className="m-0 grid list-none gap-2 p-0">
+                    {plan.featureOptions.entitlements.map(entitlement => {
+                        const included = Boolean(plan.entitlements?.[entitlement.key]);
+                        return <li key={entitlement.key} className="flex gap-2 text-xs leading-5 text-[var(--theme-copy)]"><span aria-hidden="true" className={included ? "text-[#21c884]" : "text-[var(--theme-copy)]"}>{included ? "✓" : "×"}</span><span>{entitlement.label}</span></li>;
+                    })}
+                </ul>
+            </section> : null}
         </Card>
     );
 };

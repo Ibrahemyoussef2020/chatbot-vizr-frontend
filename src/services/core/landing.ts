@@ -64,7 +64,10 @@ export interface PlanItem {
     featureOptions?: {
         metrics: { key: string; label: string; category: string; unit: string; window: string; description: string; enforced: boolean }[];
         agents: { slug: string; name: string }[];
+        entitlements: { key: string; label: string; category: string; description: string }[];
     };
+    entitlements?: Record<string, boolean>;
+    quotas?: Record<string, number>;
 }
 
 export type LandingSectionItem =

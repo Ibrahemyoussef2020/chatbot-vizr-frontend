@@ -1,5 +1,21 @@
 import api from "@/api";
 
+export interface CheckoutPaymentMethod {
+    provider: "stripe" | "vodafone_cash";
+    label: string;
+    description: string;
+    mode: "redirect" | "manual";
+    isTestMode: boolean;
+    supportedCurrencies: string[];
+    instructions: string;
+    payerFields: { key: string; label: string; type: "text" | "number" | "tel" | "email" | "date" | "select"; required: boolean; placeholder: string; helpText: string }[];
+}
+
+export const getCheckoutPaymentMethods = async (signal?: AbortSignal): Promise<CheckoutPaymentMethod[]> => {
+    const response = await api.get("/subscription/methods", { signal });
+    return response.data.data;
+};
+
 export interface SubscriptionRequest {
     planCode: string;
     provider: "stripe" | "vodafone_cash";
