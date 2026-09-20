@@ -6,6 +6,15 @@ export interface Workspace {
     slug: string;
     is_active: boolean;
     rate_limit: number;
+    business_name?: string;
+    industry?: string;
+    website_url?: string;
+    support_email?: string;
+    support_phone?: string;
+    country?: string;
+    timezone?: string;
+    default_language?: string;
+    currency?: string;
     created_at?: string;
     updated_at?: string;
 }
@@ -22,15 +31,22 @@ export const getWorkspace = async (identifier: string) => {
     return response.data.data;
 };
 
-export const createWorkspace = async (name: string, rate_limit = 60) => {
-    const response = await api.post<{ data: Workspace }>("/admin/systems-mgmt", { name, rate_limit });
+export type WorkspaceProfileInput = Partial<Pick<Workspace,
+    "name" | "business_name" | "industry" | "website_url" | "support_email" | "support_phone" |
+    "country" | "timezone" | "default_language" | "currency" | "rate_limit" | "is_active"
+>>;
+
+export type CreateWorkspaceInput = Omit<WorkspaceProfileInput, "name" | "is_active"> & { name: string };
+
+export const createWorkspace = async (input: CreateWorkspaceInput) => {
+    const response = await api.post<{ data: Workspace }>("/admin/systems-mgmt", input);
 
     return response.data.data;
 };
 
 export const updateWorkspace = async (
     identifier: string,
-    input: Partial<Pick<Workspace, "name" | "is_active" | "rate_limit">>,
+    input: WorkspaceProfileInput,
 ) => {
     const response = await api.put<{ data: Workspace }>(`/admin/systems-mgmt/${identifier}`, input);
     return response.data.data;

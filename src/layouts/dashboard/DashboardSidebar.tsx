@@ -198,6 +198,10 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
     const [workspaceName, setWorkspaceName] = useState("");
     const [workspaceRateLimit, setWorkspaceRateLimit] = useState("60");
     const [workspaceActive, setWorkspaceActive] = useState(true);
+    const [workspaceProfile, setWorkspaceProfile] = useState({
+        business_name: "", industry: "", website_url: "", support_email: "", support_phone: "",
+        country: "", timezone: "UTC", default_language: "en", currency: "USD",
+    });
     const { items: workspaces, active: activeWorkspace } = useAppSelector((state) => state.workspace);
 
     const logout = async () => {
@@ -209,14 +213,27 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
     const createWorkspace = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const form = event.currentTarget;
-        const name = String(new FormData(form).get("name") || "").trim();
+        const formData = new FormData(form);
+        const name = String(formData.get("name") || "").trim();
         if (!name) return;
 
         setCreating(true);
         setError("");
 
         try {
-            await workspaceServices.createWorkspace(name);
+            await workspaceServices.createWorkspace({
+                name,
+                business_name: String(formData.get("business_name") || "").trim(),
+                industry: String(formData.get("industry") || "").trim(),
+                website_url: String(formData.get("website_url") || "").trim(),
+                support_email: String(formData.get("support_email") || "").trim(),
+                support_phone: String(formData.get("support_phone") || "").trim(),
+                country: String(formData.get("country") || "").trim(),
+                timezone: String(formData.get("timezone") || "UTC").trim(),
+                default_language: String(formData.get("default_language") || "en").trim(),
+                currency: String(formData.get("currency") || "USD").trim().toUpperCase(),
+                rate_limit: Number(formData.get("rate_limit") || 60),
+            });
             await dispatch(fetchWorkspaces()).unwrap();
             setCreateOpen(false);
             form.reset();
@@ -243,6 +260,13 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
         setWorkspaceName(workspace.name);
         setWorkspaceRateLimit(String(workspace.rate_limit));
         setWorkspaceActive(workspace.is_active);
+        setWorkspaceProfile({
+            business_name: workspace.business_name || "", industry: workspace.industry || "",
+            website_url: workspace.website_url || "", support_email: workspace.support_email || "",
+            support_phone: workspace.support_phone || "", country: workspace.country || "",
+            timezone: workspace.timezone || "UTC", default_language: workspace.default_language || "en",
+            currency: workspace.currency || "USD",
+        });
         setError("");
     };
 
@@ -255,6 +279,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
                 name: workspaceName.trim(),
                 rate_limit: Number(workspaceRateLimit),
                 is_active: workspaceActive,
+                ...workspaceProfile,
             });
             await dispatch(fetchWorkspaces()).unwrap();
             setEditingWorkspace(null);
@@ -301,12 +326,24 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
             <Drawer open={mobileOpen} onClose={onClose}>
                 <SidebarContent {...contentProps} />
             </Drawer>
-            <Dialog open={createOpen} onClose={() => setCreateOpen(false)} fullWidth maxWidth="xs">
+            <Dialog open={createOpen} onClose={() => setCreateOpen(false)} fullWidth maxWidth="md">
                 <form onSubmit={createWorkspace}>
                     <DialogTitle>Create workspace</DialogTitle>
                     <DialogContent className="!grid !gap-3 !pt-2">
-                        <p className="m-0 text-sm text-muted-foreground">Create an isolated workspace for its conversations, users, and configuration.</p>
-                        <TextField autoFocus name="name" label="Workspace name" required slotProps={{ htmlInput: { maxLength: 255 } }} />
+                        <p className="m-0 text-sm text-muted-foreground">Set up the workspace and its business profile. Channel credentials stay in each channel’s settings.</p>
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <TextField autoFocus name="name" label="Workspace name" required slotProps={{ htmlInput: { maxLength: 255 } }} />
+                            <TextField name="business_name" label="Business / legal name" slotProps={{ htmlInput: { maxLength: 255 } }} />
+                            <TextField name="industry" label="Industry" placeholder="Retail, healthcare, education…" slotProps={{ htmlInput: { maxLength: 120 } }} />
+                            <TextField name="website_url" label="Website URL" placeholder="https://example.com" />
+                            <TextField name="support_email" type="email" label="Support email" />
+                            <TextField name="support_phone" label="Support phone" />
+                            <TextField name="country" label="Country" />
+                            <TextField name="timezone" label="Timezone" defaultValue="UTC" placeholder="Africa/Cairo" />
+                            <TextField name="default_language" label="Default language" defaultValue="en" placeholder="en or ar-EG" />
+                            <TextField name="currency" label="Currency" defaultValue="USD" placeholder="USD" slotProps={{ htmlInput: { maxLength: 3 } }} />
+                            <TextField name="rate_limit" type="number" label="API rate limit / minute" defaultValue={60} slotProps={{ htmlInput: { min: 1, max: 1000 } }} />
+                        </div>
                         {error && <p className="m-0 text-sm text-danger" role="alert">{error}</p>}
                     </DialogContent>
                     <DialogActions>
@@ -315,7 +352,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
                     </DialogActions>
                 </form>
             </Dialog>
-            <Dialog open={manageOpen} onClose={() => { setManageOpen(false); setEditingWorkspace(null); setError(""); }} fullWidth maxWidth="md">
+            <Dialog open={manageOpen} onClose={() => { setManageOpen(false); setEditingWorkspace(null); setError(""); }} fullWidth maxWidth="lg">
                 <DialogTitle>Manage workspaces</DialogTitle>
                 <DialogContent className="!grid !gap-3 !pt-2">
                     <p className="m-0 text-sm text-muted-foreground">Edit workspace details or deactivate a workspace. Deactivation retains its data and credentials.</p>
@@ -324,9 +361,18 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
                         {workspaces.map((workspace) => (
                             <div key={workspace.id} className="grid grid-cols-1 items-center gap-3 rounded-xl border border-border p-3 md:grid-cols-[1fr_auto]">
                                 {editingWorkspace?.id === workspace.id ? (
-                                    <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_130px_130px]">
+                                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                                         <TextField size="small" label="Workspace name" value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} slotProps={{ htmlInput: { maxLength: 255 } }} />
-                                        <TextField size="small" type="number" label="Rate limit" value={workspaceRateLimit} onChange={(event) => setWorkspaceRateLimit(event.target.value)} slotProps={{ htmlInput: { min: 1, max: 1000 } }} />
+                                        <TextField size="small" label="Business / legal name" value={workspaceProfile.business_name} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, business_name: event.target.value }))} slotProps={{ htmlInput: { maxLength: 255 } }} />
+                                        <TextField size="small" label="Industry" value={workspaceProfile.industry} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, industry: event.target.value }))} slotProps={{ htmlInput: { maxLength: 120 } }} />
+                                        <TextField size="small" label="Website URL" placeholder="https://example.com" value={workspaceProfile.website_url} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, website_url: event.target.value }))} />
+                                        <TextField size="small" type="email" label="Support email" value={workspaceProfile.support_email} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, support_email: event.target.value }))} />
+                                        <TextField size="small" label="Support phone" value={workspaceProfile.support_phone} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, support_phone: event.target.value }))} />
+                                        <TextField size="small" label="Country" value={workspaceProfile.country} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, country: event.target.value }))} />
+                                        <TextField size="small" label="Timezone" placeholder="Africa/Cairo" value={workspaceProfile.timezone} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, timezone: event.target.value }))} />
+                                        <TextField size="small" label="Default language" placeholder="en or ar-EG" value={workspaceProfile.default_language} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, default_language: event.target.value }))} />
+                                        <TextField size="small" label="Currency" value={workspaceProfile.currency} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, currency: event.target.value.toUpperCase() }))} slotProps={{ htmlInput: { maxLength: 3 } }} />
+                                        <TextField size="small" type="number" label="API rate limit / minute" value={workspaceRateLimit} onChange={(event) => setWorkspaceRateLimit(event.target.value)} slotProps={{ htmlInput: { min: 1, max: 1000 } }} />
                                         <TextField select size="small" label="Status" value={workspaceActive ? "active" : "inactive"} onChange={(event) => setWorkspaceActive(event.target.value === "active")}>
                                             <MenuItem value="active">Active</MenuItem>
                                             <MenuItem value="inactive">Inactive</MenuItem>
@@ -340,7 +386,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
                                                 {workspace.is_active ? "Active" : "Inactive"}
                                             </span>
                                         </div>
-                                        <p className="m-0 mt-1 truncate text-xs text-muted-foreground">{workspace.slug} · rate limit {workspace.rate_limit}</p>
+                                        <p className="m-0 mt-1 truncate text-xs text-muted-foreground">{workspace.business_name || workspace.industry || workspace.slug} · {workspace.timezone || "UTC"} · {workspace.currency || "USD"}</p>
                                     </div>
                                 )}
                                 <div className="flex justify-end gap-1">
