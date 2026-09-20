@@ -15,6 +15,7 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [visibleCredentials, setVisibleCredentials] = useState<Record<string, boolean>>({});
     const [retry, setRetry] = useState(0);
 
     useEffect(() => {
@@ -28,7 +29,7 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
                 const method = methods.find(item => item.provider === provider);
                 if (!method) throw new Error("Payment method not found.");
                 if (!controller.signal.aborted) {
-                    setEditor({ ...method, settings: { ...method.settings }, credentials: {}, clearCredentials: [] });
+                    setEditor({ ...method, settings: { ...method.settings }, credentials: { ...method.credentials }, clearCredentials: [] });
                 }
             } catch (failure) {
                 if (!controller.signal.aborted) setError(getErrorText(failure));
@@ -48,7 +49,7 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
         setSuccess("");
         try {
             const saved = await savePaymentMethod(editor);
-            setEditor({ ...saved, credentials: {}, clearCredentials: [] });
+            setEditor({ ...saved, credentials: { ...saved.credentials }, clearCredentials: [] });
             setSuccess("Payment method saved.");
         } catch (failure) {
             setError(getErrorText(failure));
@@ -81,25 +82,25 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
                     {editor.provider === "stripe" && <section className="space-y-4 rounded-xl border border-border bg-surface p-5">
                         <div>
                             <h2 className="m-0 text-lg font-bold">Stripe credentials</h2>
-                            <p className="mb-0 mt-1 text-sm text-muted-foreground">Enter workspace-specific keys, or leave a field blank to use its server environment value. Secrets are encrypted before storage and never shown again.</p>
+                            <p className="mb-0 mt-1 text-sm text-muted-foreground">Saved platform keys are loaded into these fields. Secret values stay masked until you choose to show them.</p>
                             <p className="mb-0 mt-2 text-sm text-muted-foreground">Stripe webhook destination: <code className="rounded bg-surface-muted px-1.5 py-0.5">/api/webhooks/stripe</code>. Add this backend URL as a destination in this workspace’s Stripe account.</p>
                         </div>
                         <div className="grid gap-4 md:grid-cols-2">
                             {editor.credentialFields.map(field => {
                                 const source = editor.credentialStatus[field.key] || "missing";
-                                const placeholder = editor.credentials[field.key]
-                                    ? "New value will replace the saved credential"
-                                    : source === "workspace" ? "Saved for this workspace — leave blank to keep"
-                                        : source === "environment" ? "Using server environment — enter to override for this workspace"
-                                            : "Not configured";
+                                const placeholder = source === "environment" ? "Using server environment — enter to replace"
+                                    : source === "global" ? "Saved platform value"
+                                        : "Not configured";
                                 return <div key={field.key} className="space-y-1">
-                                    <TextField fullWidth label={field.label} type={field.secret ? "password" : "text"} disabled={busy}
+                                    <div className="flex items-start gap-2">
+                                    <TextField fullWidth label={field.label} type={field.secret && !visibleCredentials[field.key] ? "password" : "text"} disabled={busy}
                                         value={editor.credentials[field.key] || ""} placeholder={field.placeholder || placeholder}
                                         autoComplete="new-password" helperText={[field.helpText, field.environmentKey ? `Environment fallback: ${field.environmentKey}` : ""].filter(Boolean).join(" · ")}
                                         onChange={event => setEditor({ ...editor, credentials: { ...editor.credentials, [field.key]: event.target.value }, clearCredentials: editor.clearCredentials.filter(key => key !== field.key) })} />
+                                    {field.secret && <Button type="button" disabled={busy} onClick={() => setVisibleCredentials(current => ({ ...current, [field.key]: !current[field.key] }))} className="!mt-2 !normal-case">{visibleCredentials[field.key] ? "Hide" : "Show"}</Button>}
+                                    </div>
                                     <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
-                                        <span>{source === "workspace" ? "Workspace value saved" : source === "environment" ? "Server environment fallback available" : source === "global" ? "Shared fallback available" : "No value configured"}</span>
-                                        {source === "workspace" && <Button type="button" size="small" disabled={busy} onClick={() => setEditor({ ...editor, credentials: { ...editor.credentials, [field.key]: "" }, clearCredentials: [...new Set([...editor.clearCredentials, field.key])] })} className="!normal-case">Use server fallback</Button>}
+                                        <span>{source === "global" ? "Platform value saved" : source === "environment" ? "Server environment fallback available" : "No value configured"}</span>
                                     </div>
                                 </div>;
                             })}
