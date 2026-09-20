@@ -176,6 +176,40 @@
 .plan-form-dialog .MuiChip-root { background: var(--surface-muted); color: var(--foreground); }
 .plan-form-dialog .MuiChip-deleteIcon { color: var(--muted-foreground); }
 
+.workspace-onboarding-form .MuiInputBase-root {
+  background-color: var(--surface) !important;
+  color: var(--foreground) !important;
+}
+
+.workspace-onboarding-form .MuiInputBase-input {
+  color: var(--foreground) !important;
+  caret-color: var(--foreground);
+}
+
+.workspace-onboarding-form .MuiInputBase-input:-webkit-autofill,
+.workspace-onboarding-form .MuiInputBase-input:-webkit-autofill:hover,
+.workspace-onboarding-form .MuiInputBase-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+  caret-color: var(--foreground);
+}
+
+.workspace-onboarding-form .MuiInputLabel-root {
+  color: var(--muted-foreground) !important;
+}
+
+.workspace-onboarding-form .MuiOutlinedInput-notchedOutline {
+  border-color: var(--border) !important;
+}
+
+.workspace-onboarding-form .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--primary) !important;
+}
+
+.workspace-onboarding-form .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--primary) !important;
+}
+
 @media (min-width: 1280px) {
   .ai-management-dashboard main > .grid.grid-cols-1,
   .ai-management-dashboard main > .grid.sm\:grid-cols-2,

@@ -22,7 +22,7 @@ const Register = () => {
                 password,
             })).unwrap();
             toast.success("Account created");
-            navigate("/dashboard", { replace: true });
+            navigate("/onboarding", { replace: true });
         } catch (error) {
             toast.error(getErrorText(error));
         }

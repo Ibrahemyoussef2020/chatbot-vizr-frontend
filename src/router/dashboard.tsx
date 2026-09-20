@@ -34,8 +34,14 @@ import RequestLogsView from "@/features/ai-management/views/RequestLogsView";
 import QuotasView from "@/features/ai-management/views/QuotasView";
 import OverviewView from "@/features/ai-management/views/OverviewView";
 import ProvidersView from "@/features/ai-management/views/ProvidersView";
+import Onboarding from "@/pages/auth/Onboarding";
 
 const dashbordRpoter = [
+    {
+        path: "/onboarding",
+        element: <ProtectedRoute />,
+        children: [{ index: true, element: <Onboarding /> }],
+    },
     {
         path: "/dashboard",
         element: <ProtectedRoute />,

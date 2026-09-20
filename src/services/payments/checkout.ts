@@ -27,7 +27,18 @@ export interface SubscriptionResponse {
     };
 }
 
-export const subscribeToPlan = async (payload: SubscriptionRequest) => {
-    const response = await api.post("/subscription/subscribe", payload);
+export const subscribeToPlan = async (payload: SubscriptionRequest, onboarding = false) => {
+    const endpoint = onboarding ? "/subscription/onboarding/subscribe" : "/subscription/subscribe";
+    const response = await api.post(endpoint, payload);
     return response.data as SubscriptionResponse;
+};
+
+export const startFreePlan = async (planCode: string, billingCycle: "monthly" | "yearly") => {
+    const response = await api.post("/subscription/onboarding/free-plan", { planCode, billingCycle });
+    return response.data;
+};
+
+export const getSubscriptionStatus = async () => {
+    const response = await api.get<{ data: { active: boolean; planCode: string | null } }>("/subscription/onboarding/status");
+    return response.data.data;
 };

@@ -14,6 +14,7 @@ export interface Workspace {
     country?: string;
     timezone?: string;
     currency?: string;
+    selected_plan_code?: string;
     created_at?: string;
     updated_at?: string;
 }
@@ -32,7 +33,7 @@ export const getWorkspace = async (identifier: string) => {
 
 export type WorkspaceProfileInput = Partial<Pick<Workspace,
     "name" | "business_name" | "industry" | "website_url" | "support_email" | "support_phone" |
-    "country" | "timezone" | "currency" | "rate_limit" | "is_active"
+    "country" | "timezone" | "currency" | "selected_plan_code" | "rate_limit" | "is_active"
 >>;
 
 export type CreateWorkspaceInput = Omit<WorkspaceProfileInput, "name" | "is_active"> & { name: string };
