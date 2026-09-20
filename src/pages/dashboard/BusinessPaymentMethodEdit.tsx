@@ -10,7 +10,6 @@ const listPath = "/dashboard/business/payment-methods";
 
 const PaymentMethodEditor = ({ provider }: { provider: string }) => {
     const allowed = useAppSelector(state => state.auth.user?.permissions?.includes("payment_methods.manage"));
-    const activeWorkspace = useAppSelector(state => state.workspace.active);
     const [editor, setEditor] = useState<PaymentMethod | null>(null);
     const [loading, setLoading] = useState(true);
     const [busy, setBusy] = useState(false);
@@ -25,7 +24,7 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
             setLoading(true);
             setError("");
             try {
-                const methods = await listPaymentMethods(controller.signal, activeWorkspace?.slug);
+                const methods = await listPaymentMethods(controller.signal);
                 const method = methods.find(item => item.provider === provider);
                 if (!method) throw new Error("Payment method not found.");
                 if (!controller.signal.aborted) {
@@ -39,7 +38,7 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
         };
         void load();
         return () => controller.abort();
-    }, [allowed, provider, retry, activeWorkspace?.slug]);
+    }, [allowed, provider, retry]);
 
     const submit = async (event: FormEvent) => {
         event.preventDefault();
@@ -48,7 +47,7 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
         setError("");
         setSuccess("");
         try {
-            const saved = await savePaymentMethod(editor, activeWorkspace?.slug);
+            const saved = await savePaymentMethod(editor);
             setEditor({ ...saved, credentials: {}, clearCredentials: [] });
             setSuccess("Payment method saved.");
         } catch (failure) {
@@ -67,9 +66,9 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
         <div className="mx-auto w-full max-w-[1100px] space-y-6 p-2 text-foreground">
             <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
                 <div>
-                    <span className="text-xs font-extrabold uppercase tracking-widest text-primary">{activeWorkspace?.name || "Workspace"} · Payment settings</span>
+                    <span className="text-xs font-extrabold uppercase tracking-widest text-primary">Platform · Payment settings</span>
                     <h1 className="mt-1 text-3xl font-extrabold">{title}</h1>
-                    <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Set up this provider for this workspace. Saved workspace credentials take priority; server environment variables are used when a workspace value is blank.</p>
+                    <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Set up this provider for every workspace. Server environment variables are used when a credential field is left blank.</p>
                 </div>
                 <Button component={Link} to={listPath} disabled={busy}>Back to payment methods</Button>
             </header>

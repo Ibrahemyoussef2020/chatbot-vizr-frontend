@@ -42,6 +42,6 @@ export const savePaymentMethod = async (method: PaymentMethod, workspaceSlug?: s
         clearCredentials: method.clearCredentials || [],
         system_slug: workspaceSlug,
     };
-    const response = await api.put(`/admin/payment-methods/${method.provider}`, input, { params: { system_slug: workspaceSlug } });
+    const response = await api.put(`/admin/payment-methods/${method.provider}`, input);
     return response.data.data;
 };
