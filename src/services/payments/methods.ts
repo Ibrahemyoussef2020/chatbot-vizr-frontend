@@ -25,7 +25,7 @@ export interface PaymentMethod extends MethodInput {
 }
 
 export const listPaymentMethods = async (signal?: AbortSignal, workspaceSlug?: string): Promise<PaymentMethod[]> => {
-    const response = await api.get("/admin/payment-methods", { signal, params: { system_slug: workspaceSlug } });
+    const response = await api.get("/platform/payment-methods", { signal, params: { system_slug: workspaceSlug } });
     return response.data.data;
 };
 
@@ -42,6 +42,6 @@ export const savePaymentMethod = async (method: PaymentMethod, workspaceSlug?: s
         clearCredentials: method.clearCredentials || [],
         system_slug: workspaceSlug,
     };
-    const response = await api.put(`/admin/payment-methods/${method.provider}`, input);
+    const response = await api.put(`/platform/payment-methods/${method.provider}`, input);
     return response.data.data;
 };

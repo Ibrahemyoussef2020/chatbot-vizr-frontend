@@ -261,7 +261,7 @@ const Onboarding = () => {
                                 <p className="m-0 text-sm text-muted-foreground">Choose how you want to pay for this plan.</p>
                             </div>
                             {paymentMethodsError && <Alert severity="error">{paymentMethodsError}</Alert>}
-                            {!paymentMethodsError && paymentMethods.length === 0 && <Alert severity="warning">No payment methods are enabled in the platform payment settings. Ask the platform owner to enable Stripe or Vodafone Cash.</Alert>}
+                            {!paymentMethodsError && paymentMethods.length === 0 && <Alert severity="warning">The platform has no enabled payment provider. In Platform → Payment Methods, enable Stripe or Vodafone Cash and save the settings.</Alert>}
                             {paymentOptionsForPlan.length > 0 && <RadioGroup value={paymentProvider} onChange={event => setPaymentProvider(event.target.value as "stripe" | "vodafone_cash")}>
                                 {paymentOptionsForPlan.map(method => <FormControlLabel key={method.provider} value={method.provider} control={<Radio />} label={<span><strong>{method.label}</strong><br /><span className="text-sm text-muted-foreground">{method.description}</span></span>} />)}
                             </RadioGroup>}
