@@ -1,7 +1,7 @@
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/redux";
 import { fetchWorkspaces } from "@/redux/workspaceThunk";
@@ -14,15 +14,21 @@ import getErrorText from "@/utils/typeErrorText";
 const Onboarding = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
+    const [searchParams] = useSearchParams();
     const { user } = useAppSelector((state) => state.auth);
     const workspace = useAppSelector((state) => state.workspace.active);
     const workspacesLoading = useAppSelector((state) => state.workspace.loading);
     const { page, error, loading } = useLandingPage("pricing");
     const [plan, setPlan] = useState<PlanItem | null>(null);
-    const [step, setStep] = useState<1 | 2>(1);
     const [submitting, setSubmitting] = useState(false);
-    const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+    const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(() =>
+        sessionStorage.getItem("onboarding_billing_cycle") === "yearly" ? "yearly" : "monthly",
+    );
     const [paymentNote, setPaymentNote] = useState("");
+    const workspacePage = location.pathname.endsWith("/workspace");
+    const selectedPlanCode = searchParams.get("plan");
+    const selectedCycle = searchParams.get("cycle");
     const plans = (page?.sections.find((section) => section.type === "plans")?.items || []) as PlanItem[];
 
     useEffect(() => {
@@ -30,11 +36,16 @@ const Onboarding = () => {
     }, [dispatch]);
 
     useEffect(() => {
-        const savedPlan = plans.find((item) => item.code === workspace?.selected_plan_code);
-        if (savedPlan) setPlan(savedPlan);
-    }, [plans, workspace?.selected_plan_code]);
+        const planCode = selectedPlanCode || sessionStorage.getItem("onboarding_plan_code") || workspace?.selected_plan_code;
+        const chosenPlan = plans.find((item) => item.code === planCode);
+        if (chosenPlan) setPlan(chosenPlan);
+        if (selectedCycle === "monthly" || selectedCycle === "yearly") setBillingCycle(selectedCycle);
+    }, [plans, selectedPlanCode, selectedCycle, workspace?.selected_plan_code]);
 
     if (!user) return <Navigate to="/auth/login" replace />;
+    if (workspacePage && !loading && !error && !plans.some((item) => item.code === (selectedPlanCode || sessionStorage.getItem("onboarding_plan_code") || workspace?.selected_plan_code))) {
+        return <Navigate to="/onboarding" replace />;
+    }
 
     const continueToWorkspace = () => {
         if (!plan) {
@@ -46,7 +57,9 @@ const Onboarding = () => {
             toast.error("This plan has no price for the selected billing cycle. Choose another cycle or contact sales.");
             return;
         }
-        setStep(2);
+        sessionStorage.setItem("onboarding_plan_code", plan.code);
+        sessionStorage.setItem("onboarding_billing_cycle", billingCycle);
+        navigate(`/onboarding/workspace?plan=${encodeURIComponent(plan.code)}&cycle=${billingCycle}`);
     };
 
     const submitWorkspace = async (event: FormEvent<HTMLFormElement>) => {
@@ -108,29 +121,35 @@ const Onboarding = () => {
     return (
         <main className="mx-auto min-h-screen w-full max-w-5xl px-5 py-10 text-foreground sm:py-16">
             <div className="mx-auto mb-8 max-w-2xl text-center">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Set up your account · Step {step} of 2</p>
-                <h1 className="mb-3 mt-3 text-3xl font-extrabold sm:text-4xl">{step === 1 ? "Choose a plan" : "Set up your workspace"}</h1>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Set up your account · Step {workspacePage ? 2 : 1} of 2</p>
+                <h1 className="mb-3 mt-3 text-3xl font-extrabold sm:text-4xl">{workspacePage ? "Set up your workspace" : "Choose a plan"}</h1>
                 <p className="m-0 text-sm leading-6 text-muted-foreground">
-                    {step === 1 ? "Pick the plan that fits your business. You can review billing before checkout." : "Tell us about your business so we can prepare your workspace."}
+                    {workspacePage ? "Tell us about your business so we can prepare your workspace." : "Pick the plan that fits your business. You can review billing before checkout."}
                 </p>
             </div>
 
-            {(loading || workspacesLoading || !workspace) && <p className="py-12 text-center text-muted-foreground">Loading your setup...</p>}
+            {(loading || (workspacePage && (workspacesLoading || !workspace))) && <p className="py-12 text-center text-muted-foreground">Loading your setup...</p>}
             {error && <p className="py-12 text-center text-error">{error}</p>}
 
-            {!loading && !workspacesLoading && workspace && !error && step === 1 && (
+            {!workspacePage && !loading && !error && (
                 <>
                     <div className="mb-5 flex justify-center gap-2">
                         {(["monthly", "yearly"] as const).map((cycle) => (
-                            <Button key={cycle} variant={billingCycle === cycle ? "contained" : "outlined"} onClick={() => setBillingCycle(cycle)} className="!normal-case">{cycle} billing</Button>
+                            <Button key={cycle} variant={billingCycle === cycle ? "contained" : "outlined"} onClick={() => { setBillingCycle(cycle); sessionStorage.setItem("onboarding_billing_cycle", cycle); }} className="!normal-case">{cycle} billing</Button>
                         ))}
                     </div>
-                    <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" role="radiogroup" aria-label="Choose a plan">
                         {plans.map((item) => {
                             const price = billingCycle === "yearly" ? item.yearlyPrice : item.monthlyPrice;
+                            const isSelected = plan?.code === item.code;
                             return (
-                                <button key={item.code} type="button" onClick={() => setPlan(item)} className={`rounded-2xl border p-5 text-left transition ${plan?.code === item.code ? "border-primary bg-primary/10" : "border-border bg-surface hover:border-primary/60"}`} aria-pressed={plan?.code === item.code}>
-                                    <span className="text-xs font-bold uppercase tracking-wider text-primary">{item.eyebrow || (item.popular ? "Most popular" : "Plan")}</span>
+                                <button key={item.code} type="button" onClick={() => { setPlan(item); sessionStorage.setItem("onboarding_plan_code", item.code); }} className={`rounded-2xl p-5 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isSelected ? "border-2 border-primary bg-primary/10 shadow-lg shadow-primary/10" : "border border-border bg-surface hover:border-primary/60"}`} role="radio" aria-checked={isSelected}>
+                                    <span className="flex items-start justify-between gap-3">
+                                        <span className="text-xs font-bold uppercase tracking-wider text-primary">{item.eyebrow || (item.popular ? "Most popular" : "Plan")}</span>
+                                        <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${isSelected ? "border-primary" : "border-muted-foreground"}`}>
+                                            {isSelected && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                                        </span>
+                                    </span>
                                     <h2 className="mb-2 mt-2 text-xl font-bold">{item.name}</h2>
                                     <p className="min-h-12 text-sm text-muted-foreground">{item.description}</p>
                                     <p className="mb-0 mt-4 text-2xl font-extrabold">{price === null ? "Custom" : price === 0 ? "Free" : `${item.currency} ${price}`}<span className="text-sm font-medium text-muted-foreground">{price && price > 0 ? billingCycle === "yearly" ? "/year" : "/month" : ""}</span></p>
@@ -143,11 +162,13 @@ const Onboarding = () => {
                 </>
             )}
 
-            {!loading && !workspacesLoading && workspace && step === 2 && plan && (
+            {workspacePage && !loading && !workspacesLoading && workspace && !plan && !error && <p className="py-12 text-center text-muted-foreground">Loading the selected plan...</p>}
+
+            {workspacePage && !loading && !workspacesLoading && workspace && plan && !error && (
                 <form onSubmit={submitWorkspace} className="workspace-onboarding-form mx-auto grid max-w-2xl gap-5 rounded-2xl border border-border bg-surface p-5 text-foreground sm:p-8">
                     <div className="flex items-center justify-between border-b border-border pb-4">
                         <div><p className="m-0 text-xs font-bold uppercase tracking-wider text-primary">Selected plan</p><p className="mb-0 mt-1 font-bold">{plan.name} · {billingCycle}</p></div>
-                        <Button onClick={() => setStep(1)} className="!normal-case">Change</Button>
+                        <Button onClick={() => navigate(`/onboarding?plan=${encodeURIComponent(plan.code)}&cycle=${billingCycle}`)} className="!normal-case">Change</Button>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <TextField name="name" label="Workspace name" required defaultValue={workspace?.name || ""} slotProps={{ htmlInput: { maxLength: 255 } }} />

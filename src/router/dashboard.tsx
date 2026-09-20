@@ -40,7 +40,10 @@ const dashbordRpoter = [
     {
         path: "/onboarding",
         element: <ProtectedRoute />,
-        children: [{ index: true, element: <Onboarding /> }],
+        children: [
+            { index: true, element: <Onboarding /> },
+            { path: "workspace", element: <Onboarding /> },
+        ],
     },
     {
         path: "/dashboard",
