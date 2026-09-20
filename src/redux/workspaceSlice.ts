@@ -42,9 +42,11 @@ const workspaceSlice = createSlice({
                 state.items = action.payload;
 
                 const savedSlug = localStorage.getItem("active_workspace");
-                state.active = action.payload.find((item) => item.slug === savedSlug)
-                    ?? action.payload[0]
+                state.active = action.payload.find((item) => item.slug === savedSlug && item.is_active)
+                    ?? action.payload.find((item) => item.is_active)
                     ?? null;
+                if (state.active) localStorage.setItem("active_workspace", state.active.slug);
+                else localStorage.removeItem("active_workspace");
             })
             .addCase(fetchWorkspaces.rejected, (state, action) => {
                 state.loading = false;

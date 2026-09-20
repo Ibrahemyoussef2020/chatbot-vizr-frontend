@@ -47,7 +47,7 @@ const DashboardHeader = ({ onMenu }: { onMenu: () => void }) => {
                     <MenuItem value="all">
                         <em>All Workspaces (Global)</em>
                     </MenuItem>
-                    {items.map((workspace) => (
+                    {items.filter((workspace) => workspace.is_active).map((workspace) => (
                         <MenuItem value={workspace.slug} key={workspace.id}>
                             {workspace.name}
                         </MenuItem>
