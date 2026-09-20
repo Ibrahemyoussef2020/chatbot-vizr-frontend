@@ -9,7 +9,7 @@ import { listPaymentMethods, savePaymentMethod, type PaymentMethod } from "@/ser
 const listPath = "/dashboard/business/payment-methods";
 
 const PaymentMethodEditor = ({ provider }: { provider: string }) => {
-    const allowed = useAppSelector(state => state.auth.user?.permissions?.includes("payment_methods.manage"));
+    const allowed = useAppSelector(state => state.auth.user?.role === "super_admin");
     const [editor, setEditor] = useState<PaymentMethod | null>(null);
     const [loading, setLoading] = useState(true);
     const [busy, setBusy] = useState(false);
@@ -58,7 +58,7 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
     };
 
     if (!allowed) {
-        return <Alert severity="warning">You need permission to manage business payment methods.</Alert>;
+        return <Alert severity="warning">Only the platform owner can manage global payment methods.</Alert>;
     }
 
     const title = provider === "vodafone_cash" ? "Vodafone Cash" : provider === "stripe" ? "Stripe" : "Payment Method";

@@ -6,7 +6,7 @@ import getErrorText from "@/utils/typeErrorText";
 import { listPaymentMethods, type PaymentMethod } from "@/services/payments/methods";
 
 const BusinessPaymentMethods = () => {
-    const allowed = useAppSelector(state => state.auth.user?.permissions?.includes("payment_methods.manage"));
+    const allowed = useAppSelector(state => state.auth.user?.role === "super_admin");
     const [methods, setMethods] = useState<PaymentMethod[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -32,7 +32,7 @@ const BusinessPaymentMethods = () => {
     }, [allowed, retry]);
 
     if (!allowed) {
-        return <Alert severity="warning">You need permission to manage business payment methods.</Alert>;
+        return <Alert severity="warning">Only the platform owner can manage global payment methods.</Alert>;
     }
 
     return (
