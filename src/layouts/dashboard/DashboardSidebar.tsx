@@ -210,7 +210,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
     const [workspaceActive, setWorkspaceActive] = useState(true);
     const [workspaceProfile, setWorkspaceProfile] = useState({
         business_name: "", industry: "", website_url: "", support_email: "", support_phone: "",
-        country: "", timezone: "UTC", default_language: "en", currency: "USD",
+        country: "", timezone: "UTC", currency: "USD",
     });
     const { items: workspaces, active: activeWorkspace } = useAppSelector((state) => state.workspace);
 
@@ -240,7 +240,6 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
                 support_phone: String(formData.get("support_phone") || "").trim(),
                 country: String(formData.get("country") || "").trim(),
                 timezone: String(formData.get("timezone") || "UTC").trim(),
-                default_language: String(formData.get("default_language") || "en").trim(),
                 currency: String(formData.get("currency") || "USD").trim().toUpperCase(),
                 rate_limit: Number(formData.get("rate_limit") || 60),
             });
@@ -274,7 +273,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
             business_name: workspace.business_name || "", industry: workspace.industry || "",
             website_url: workspace.website_url || "", support_email: workspace.support_email || "",
             support_phone: workspace.support_phone || "", country: workspace.country || "",
-            timezone: workspace.timezone || "UTC", default_language: workspace.default_language || "en",
+            timezone: workspace.timezone || "UTC",
             currency: workspace.currency || "USD",
         });
         setError("");
@@ -350,7 +349,6 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
                             <TextField name="support_phone" label="Support phone" />
                             <TextField name="country" label="Country" />
                             <TextField name="timezone" label="Timezone" defaultValue="UTC" placeholder="Africa/Cairo" />
-                            <TextField name="default_language" label="Default language" defaultValue="en" placeholder="en or ar-EG" />
                             <TextField name="currency" label="Currency" defaultValue="USD" placeholder="USD" slotProps={{ htmlInput: { maxLength: 3 } }} />
                             <TextField name="rate_limit" type="number" label="API rate limit / minute" defaultValue={60} slotProps={{ htmlInput: { min: 1, max: 1000 } }} />
                         </div>
@@ -380,7 +378,6 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
                                         <TextField size="small" label="Support phone" value={workspaceProfile.support_phone} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, support_phone: event.target.value }))} />
                                         <TextField size="small" label="Country" value={workspaceProfile.country} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, country: event.target.value }))} />
                                         <TextField size="small" label="Timezone" placeholder="Africa/Cairo" value={workspaceProfile.timezone} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, timezone: event.target.value }))} />
-                                        <TextField size="small" label="Default language" placeholder="en or ar-EG" value={workspaceProfile.default_language} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, default_language: event.target.value }))} />
                                         <TextField size="small" label="Currency" value={workspaceProfile.currency} onChange={(event) => setWorkspaceProfile((value) => ({ ...value, currency: event.target.value.toUpperCase() }))} slotProps={{ htmlInput: { maxLength: 3 } }} />
                                         <TextField size="small" type="number" label="API rate limit / minute" value={workspaceRateLimit} onChange={(event) => setWorkspaceRateLimit(event.target.value)} slotProps={{ htmlInput: { min: 1, max: 1000 } }} />
                                         <TextField select size="small" label="Status" value={workspaceActive ? "active" : "inactive"} onChange={(event) => setWorkspaceActive(event.target.value === "active")}>
