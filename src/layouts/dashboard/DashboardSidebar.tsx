@@ -54,6 +54,16 @@ interface NavigationItem {
     end?: boolean;
 }
 
+const workspaceErrorMessage = (error: unknown, fallback: string) => {
+    if (typeof error === "string" && error.trim()) return error;
+    const data = (error as { response?: { data?: { message?: string; errors?: Record<string, string[]> } }; message?: string })?.response?.data;
+    const validationMessages = Object.values(data?.errors || {}).flat().filter(Boolean);
+    if (validationMessages.length) return validationMessages.join(" ");
+    if (data?.message) return data.message;
+    const message = (error as { message?: string })?.message;
+    return message && !message.startsWith("Request failed with status code") ? message : fallback;
+};
+
 const navigationSections: { label: string; businessOnly?: boolean; items: NavigationItem[] }[] = [
     {
         label: "Workspace",
@@ -238,8 +248,8 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
             setCreateOpen(false);
             form.reset();
             onClose();
-        } catch {
-            setError("Workspace could not be created.");
+        } catch (requestError) {
+            setError(workspaceErrorMessage(requestError, "Workspace could not be created."));
         } finally {
             setCreating(false);
         }
@@ -250,8 +260,8 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
         try {
             await dispatch(fetchWorkspaces()).unwrap();
             setManageOpen(true);
-        } catch {
-            setError("Workspaces could not be loaded.");
+        } catch (requestError) {
+            setError(workspaceErrorMessage(requestError, "Workspaces could not be loaded."));
         }
     };
 
@@ -283,8 +293,8 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
             });
             await dispatch(fetchWorkspaces()).unwrap();
             setEditingWorkspace(null);
-        } catch (requestError: any) {
-            setError(requestError?.response?.data?.message || "Workspace could not be updated.");
+        } catch (requestError) {
+            setError(workspaceErrorMessage(requestError, "Workspace could not be updated."));
         } finally {
             setSavingWorkspace(false);
         }
@@ -302,8 +312,8 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
                     id: "all", name: "All Workspaces (Global)", slug: "all", is_active: true, rate_limit: 60,
                 }));
             }
-        } catch (requestError: any) {
-            setError(requestError?.response?.data?.message || "Workspace could not be deactivated.");
+        } catch (requestError) {
+            setError(workspaceErrorMessage(requestError, "Workspace could not be deactivated."));
         } finally {
             setDeletingWorkspaceId(null);
         }
