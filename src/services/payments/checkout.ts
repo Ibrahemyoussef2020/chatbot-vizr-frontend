@@ -11,8 +11,8 @@ export interface CheckoutPaymentMethod {
     payerFields: { key: string; label: string; type: "text" | "number" | "tel" | "email" | "date" | "select"; required: boolean; placeholder: string; helpText: string }[];
 }
 
-export const getCheckoutPaymentMethods = async (signal?: AbortSignal): Promise<CheckoutPaymentMethod[]> => {
-    const response = await api.get("/subscription/methods", { signal });
+export const getCheckoutPaymentMethods = async (signal?: AbortSignal, workspaceSlug?: string): Promise<CheckoutPaymentMethod[]> => {
+    const response = await api.get("/subscription/methods", { signal, params: { system_slug: workspaceSlug } });
     return response.data.data;
 };
 
@@ -23,6 +23,7 @@ export interface SubscriptionRequest {
     email?: string;
     name?: string;
     payerFields?: Record<string, string>;
+    system_slug?: string;
 }
 
 export interface SubscriptionResponse {

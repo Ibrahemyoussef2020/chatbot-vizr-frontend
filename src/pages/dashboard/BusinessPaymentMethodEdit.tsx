@@ -10,6 +10,7 @@ const listPath = "/dashboard/business/payment-methods";
 
 const PaymentMethodEditor = ({ provider }: { provider: string }) => {
     const allowed = useAppSelector(state => state.auth.user?.permissions?.includes("payment_methods.manage"));
+    const activeWorkspace = useAppSelector(state => state.workspace.active);
     const [editor, setEditor] = useState<PaymentMethod | null>(null);
     const [loading, setLoading] = useState(true);
     const [busy, setBusy] = useState(false);
@@ -24,11 +25,11 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
             setLoading(true);
             setError("");
             try {
-                const methods = await listPaymentMethods(controller.signal);
+                const methods = await listPaymentMethods(controller.signal, activeWorkspace?.slug);
                 const method = methods.find(item => item.provider === provider);
                 if (!method) throw new Error("Payment method not found.");
                 if (!controller.signal.aborted) {
-                    setEditor({ ...method, settings: { ...method.settings } });
+                    setEditor({ ...method, settings: { ...method.settings }, credentials: {}, clearCredentials: [] });
                 }
             } catch (failure) {
                 if (!controller.signal.aborted) setError(getErrorText(failure));
@@ -38,7 +39,7 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
         };
         void load();
         return () => controller.abort();
-    }, [allowed, provider, retry]);
+    }, [allowed, provider, retry, activeWorkspace?.slug]);
 
     const submit = async (event: FormEvent) => {
         event.preventDefault();
@@ -47,8 +48,8 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
         setError("");
         setSuccess("");
         try {
-            const saved = await savePaymentMethod(editor);
-            setEditor(saved);
+            const saved = await savePaymentMethod(editor, activeWorkspace?.slug);
+            setEditor({ ...saved, credentials: {}, clearCredentials: [] });
             setSuccess("Payment method saved.");
         } catch (failure) {
             setError(getErrorText(failure));
@@ -63,12 +64,12 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
 
     const title = provider === "vodafone_cash" ? "Vodafone Cash" : provider === "stripe" ? "Stripe" : "Payment Method";
     return (
-        <div className="mx-auto w-full max-w-[1000px] space-y-6 p-2">
-            <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
+        <div className="mx-auto w-full max-w-[1100px] space-y-6 p-2 text-foreground">
+            <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
                 <div>
-                    <span className="text-xs font-extrabold uppercase tracking-widest text-primary">Payment Methods</span>
-                    <h1 className="mt-1 text-3xl font-extrabold text-foreground">Configure {title}</h1>
-                    <p className="mt-2 text-sm text-muted-foreground">Manage payment instructions, provider settings and availability.</p>
+                    <span className="text-xs font-extrabold uppercase tracking-widest text-primary">{activeWorkspace?.name || "Workspace"} · Payment settings</span>
+                    <h1 className="mt-1 text-3xl font-extrabold">{title}</h1>
+                    <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Set up this provider for this workspace. Saved workspace credentials take priority; server environment variables are used when a workspace value is blank.</p>
                 </div>
                 <Button component={Link} to={listPath} disabled={busy}>Back to payment methods</Button>
             </header>
@@ -77,10 +78,36 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
                 <Button onClick={() => setRetry(value => value + 1)}>Retry</Button>
             ) : undefined}>{error}</Alert>}
             {loading ? <CircularProgress aria-label="Loading payment method" /> : editor && (
-                <form onSubmit={event => void submit(event)} className="space-y-6 rounded-xl border border-border bg-card p-5 text-foreground sm:p-8">
-                    {editor.provider === "stripe" && (
-                        <Alert severity="info">Stripe credentials are managed in server configuration. Enabling requires a matching test/live key and webhook signing secret.</Alert>
-                    )}
+                <form onSubmit={event => void submit(event)} className="space-y-8 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-8">
+                    {editor.provider === "stripe" && <section className="space-y-4 rounded-xl border border-border bg-surface p-5">
+                        <div>
+                            <h2 className="m-0 text-lg font-bold">Stripe credentials</h2>
+                            <p className="mb-0 mt-1 text-sm text-muted-foreground">Enter workspace-specific keys, or leave a field blank to use its server environment value. Secrets are encrypted before storage and never shown again.</p>
+                            <p className="mb-0 mt-2 text-sm text-muted-foreground">Stripe webhook destination: <code className="rounded bg-surface-muted px-1.5 py-0.5">/api/webhooks/stripe</code>. Add this backend URL as a destination in this workspace’s Stripe account.</p>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2">
+                            {editor.credentialFields.map(field => {
+                                const source = editor.credentialStatus[field.key] || "missing";
+                                const placeholder = editor.credentials[field.key]
+                                    ? "New value will replace the saved credential"
+                                    : source === "workspace" ? "Saved for this workspace — leave blank to keep"
+                                        : source === "environment" ? "Using server environment — enter to override for this workspace"
+                                            : "Not configured";
+                                return <div key={field.key} className="space-y-1">
+                                    <TextField fullWidth label={field.label} type={field.secret ? "password" : "text"} disabled={busy}
+                                        value={editor.credentials[field.key] || ""} placeholder={field.placeholder || placeholder}
+                                        autoComplete="new-password" helperText={[field.helpText, field.environmentKey ? `Environment fallback: ${field.environmentKey}` : ""].filter(Boolean).join(" · ")}
+                                        onChange={event => setEditor({ ...editor, credentials: { ...editor.credentials, [field.key]: event.target.value }, clearCredentials: editor.clearCredentials.filter(key => key !== field.key) })} />
+                                    <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
+                                        <span>{source === "workspace" ? "Workspace value saved" : source === "environment" ? "Server environment fallback available" : source === "global" ? "Shared fallback available" : "No value configured"}</span>
+                                        {source === "workspace" && <Button type="button" size="small" disabled={busy} onClick={() => setEditor({ ...editor, credentials: { ...editor.credentials, [field.key]: "" }, clearCredentials: [...new Set([...editor.clearCredentials, field.key])] })} className="!normal-case">Use server fallback</Button>}
+                                    </div>
+                                </div>;
+                            })}
+                        </div>
+                    </section>}
+                    <section className="space-y-4">
+                    <h2 className="text-lg font-bold">Customer-facing details</h2>
                     <div className="grid gap-5 sm:grid-cols-2">
                         <TextField label="Display name" required disabled={busy} value={editor.label}
                             onChange={event => setEditor({ ...editor, label: event.target.value })} />
@@ -90,6 +117,7 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
                     </div>
                     <TextField fullWidth label="Payment instructions" multiline rows={3} disabled={busy} value={editor.instructions}
                         onChange={event => setEditor({ ...editor, instructions: event.target.value })} />
+                    </section>
                     <fieldset className="rounded-lg border border-border p-4">
                         <legend className="px-2 font-semibold">Accepted currencies</legend>
                         {editor.availableCurrencies.map(currency => (
@@ -104,7 +132,7 @@ const PaymentMethodEditor = ({ provider }: { provider: string }) => {
                             } />
                         ))}
                     </fieldset>
-                    <section className="space-y-4" aria-label="Provider settings">
+                    <section className="space-y-4 rounded-xl border border-border p-5" aria-label="Provider settings">
                         <h2 className="text-lg font-bold">Provider settings</h2>
                         <div className="grid gap-5 sm:grid-cols-2">
                             {editor.settingFields.map(field => field.type === "boolean" ? (

@@ -42,14 +42,14 @@ const Onboarding = () => {
 
     useEffect(() => {
         const controller = new AbortController();
-        getCheckoutPaymentMethods(controller.signal).then(methods => {
+        getCheckoutPaymentMethods(controller.signal, workspace?.slug).then(methods => {
             setPaymentMethods(methods);
             setPaymentProvider(current => methods.some(method => method.provider === current) ? current : methods[0]?.provider || "stripe");
         }).catch(reason => {
             if (reason?.code !== "ERR_CANCELED") setPaymentMethodsError(getErrorText(reason));
         });
         return () => controller.abort();
-    }, []);
+    }, [workspace?.slug]);
 
     useEffect(() => {
         const planCode = selectedPlanCode || sessionStorage.getItem("onboarding_plan_code") || workspace?.selected_plan_code;
@@ -130,6 +130,7 @@ const Onboarding = () => {
                         return value ? [[field.key, value]] : [];
                     }))
                     : undefined,
+                system_slug: workspace.slug,
             }, true);
 
             if (checkout.checkout.mode === "redirect" && checkout.checkout.checkoutUrl) {

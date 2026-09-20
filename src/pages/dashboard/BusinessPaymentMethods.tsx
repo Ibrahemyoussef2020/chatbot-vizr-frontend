@@ -7,6 +7,7 @@ import { listPaymentMethods, type PaymentMethod } from "@/services/payments/meth
 
 const BusinessPaymentMethods = () => {
     const allowed = useAppSelector(state => state.auth.user?.permissions?.includes("payment_methods.manage"));
+    const activeWorkspace = useAppSelector(state => state.workspace.active);
     const [methods, setMethods] = useState<PaymentMethod[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -19,7 +20,7 @@ const BusinessPaymentMethods = () => {
             setLoading(true);
             setError("");
             try {
-                const result = await listPaymentMethods(controller.signal);
+                const result = await listPaymentMethods(controller.signal, activeWorkspace?.slug);
                 if (!controller.signal.aborted) setMethods(result);
             } catch (failure) {
                 if (!controller.signal.aborted) setError(getErrorText(failure));
@@ -29,7 +30,7 @@ const BusinessPaymentMethods = () => {
         };
         void load();
         return () => controller.abort();
-    }, [allowed, retry]);
+    }, [allowed, retry, activeWorkspace?.slug]);
 
     if (!allowed) {
         return <Alert severity="warning">You need permission to manage business payment methods.</Alert>;
@@ -37,7 +38,11 @@ const BusinessPaymentMethods = () => {
 
     return (
         <div className="mx-auto max-w-[1400px] space-y-6 p-2">
-            <h1 className="text-3xl font-extrabold text-foreground">Payment Methods</h1>
+            <header>
+                <p className="m-0 text-xs font-bold uppercase tracking-widest text-primary">Workspace payment settings</p>
+                <h1 className="mt-1 text-3xl font-extrabold text-foreground">Payment Methods</h1>
+                <p className="mt-2 text-sm text-muted-foreground">Settings for {activeWorkspace?.name || "your workspace"}. Workspace credentials override the server environment; environment values remain the fallback.</p>
+            </header>
             {error && (
                 <Alert severity="error" action={<Button onClick={() => setRetry(value => value + 1)}>Retry</Button>}>{error}</Alert>
             )}
@@ -50,6 +55,7 @@ const BusinessPaymentMethods = () => {
                             <p className="text-sm text-muted-foreground">
                                 {method.isEnabled ? "Enabled" : "Disabled"} · {method.isTestMode ? "Test mode" : "Live mode"} · {method.supportedCurrencies.join(", ")}
                             </p>
+                            {method.provider === "stripe" && <p className="text-xs text-muted-foreground">{method.credentialFields.map(field => `${field.label}: ${method.credentialStatus[field.key] === "workspace" ? "workspace override" : method.credentialStatus[field.key] === "environment" ? "server environment" : method.credentialStatus[field.key] === "global" ? "shared legacy setting" : "not configured"}`).join(" · ")}</p>}
                             <CrudActionButton action="edit" label={`Configure ${method.label}`} to={`/dashboard/business/payment-methods/${method.provider}/edit`} />
                         </article>
                     ))}
