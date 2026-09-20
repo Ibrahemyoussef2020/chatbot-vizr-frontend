@@ -3,7 +3,7 @@ import { IoIosLogIn } from "react-icons/io";
 import { Box, Typography, Button } from "@mui/material";
 import CustomizedInput from "@/components/shared/CustomizedInput";
 import { toast } from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import getErrorText from "@/utils/typeErrorText";
 import { useAppDispatch, useAppSelector, loginAsync } from "@/redux";
 
@@ -74,6 +74,9 @@ const Login = () => {
                             }}
                         >
                             Login
+                        </Typography>
+                        <Typography sx={{ mb: 2, textAlign: "center", color: "text.secondary" }}>
+                            Don&apos;t have an account? <Link to="/auth/register">Create one</Link>
                         </Typography>
                         <CustomizedInput type="email" name="email" label="Email" />
                         <CustomizedInput type="password" name="password" label="Password" />

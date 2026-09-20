@@ -120,6 +120,18 @@ const Onboarding = () => {
 
     return (
         <main className="mx-auto min-h-screen w-full max-w-5xl px-5 py-10 text-foreground sm:py-16">
+            <div className="mb-8 flex items-center justify-between">
+                <Link to="/" aria-label="Vizr home" className="inline-flex items-center gap-2 no-underline">
+                    <img src="/robot.png" alt="" className="h-10 w-10 object-contain" />
+                    <span className="text-xl font-black text-foreground">Vizr <span className="text-primary">AI</span></span>
+                </Link>
+                {workspacePage && (
+                    <Button onClick={() => navigate(`/onboarding?plan=${encodeURIComponent(plan?.code || selectedPlanCode || "")}&cycle=${billingCycle}`)} className="!normal-case">
+                        <span aria-hidden="true" className="mr-2">←</span>
+                        Back to plans
+                    </Button>
+                )}
+            </div>
             <div className="mx-auto mb-8 max-w-2xl text-center">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Set up your account · Step {workspacePage ? 2 : 1} of 2</p>
                 <h1 className="mb-3 mt-3 text-3xl font-extrabold sm:text-4xl">{workspacePage ? "Set up your workspace" : "Choose a plan"}</h1>
@@ -153,7 +165,7 @@ const Onboarding = () => {
                                     <h2 className="mb-2 mt-2 text-xl font-bold">{item.name}</h2>
                                     <p className="min-h-12 text-sm text-muted-foreground">{item.description}</p>
                                     <p className="mb-0 mt-4 text-2xl font-extrabold">{price === null ? "Custom" : price === 0 ? "Free" : `${item.currency} ${price}`}<span className="text-sm font-medium text-muted-foreground">{price && price > 0 ? billingCycle === "yearly" ? "/year" : "/month" : ""}</span></p>
-                                    <ul className="mt-4 grid gap-2 pl-5 text-sm">{item.features.slice(0, 4).map((feature) => <li key={feature}>{feature}</li>)}</ul>
+                                    <ul className="mt-4 grid gap-2 pl-5 text-sm">{item.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
                                 </button>
                             );
                         })}
