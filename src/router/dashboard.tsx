@@ -35,6 +35,7 @@ import QuotasView from "@/features/ai-management/views/QuotasView";
 import OverviewView from "@/features/ai-management/views/OverviewView";
 import ProvidersView from "@/features/ai-management/views/ProvidersView";
 import Onboarding from "@/pages/auth/Onboarding";
+import OnboardingPayment from "@/pages/auth/OnboardingPayment";
 
 const dashbordRpoter = [
     {
@@ -42,6 +43,7 @@ const dashbordRpoter = [
         element: <ProtectedRoute />,
         children: [
             { index: true, element: <Onboarding /> },
+            { path: "payment", element: <OnboardingPayment /> },
             { path: "workspace", element: <Onboarding /> },
         ],
     },

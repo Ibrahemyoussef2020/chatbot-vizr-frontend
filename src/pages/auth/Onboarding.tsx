@@ -1,7 +1,6 @@
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import { Alert, FormControlLabel, Radio, RadioGroup } from "@mui/material";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/redux";
@@ -21,20 +20,17 @@ const Onboarding = () => {
     const workspace = useAppSelector((state) => state.workspace.active);
     const workspacesLoading = useAppSelector((state) => state.workspace.loading);
     const { page, error, loading } = useLandingPage("pricing");
-    const [plan, setPlan] = useState<PlanItem | null>(null);
+    const [pickedPlanCode, setPickedPlanCode] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(() =>
-        sessionStorage.getItem("onboarding_billing_cycle") === "yearly" ? "yearly" : "monthly",
+        searchParams.get("cycle") === "yearly" || sessionStorage.getItem("onboarding_billing_cycle") === "yearly" ? "yearly" : "monthly",
     );
-    const [paymentNote, setPaymentNote] = useState("");
     const [paymentMethods, setPaymentMethods] = useState<CheckoutPaymentMethod[]>([]);
-    const [paymentProvider, setPaymentProvider] = useState<"stripe" | "vodafone_cash">("stripe");
-    const [paymentMethodsError, setPaymentMethodsError] = useState("");
     const workspacePage = location.pathname.endsWith("/workspace");
     const selectedPlanCode = searchParams.get("plan");
-    const selectedCycle = searchParams.get("cycle");
-    const plans = (page?.sections.find((section) => section.type === "plans")?.items || []) as PlanItem[];
-    const paymentOptionsForPlan = plan ? paymentMethods.filter(method => method.supportedCurrencies.includes(plan.currency.toUpperCase())) : [];
+    const plans = useMemo(() => (page?.sections.find((section) => section.type === "plans")?.items || []) as PlanItem[], [page?.sections]);
+    const effectivePlanCode = selectedPlanCode || pickedPlanCode || sessionStorage.getItem("onboarding_plan_code") || workspace?.selected_plan_code || "";
+    const plan = plans.find(item => item.code === effectivePlanCode) || null;
 
     useEffect(() => {
         dispatch(fetchWorkspaces());
@@ -42,28 +38,20 @@ const Onboarding = () => {
 
     useEffect(() => {
         const controller = new AbortController();
-        getCheckoutPaymentMethods(controller.signal, workspace?.slug).then(methods => {
-            setPaymentMethods(methods);
-            setPaymentProvider(current => methods.some(method => method.provider === current) ? current : methods[0]?.provider || "stripe");
-        }).catch(reason => {
-            if (reason?.code !== "ERR_CANCELED") setPaymentMethodsError(getErrorText(reason));
-        });
+        getCheckoutPaymentMethods(controller.signal).then(setPaymentMethods).catch(() => undefined);
         return () => controller.abort();
-    }, [workspace?.slug]);
-
-    useEffect(() => {
-        const planCode = selectedPlanCode || sessionStorage.getItem("onboarding_plan_code") || workspace?.selected_plan_code;
-        const chosenPlan = plans.find((item) => item.code === planCode);
-        if (chosenPlan) setPlan(chosenPlan);
-        if (selectedCycle === "monthly" || selectedCycle === "yearly") setBillingCycle(selectedCycle);
-    }, [plans, selectedPlanCode, selectedCycle, workspace?.selected_plan_code]);
+    }, []);
 
     if (!user) return <Navigate to="/auth/login" replace />;
     if (workspacePage && !loading && !error && !plans.some((item) => item.code === (selectedPlanCode || sessionStorage.getItem("onboarding_plan_code") || workspace?.selected_plan_code))) {
         return <Navigate to="/onboarding" replace />;
     }
+    if (workspacePage && plan && (billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice) !== 0
+        && !["stripe", "vodafone_cash"].includes(sessionStorage.getItem("onboarding_payment_provider") || "")) {
+        return <Navigate to={`/onboarding/payment?plan=${encodeURIComponent(plan.code)}&cycle=${billingCycle}`} replace />;
+    }
 
-    const continueToWorkspace = () => {
+    const continueToPayment = () => {
         if (!plan) {
             toast.error("Choose a plan to continue.");
             return;
@@ -75,7 +63,9 @@ const Onboarding = () => {
         }
         sessionStorage.setItem("onboarding_plan_code", plan.code);
         sessionStorage.setItem("onboarding_billing_cycle", billingCycle);
-        navigate(`/onboarding/workspace?plan=${encodeURIComponent(plan.code)}&cycle=${billingCycle}`);
+        navigate(price === 0
+            ? `/onboarding/workspace?plan=${encodeURIComponent(plan.code)}&cycle=${billingCycle}`
+            : `/onboarding/payment?plan=${encodeURIComponent(plan.code)}&cycle=${billingCycle}`);
     };
 
     const submitWorkspace = async (event: FormEvent<HTMLFormElement>) => {
@@ -99,14 +89,15 @@ const Onboarding = () => {
         };
 
         const price = billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
+        const paymentProvider = sessionStorage.getItem("onboarding_payment_provider") as "stripe" | "vodafone_cash" | null;
         const paymentMethod = paymentMethods.find(method => method.provider === paymentProvider && method.supportedCurrencies.includes(plan.currency.toUpperCase()));
         if (price !== 0 && !paymentMethod) {
-            toast.error(`No enabled payment method accepts ${plan.currency} for this plan.`);
+            toast.error(`Your selected payment method is no longer enabled for ${plan.currency}. Choose another payment method.`);
+            navigate(`/onboarding/payment?plan=${encodeURIComponent(plan.code)}&cycle=${billingCycle}`);
             return;
         }
 
         setSubmitting(true);
-        setPaymentNote("");
         try {
             await workspaceServices.updateWorkspace(workspace.slug, profile);
             await dispatch(fetchWorkspaces()).unwrap();
@@ -120,15 +111,12 @@ const Onboarding = () => {
 
             const checkout = await subscribeToPlan({
                 planCode: plan.code,
-                provider: paymentProvider,
+                provider: paymentProvider!,
                 billingCycle,
                 email: user.email,
                 name: user.name,
                 payerFields: paymentMethod?.mode === "manual"
-                    ? Object.fromEntries(paymentMethod.payerFields.flatMap(field => {
-                        const value = String(form.get(`payer_${field.key}`) || "").trim();
-                        return value ? [[field.key, value]] : [];
-                    }))
+                    ? JSON.parse(sessionStorage.getItem("onboarding_payer_fields") || "{}") as Record<string, string>
                     : undefined,
                 system_slug: workspace.slug,
             }, true);
@@ -138,8 +126,9 @@ const Onboarding = () => {
                 return;
             }
 
-            setPaymentNote(checkout.checkout.instructions || "Your payment request was sent for review.");
-            toast.success("Workspace saved. Payment is awaiting review.");
+            sessionStorage.setItem("onboarding_payment_instructions", checkout.checkout.instructions || "Your payment details were submitted for review.");
+            sessionStorage.setItem("onboarding_payment_reference", checkout.checkout.reference);
+            navigate("/payment/pending-review", { replace: true });
         } catch (reason) {
             toast.error(getErrorText(reason));
         } finally {
@@ -155,14 +144,14 @@ const Onboarding = () => {
                     <span className="text-xl font-black text-foreground">Vizr <span className="text-primary">AI</span></span>
                 </Link>
                 {workspacePage && (
-                    <Button onClick={() => navigate(`/onboarding?plan=${encodeURIComponent(plan?.code || selectedPlanCode || "")}&cycle=${billingCycle}`)} className="!normal-case">
+                    <Button onClick={() => navigate(`/onboarding/payment?plan=${encodeURIComponent(plan?.code || selectedPlanCode || "")}&cycle=${billingCycle}`)} className="!normal-case">
                         <span aria-hidden="true" className="mr-2">←</span>
-                        Back to plans
+                        Back to payment
                     </Button>
                 )}
             </div>
             <div className="mx-auto mb-8 max-w-2xl text-center">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Set up your account · Step {workspacePage ? 2 : 1} of 2</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Set up your account · Step {workspacePage ? 3 : 1} of 3</p>
                 <h1 className="mb-3 mt-3 text-3xl font-extrabold sm:text-4xl">{workspacePage ? "Set up your workspace" : "Choose a plan"}</h1>
                 <p className="m-0 text-sm leading-6 text-muted-foreground">
                     {workspacePage ? "Tell us about your business so we can prepare your workspace." : "Pick the plan that fits your business. You can review billing before checkout."}
@@ -184,7 +173,7 @@ const Onboarding = () => {
                             const price = billingCycle === "yearly" ? item.yearlyPrice : item.monthlyPrice;
                             const isSelected = plan?.code === item.code;
                             return (
-                                <button key={item.code} type="button" onClick={() => { setPlan(item); sessionStorage.setItem("onboarding_plan_code", item.code); }} className={`rounded-2xl p-5 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isSelected ? "border-2 border-primary bg-primary/10 shadow-lg shadow-primary/10" : "border border-border bg-surface hover:border-primary/60"}`} role="radio" aria-checked={isSelected}>
+                                <button key={item.code} type="button" onClick={() => { setPickedPlanCode(item.code); sessionStorage.setItem("onboarding_plan_code", item.code); }} className={`rounded-2xl p-5 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${isSelected ? "border-2 border-primary bg-primary/10 shadow-lg shadow-primary/10" : "border border-border bg-surface hover:border-primary/60"}`} role="radio" aria-checked={isSelected}>
                                     <span className="flex items-start justify-between gap-3">
                                         <span className="text-xs font-bold uppercase tracking-wider text-primary">{item.eyebrow || (item.popular ? "Most popular" : "Plan")}</span>
                                         <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${isSelected ? "border-primary" : "border-muted-foreground"}`}>
@@ -234,7 +223,7 @@ const Onboarding = () => {
                             );
                         })}
                     </section>
-                    <div className="mt-8 flex justify-center"><Button variant="contained" disabled={!plan} onClick={continueToWorkspace} className="!px-8 !py-3 !normal-case">Continue</Button></div>
+                    <div className="mt-8 flex justify-center"><Button variant="contained" disabled={!plan} onClick={continueToPayment} className="!px-8 !py-3 !normal-case">Continue to payment</Button></div>
                 </>
             )}
 
@@ -244,7 +233,7 @@ const Onboarding = () => {
                 <form onSubmit={submitWorkspace} className="workspace-onboarding-form mx-auto grid max-w-2xl gap-5 rounded-2xl border border-border bg-surface p-5 text-foreground sm:p-8">
                     <div className="flex items-center justify-between border-b border-border pb-4">
                         <div><p className="m-0 text-xs font-bold uppercase tracking-wider text-primary">Selected plan</p><p className="mb-0 mt-1 font-bold">{plan.name} · {billingCycle}</p></div>
-                        <Button onClick={() => navigate(`/onboarding?plan=${encodeURIComponent(plan.code)}&cycle=${billingCycle}`)} className="!normal-case">Change</Button>
+                        <Button onClick={() => navigate(`/onboarding/payment?plan=${encodeURIComponent(plan.code)}&cycle=${billingCycle}`)} className="!normal-case">Change payment</Button>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <TextField name="name" label="Workspace name" required defaultValue={workspace?.name || ""} slotProps={{ htmlInput: { maxLength: 255 } }} />
@@ -255,28 +244,8 @@ const Onboarding = () => {
                         <TextField name="website_url" label="Website" placeholder="https://example.com" defaultValue={workspace?.website_url || ""} />
                         <TextField name="country" label="Country" defaultValue={workspace?.country || ""} />
                         <TextField name="timezone" label="Timezone" defaultValue={workspace?.timezone || "Africa/Cairo"} />
-                        {(billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice) !== 0 && <div className="col-span-full space-y-4 border-t border-border pt-4">
-                            <div>
-                                <h2 className="mb-1 text-lg font-bold">Payment method</h2>
-                                <p className="m-0 text-sm text-muted-foreground">Choose how you want to pay for this plan.</p>
-                            </div>
-                            {paymentMethodsError && <Alert severity="error">{paymentMethodsError}</Alert>}
-                            {!paymentMethodsError && paymentMethods.length === 0 && <Alert severity="warning">The platform has no enabled payment provider. In Platform → Payment Methods, enable Stripe or Vodafone Cash and save the settings.</Alert>}
-                            {paymentOptionsForPlan.length > 0 && <RadioGroup value={paymentProvider} onChange={event => setPaymentProvider(event.target.value as "stripe" | "vodafone_cash")}>
-                                {paymentOptionsForPlan.map(method => <FormControlLabel key={method.provider} value={method.provider} control={<Radio />} label={<span><strong>{method.label}</strong><br /><span className="text-sm text-muted-foreground">{method.description}</span></span>} />)}
-                            </RadioGroup>}
-                            {paymentMethods.length > 0 && paymentOptionsForPlan.length === 0 && <Alert severity="warning">No enabled payment method accepts {plan.currency} for this plan. Vodafone Cash accepts EGP only; update the plan currency or enable a supported method.</Alert>}
-                            {paymentOptionsForPlan.find(method => method.provider === paymentProvider)?.mode === "manual" && <div className="grid gap-4 sm:grid-cols-2">
-                                {paymentOptionsForPlan.find(method => method.provider === paymentProvider)?.isTestMode
-                                    ? <Alert className="col-span-full" severity="info">Vodafone Cash test mode simulates payment review. Do not send real money.</Alert>
-                                    : <Alert className="col-span-full" severity="info">After you submit, the receiving Vodafone Cash wallet and transfer instructions will be shown.</Alert>}
-                                {paymentOptionsForPlan.find(method => method.provider === paymentProvider)?.payerFields.map(field => <TextField key={field.key} name={`payer_${field.key}`} label={field.label} type={field.type} required={field.required} placeholder={field.placeholder} helperText={field.helpText} />)}
-                            </div>}
-                            {paymentOptionsForPlan.find(method => method.provider === paymentProvider)?.mode === "redirect" && <p className="m-0 text-sm text-muted-foreground">You will continue to Stripe Checkout after saving your workspace.</p>}
-                        </div>}
                     </div>
-                    {paymentNote && <div className="whitespace-pre-line rounded-xl bg-primary/10 p-4 text-sm leading-6 text-foreground">{paymentNote}<p className="mb-0 mt-3"><Link className="font-bold text-primary" to="/dashboard">Continue to dashboard</Link></p></div>}
-                    <div className="flex justify-end"><Button type="submit" variant="contained" disabled={submitting} className="!px-6 !py-3 !normal-case">{submitting ? "Saving..." : (billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice) === 0 ? "Finish setup" : "Save workspace and continue to payment"}</Button></div>
+                    <div className="flex justify-end"><Button type="submit" variant="contained" disabled={submitting} className="!px-6 !py-3 !normal-case">{submitting ? "Creating workspace..." : (billingCycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice) === 0 ? "Finish setup" : "Create workspace and submit payment"}</Button></div>
                 </form>
             )}
         </main>

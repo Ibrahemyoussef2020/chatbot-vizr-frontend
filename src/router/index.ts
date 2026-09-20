@@ -12,6 +12,7 @@ const router = createBrowserRouter([
     { path: "/shared/knowledge/:token", element: createElement(SharedKnowledgeOutput), errorElement: createElement(RouteError) },
     { path: "/payment/success", element: createElement(PaymentStatus), errorElement: createElement(RouteError) },
     { path: "/payment/cancel", element: createElement(PaymentStatus), errorElement: createElement(RouteError) },
+    { path: "/payment/pending-review", element: createElement(PaymentStatus), errorElement: createElement(RouteError) },
     ...[...landingRouter, ...authRouter, ...dashboardRouter].map((route) => ({
         ...route,
         errorElement: createElement(RouteError),
