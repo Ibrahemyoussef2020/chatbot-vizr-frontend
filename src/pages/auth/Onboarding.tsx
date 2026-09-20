@@ -166,6 +166,20 @@ const Onboarding = () => {
                                     <p className="min-h-12 text-sm text-muted-foreground">{item.description}</p>
                                     <p className="mb-0 mt-4 text-2xl font-extrabold">{price === null ? "Custom" : price === 0 ? "Free" : `${item.currency} ${price}`}<span className="text-sm font-medium text-muted-foreground">{price && price > 0 ? billingCycle === "yearly" ? "/year" : "/month" : ""}</span></p>
                                     <ul className="mt-4 grid gap-2 pl-5 text-sm">{item.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
+                                    {item.featureBundles?.map(bundle => <div key={bundle.name} className="mt-4 border-t border-border pt-4">
+                                        <p className="mb-1 font-semibold">{bundle.name}</p>
+                                        {bundle.description && <p className="mb-2 text-xs text-muted-foreground">{bundle.description}</p>}
+                                        <ul className="grid gap-1 pl-5 text-xs text-muted-foreground">
+                                            {(item.featureOptions?.metrics || []).filter(metric => bundle.quotas[metric.key] !== undefined).map(metric => {
+                                                const value = bundle.quotas[metric.key];
+                                                const unit = metric.unit === "megabytes" ? "MB" : metric.unit;
+                                                const period = { per_second: "/ second", per_day: "/ day", per_month: "/ month", total: "" }[metric.window] || "";
+                                                const allowance = value === -1 ? "Unlimited" : value === 0 ? "Not included" : `${value.toLocaleString()} ${unit}${period ? ` ${period}` : ""}`;
+                                                return <li key={metric.key}>{metric.label}: {allowance}</li>;
+                                            })}
+                                            {bundle.agentSlugs.map(slug => <li key={slug}>Agent: {item.featureOptions?.agents.find(agent => agent.slug === slug)?.name || slug}</li>)}
+                                        </ul>
+                                    </div>)}
                                 </button>
                             );
                         })}

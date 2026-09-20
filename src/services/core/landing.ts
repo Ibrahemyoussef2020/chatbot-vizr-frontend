@@ -60,6 +60,11 @@ export interface PlanItem {
     currency: string;
     popular: boolean;
     features: string[];
+    featureBundles?: { name: string; description: string; quotas: Record<string, number>; agentSlugs: string[] }[];
+    featureOptions?: {
+        metrics: { key: string; label: string; category: string; unit: string; window: string; description: string; enforced: boolean }[];
+        agents: { slug: string; name: string }[];
+    };
 }
 
 export type LandingSectionItem =

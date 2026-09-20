@@ -68,6 +68,22 @@ const PricingCard = ({
                     </li>
                 ))}
             </ul>
+            {plan.featureBundles?.map(bundle => (
+                <section key={bundle.name} className="mt-5 border-t border-[var(--theme-border)] pt-4">
+                    <h3 className="mb-1 text-sm font-extrabold">{bundle.name}</h3>
+                    {bundle.description && <p className="mb-2 text-xs leading-5 text-[var(--theme-copy)]">{bundle.description}</p>}
+                    <ul className="m-0 grid list-none gap-2 p-0">
+                        {(plan.featureOptions?.metrics || []).filter(metric => bundle.quotas[metric.key] !== undefined).map(metric => {
+                            const value = bundle.quotas[metric.key];
+                            const unit = metric.unit === "megabytes" ? "MB" : metric.unit;
+                            const period = { per_second: "/ second", per_day: "/ day", per_month: "/ month", total: "" }[metric.window] || "";
+                            const allowance = value === -1 ? "Unlimited" : value === 0 ? "Not included" : `${value.toLocaleString()} ${unit}${period ? ` ${period}` : ""}`;
+                            return <li key={metric.key} className="text-xs leading-5 text-[var(--theme-copy)]"><strong className="text-[var(--theme-ink)]">{metric.label}:</strong> {allowance}</li>;
+                        })}
+                        {bundle.agentSlugs.map(slug => <li key={slug} className="text-xs leading-5 text-[var(--theme-copy)]"><strong className="text-[var(--theme-ink)]">Agent:</strong> {plan.featureOptions?.agents.find(agent => agent.slug === slug)?.name || slug}</li>)}
+                    </ul>
+                </section>
+            ))}
         </Card>
     );
 };
