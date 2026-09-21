@@ -20,13 +20,13 @@ const PaymentStatus = () => {
             try {
                 const status = await getSubscriptionStatus();
                 if (disposed) return;
-                if (status.active) {
+                if (status.active || status.pending) {
                     navigate("/dashboard", { replace: true });
                     return;
                 }
-                setMessage("Payment received. Waiting for Stripe to confirm it securely...");
+                setMessage("Payment is still being confirmed. Your workspace will activate automatically once confirmation arrives.");
             } catch {
-                if (!disposed) setMessage("We could not check the payment yet. You can retry from your setup page.");
+                if (!disposed) setMessage("We could not check the payment yet. You can open your dashboard and check again shortly.");
             }
             if (!disposed) timer = setTimeout(check, 4000);
         };
@@ -47,8 +47,9 @@ const PaymentStatus = () => {
                 <h1 className="mb-3 mt-3 text-2xl font-extrabold">{pendingReview ? "We’ll confirm your payment and activate your workspace" : cancelled ? "Your setup is saved" : "Almost there"}</h1>
                 <p className="m-0 whitespace-pre-line leading-6 text-muted-foreground">{pendingReview ? `Your payment details were received. The platform team will verify the transfer and activate your workspace once it is confirmed.${sessionStorage.getItem("onboarding_payment_instructions") ? `\n\n${sessionStorage.getItem("onboarding_payment_instructions")}` : ""}` : cancelled ? "No payment was completed. Return to setup to try again or choose another plan." : message}</p>
                 {pendingReview && sessionStorage.getItem("onboarding_payment_reference") && <p className="mt-4 text-sm text-muted-foreground">Reference: <span className="font-mono">{sessionStorage.getItem("onboarding_payment_reference")}</span></p>}
-                <Link className="mt-6 inline-flex rounded-lg bg-primary px-5 py-3 font-bold text-white no-underline" to={pendingReview ? "/" : cancelled ? "/onboarding" : "/dashboard"}>
-                    {pendingReview ? "Back to home" : cancelled ? "Return to setup" : "Check dashboard"}
+                {!cancelled && <p className="mt-4 text-sm text-muted-foreground">Your workspace is created. You can open the dashboard while payment activation is pending.</p>}
+            <Link className="mt-6 inline-flex rounded-lg bg-primary px-5 py-3 font-bold text-white no-underline" to={pendingReview ? "/dashboard" : cancelled ? "/onboarding" : "/dashboard"}>
+                    {pendingReview ? "Open workspace dashboard" : cancelled ? "Return to setup" : "Open workspace dashboard"}
                 </Link>
             </section>
         </main>

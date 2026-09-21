@@ -56,6 +56,13 @@ export const startFreePlan = async (planCode: string, billingCycle: "monthly" | 
 };
 
 export const getSubscriptionStatus = async () => {
-    const response = await api.get<{ data: { active: boolean; planCode: string | null } }>("/subscription/onboarding/status");
+    const response = await api.get<{ data: {
+        active: boolean;
+        pending: boolean;
+        planCode: string | null;
+        paymentStatus: "pending" | "awaiting_review" | "succeeded" | null;
+        paymentProvider?: "stripe" | "vodafone_cash" | null;
+        paymentReference?: string | null;
+    } }>("/subscription/onboarding/status");
     return response.data.data;
 };
