@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { fetchWorkspaces } from "@/redux/workspaceThunk";
 import { getSubscriptionStatus } from "@/services/payments/checkout";
@@ -17,6 +17,7 @@ const Dashboard = () => {
     const [subscriptionChecked, setSubscriptionChecked] = useState(false);
     const { user } = useAppSelector((state) => state.auth);
     const { active, loading } = useAppSelector((state) => state.workspace);
+    const location = useLocation();
 
     useEffect(() => {
         let current = true;
@@ -88,7 +89,7 @@ const Dashboard = () => {
                     {paymentReference && <span className="ml-2 font-mono">({paymentReference})</span>}
                 </div>}
                 <div className="dashboard-content min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 pt-2 lg:px-8 lg:pb-8 lg:pt-3">
-                    {paymentPending ? <section className="mx-auto mt-10 max-w-2xl rounded-2xl border border-warning/30 bg-surface p-8 text-center shadow-sm">
+                    {paymentPending && location.pathname.replace(/\/$/, "") === "/dashboard" && <section className="mx-auto mb-6 mt-4 max-w-2xl rounded-2xl border border-warning/30 bg-surface p-8 text-center shadow-sm">
                         <p className="m-0 text-xs font-bold uppercase tracking-widest text-warning">Workspace activation</p>
                         <h1 className="mb-3 mt-3 text-2xl font-extrabold">{active?.name || "Your workspace"} is waiting for activation</h1>
                         <p className="m-0 leading-6 text-muted-foreground">{paymentStatus === "awaiting_review"
@@ -99,7 +100,8 @@ const Dashboard = () => {
                         {active?.selected_plan_code && <p className="mb-0 mt-4 text-sm text-muted-foreground">Selected plan: <strong className="capitalize text-foreground">{active.selected_plan_code}</strong></p>}
                         {paymentReference && <p className="mb-0 mt-2 text-sm text-muted-foreground">Payment reference: <span className="font-mono text-foreground">{paymentReference}</span></p>}
                         <p className="mb-0 mt-5 text-xs text-muted-foreground">This page checks for activation automatically every 15 seconds.</p>
-                    </section> : <Outlet />}
+                    </section>}
+                    <Outlet />
                 </div>
             </main>
         </div>
