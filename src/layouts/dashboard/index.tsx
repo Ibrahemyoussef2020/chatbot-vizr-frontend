@@ -70,7 +70,7 @@ const Dashboard = () => {
         return <main aria-busy="true" className="grid min-h-screen place-items-center text-muted-foreground">Loading your workspace...</main>;
     }
 
-    if (user?.role !== "super_admin" && (!active?.business_name || !active.selected_plan_code || (!subscriptionActive && !paymentPending))) {
+    if (user?.role !== "super_admin" && (!active?.business_name || ((!active.selected_plan_code || !subscriptionActive) && !paymentPending))) {
         return <Navigate to="/onboarding" replace />;
     }
 
