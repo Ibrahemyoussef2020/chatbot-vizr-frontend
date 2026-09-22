@@ -251,7 +251,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
                 currency: String(formData.get("currency") || "USD").trim().toUpperCase(),
                 rate_limit: Number(formData.get("rate_limit") || 60),
             });
-            await dispatch(fetchWorkspaces()).unwrap();
+            await dispatch(fetchWorkspaces({ force: true })).unwrap();
             setCreateOpen(false);
             form.reset();
             onClose();
@@ -265,7 +265,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
     const manageWorkspaces = async () => {
         setError("");
         try {
-            await dispatch(fetchWorkspaces()).unwrap();
+            await dispatch(fetchWorkspaces({ force: true })).unwrap();
             setManageOpen(true);
         } catch (requestError) {
             setError(workspaceErrorMessage(requestError, "Workspaces could not be loaded."));
@@ -298,7 +298,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
                 is_active: workspaceActive,
                 ...workspaceProfile,
             });
-            await dispatch(fetchWorkspaces()).unwrap();
+            await dispatch(fetchWorkspaces({ force: true })).unwrap();
             setEditingWorkspace(null);
         } catch (requestError) {
             setError(workspaceErrorMessage(requestError, "Workspace could not be updated."));
@@ -313,7 +313,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
         setError("");
         try {
             await workspaceServices.deleteWorkspace(workspace.id);
-            const refreshed = await dispatch(fetchWorkspaces()).unwrap();
+            const refreshed = await dispatch(fetchWorkspaces({ force: true })).unwrap();
             if (activeWorkspace?.id === workspace.id) {
                 dispatch(setActiveWorkspace(refreshed.find((item) => item.is_active) || {
                     id: "all", name: "All Workspaces (Global)", slug: "all", is_active: true, rate_limit: 60,

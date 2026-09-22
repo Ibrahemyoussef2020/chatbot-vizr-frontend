@@ -23,7 +23,7 @@ const Dashboard = () => {
         let current = true;
         const load = async () => {
             try {
-                await dispatch(fetchWorkspaces()).unwrap();
+                await dispatch(fetchWorkspaces());
                 if (user?.role === "super_admin") {
                     setSubscriptionActive(true);
                 } else {

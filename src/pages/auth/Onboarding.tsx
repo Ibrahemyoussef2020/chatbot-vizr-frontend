@@ -102,7 +102,7 @@ const Onboarding = () => {
             const targetWorkspace = workspace
                 ? await workspaceServices.updateWorkspace(workspace.slug, profile)
                 : await workspaceServices.createWorkspace(profile);
-            await dispatch(fetchWorkspaces()).unwrap();
+            await dispatch(fetchWorkspaces({ force: true })).unwrap();
 
             if (price === 0) {
                 await startFreePlan(plan.code, billingCycle);
