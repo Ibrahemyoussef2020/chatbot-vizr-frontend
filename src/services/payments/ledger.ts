@@ -29,3 +29,8 @@ export const listPayments = async (params: Record<string, string | number>, sign
     const response = await api.get("/admin/payments", { params, signal });
     return response.data.data;
 };
+
+export const decidePayment = async (id: string, decision: "approve" | "reject", message: string) => {
+    const response = await api.post(`/admin/payments/${id}/decision`, { decision, message });
+    return response.data.data;
+};

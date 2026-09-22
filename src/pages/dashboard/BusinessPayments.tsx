@@ -4,7 +4,7 @@ import { HiOutlineArrowPath, HiOutlineBanknotes, HiOutlineChevronLeft, HiOutline
 import { useAppSelector } from "@/redux/store";
 import { PaymentProviderBadge, PaymentStatusBadge, PaymentSummary, PaymentTable } from "@/components/dashboard/PaymentLedger";
 import { formatPaymentAmount, formatPaymentDate, paymentStatuses } from "@/helpers/paymentPresentation";
-import { listPayments, type PaymentItem, type PagedResult } from "@/services/payments/ledger";
+import { decidePayment, listPayments, type PaymentItem, type PagedResult } from "@/services/payments/ledger";
 import getErrorText from "@/utils/typeErrorText";
 
 const quickStatuses = [
@@ -25,6 +25,9 @@ const BusinessPayments = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [selected, setSelected] = useState<PaymentItem | null>(null);
+    const [decisionMessage, setDecisionMessage] = useState("");
+    const [deciding, setDeciding] = useState(false);
+    const isSuperAdmin = useAppSelector(state => state.auth.user?.role === "super_admin");
     const hasFilters = Boolean(search || status !== "all" || provider !== "all");
 
     useEffect(() => {
@@ -166,7 +169,7 @@ const BusinessPayments = () => {
                 )}
             </section>
 
-            <Dialog open={Boolean(selected)} onClose={() => setSelected(null)} fullWidth maxWidth="sm">
+            <Dialog open={Boolean(selected)} onClose={() => !deciding && setSelected(null)} fullWidth maxWidth="sm">
                 <DialogTitle>Transaction details</DialogTitle>
                 <DialogContent>
                     {selected && <div className="space-y-5">
@@ -178,6 +181,7 @@ const BusinessPayments = () => {
                             <PaymentStatusBadge status={selected.status} />
                         </div>
                         <PaymentProviderBadge provider={selected.provider} />
+                        {isSuperAdmin && ["pending", "awaiting_review"].includes(selected.status) && <TextField fullWidth multiline minRows={3} label="Message to workspace owner (optional)" value={decisionMessage} onChange={event => setDecisionMessage(event.target.value)} />}
                         <dl className="grid gap-4 sm:grid-cols-2">
                             {Object.entries({ Reference: selected.reference, Customer: selected.payerName, Email: selected.payerEmail, Workspace: selected.workspaceId?.name, Plan: selected.planCode, "Billing cycle": selected.billingCycle, "Provider reference": selected.providerRef, "Review note": selected.reviewNote, "Failure reason": selected.failureReason }).map(([label, value]) => (
                                 <div key={label} className={label === "Reference" || label === "Provider reference" ? "sm:col-span-2" : ""}>
@@ -188,7 +192,13 @@ const BusinessPayments = () => {
                         </dl>
                     </div>}
                 </DialogContent>
-                <DialogActions><Button onClick={() => setSelected(null)}>Close</Button></DialogActions>
+                <DialogActions>
+                    <Button onClick={() => setSelected(null)} disabled={deciding}>Close</Button>
+                    {isSuperAdmin && selected && ["pending", "awaiting_review"].includes(selected.status) && <>
+                        <Button color="error" disabled={deciding} onClick={async () => { setDeciding(true); try { await decidePayment(selected._id, "reject", decisionMessage); setSelected(null); setRetry(value => value + 1); } finally { setDeciding(false); } }}>Refuse workspace</Button>
+                        <Button variant="contained" disabled={deciding} onClick={async () => { setDeciding(true); try { await decidePayment(selected._id, "approve", decisionMessage); setSelected(null); setRetry(value => value + 1); } finally { setDeciding(false); } }}>Approve workspace</Button>
+                    </>}
+                </DialogActions>
             </Dialog>
         </div>
     );

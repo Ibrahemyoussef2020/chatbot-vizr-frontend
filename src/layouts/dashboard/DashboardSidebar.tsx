@@ -109,6 +109,13 @@ const navigationSections: { label: string; businessOnly?: boolean; items: Naviga
         ],
     },
     {
+        label: "Workspaces",
+        items: [
+            { label: "Control workspace", to: "/dashboard/business/workspaces", icon: HiOutlineRectangleStack },
+            { label: "Confirm workspaces", to: "/dashboard/business/workspaces/confirmations", icon: HiOutlineCheck },
+        ],
+    },
+    {
         label: "Administration",
         items: [
             { label: "System logs", to: "/dashboard/logs", icon: HiOutlineQueueList },
@@ -196,7 +203,8 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const role = useAppSelector((state) => state.auth.user?.role);
-    const canCreateWorkspace = role === "super_admin";
+    // Workspace creation and editing now live on the Workspaces management page.
+    const canCreateWorkspace = false;
     const canAccessBusinessTools = role === "super_admin" || role === "admin";
     const [createOpen, setCreateOpen] = useState(false);
     const [manageOpen, setManageOpen] = useState(false);

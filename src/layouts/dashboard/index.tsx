@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { fetchWorkspaces } from "@/redux/workspaceThunk";
 import { getSubscriptionStatus } from "@/services/payments/checkout";
@@ -16,7 +16,6 @@ const Dashboard = () => {
     const [subscriptionChecked, setSubscriptionChecked] = useState(false);
     const { user } = useAppSelector((state) => state.auth);
     const { active, loading } = useAppSelector((state) => state.workspace);
-    const location = useLocation();
 
     useEffect(() => {
         let current = true;
@@ -64,7 +63,17 @@ const Dashboard = () => {
     }, [paymentPending, user?.role]);
 
     if (!workspacesLoaded || !subscriptionChecked || loading) {
-        return <main aria-busy="true" className="grid min-h-screen place-items-center text-muted-foreground">Loading your workspace...</main>;
+        return (
+            <div className="flex h-screen overflow-hidden bg-background font-sans text-foreground">
+                <DashboardSidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+                <main className="flex min-w-0 flex-1 flex-col bg-background text-foreground">
+                    <DashboardHeader onMenu={() => setMobileOpen(true)} />
+                    <div className="dashboard-content grid min-h-0 flex-1 place-items-center overflow-y-auto px-4 py-8 text-muted-foreground lg:px-8" aria-busy="true">
+                        Loading your workspace...
+                    </div>
+                </main>
+            </div>
+        );
     }
 
     if (user?.role !== "super_admin" && (!active?.business_name || ((!active.selected_plan_code || !subscriptionActive) && !paymentPending))) {
@@ -84,18 +93,19 @@ const Dashboard = () => {
                             : "مساحة العمل بانتظار تأكيد الدفع. سنحدّث حالتها تلقائيًا عند وصول التأكيد."}
                 </div>}
                 <div className="dashboard-content min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 pt-2 lg:px-8 lg:pb-8 lg:pt-3">
-                    {paymentPending && location.pathname.replace(/\/$/, "") === "/dashboard" && <section className="mx-auto mb-6 mt-4 max-w-2xl rounded-2xl border border-warning/30 bg-surface p-10 text-center shadow-sm sm:p-12">
-                        <p className="m-0 text-xs font-bold uppercase tracking-widest text-warning">Workspace activation</p>
-                        <h1 className="mb-3 mt-3 text-2xl font-extrabold">{active?.name || "Your workspace"} is waiting for activation</h1>
-                        <p className="m-0 leading-6 text-muted-foreground">{paymentStatus === "awaiting_review"
-                            ? "Your payment details were received. The platform team will review the transfer and activate this workspace after confirming it."
-                            : paymentStatus === "succeeded"
-                                ? "Stripe confirmed your payment. Your workspace will be available as soon as activation finishes."
-                                : "Your workspace has been created. It will activate automatically after Stripe confirms the payment."}</p>
-                        {active?.selected_plan_code && <p className="mb-0 mt-4 text-sm text-muted-foreground">Selected plan: <strong className="capitalize text-foreground">{active.selected_plan_code}</strong></p>}
-                        <p className="mb-0 mt-5 text-xs text-muted-foreground">This page checks for activation automatically every 15 seconds.</p>
-                    </section>}
-                    <Outlet />
+                    {paymentPending ? (
+                        <section className="mx-auto !p-4 mb-6 mt-4 max-w-2xl rounded-2xl border border-warning/30 bg-surface p-10 text-center shadow-sm sm:p-12" aria-live="polite">
+                            <p className="m-0 text-xs font-bold uppercase tracking-widest text-warning">Workspace activation</p>
+                            <h1 className="mb-3 mt-3 text-2xl font-extrabold">{active?.name || "Your workspace"} is waiting for activation</h1>
+                            <p className="m-0 leading-6 text-muted-foreground">{paymentStatus === "awaiting_review"
+                                ? "Your payment details were received. The platform team will review the transfer and activate this workspace after confirming it."
+                                : paymentStatus === "succeeded"
+                                    ? "Stripe confirmed your payment. Your workspace will be available as soon as activation finishes."
+                                    : "Your workspace has been created. It will activate automatically after Stripe confirms the payment."}</p>
+                            {active?.selected_plan_code && <p className="mb-0 mt-4 text-sm text-muted-foreground">Selected plan: <strong className="capitalize text-foreground">{active.selected_plan_code}</strong></p>}
+                            <p className="mb-0 mt-5 text-xs text-muted-foreground">This page checks for activation automatically every 15 seconds.</p>
+                        </section>
+                    ) : <Outlet />}
                 </div>
             </main>
         </div>

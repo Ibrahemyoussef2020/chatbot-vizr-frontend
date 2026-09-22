@@ -8,8 +8,8 @@ import { setActiveWorkspace } from "@/redux/workspaceSlice";
 import { useTheme } from "@/hooks/useTheme";
 
 const DashboardHeader = ({ onMenu }: { onMenu: () => void }) => {
-    const dispatch = useAppDispatch();
     const user = useAppSelector((state) => state.auth.user);
+    const dispatch = useAppDispatch();
     const { items, active, loading } = useAppSelector((state) => state.workspace);
     const { darkMode, toggleTheme } = useTheme();
 
@@ -19,40 +19,32 @@ const DashboardHeader = ({ onMenu }: { onMenu: () => void }) => {
                 <IconButton className="xl:!hidden !text-foreground" aria-label="Open dashboard navigation" onClick={onMenu}>
                     <HiOutlineBars3 />
                 </IconButton>
-                <Select
-                    className="min-w-48 !text-foreground !border-border"
-                    size="small"
-                    value={active?.slug || "all"}
-                    displayEmpty
-                    disabled={loading}
-                    onChange={(event) => {
-                        const value = event.target.value;
-                        if (value === "all") {
-                            dispatch(
-                                setActiveWorkspace({
-                                    id: "all",
-                                    name: "All Workspaces (Global)",
-                                    slug: "all",
-                                    is_active: true,
-                                    rate_limit: 60,
-                                })
-                            );
-                        } else {
-                            const workspace = items.find((item) => item.slug === value);
-                            if (workspace) dispatch(setActiveWorkspace(workspace));
-                        }
-                    }}
-                    aria-label="Active workspace"
-                >
-                    <MenuItem value="all">
-                        <em>All Workspaces (Global)</em>
-                    </MenuItem>
-                    {items.filter((workspace) => workspace.is_active).map((workspace) => (
-                        <MenuItem value={workspace.slug} key={workspace.id}>
-                            {workspace.name}
-                        </MenuItem>
-                    ))}
-                </Select>
+                {user?.role === "super_admin" ? (
+                    <Select
+                        className="min-w-48 !text-foreground !border-border"
+                        size="small"
+                        value={active?.slug || "all"}
+                        displayEmpty
+                        disabled={loading}
+                        onChange={(event) => {
+                            const value = event.target.value;
+                            if (value === "all") {
+                                dispatch(setActiveWorkspace({ id: "all", name: "All Workspaces (Global)", slug: "all", is_active: true, rate_limit: 60 }));
+                            } else {
+                                const workspace = items.find((item) => item.slug === value);
+                                if (workspace) dispatch(setActiveWorkspace(workspace));
+                            }
+                        }}
+                        aria-label="Active workspace"
+                    >
+                        <MenuItem value="all"><em>All Workspaces (Global)</em></MenuItem>
+                        {items.filter((workspace) => workspace.is_active).map((workspace) => <MenuItem value={workspace.slug} key={workspace.id}>{workspace.name}</MenuItem>)}
+                    </Select>
+                ) : (
+                    <span className="max-w-64 truncate rounded-lg border border-border bg-surface-muted px-3 py-2 text-sm font-semibold text-foreground" aria-label="Current workspace">
+                        {active?.name || "Workspace"}
+                    </span>
+                )}
             </div>
 
             <div className="flex items-center gap-3">
