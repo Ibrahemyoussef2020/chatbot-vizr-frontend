@@ -70,7 +70,7 @@ const Onboarding = () => {
 
     const submitWorkspace = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!workspace || !plan) {
+        if (!plan) {
             toast.error("Your workspace is not ready yet. Refresh the page and try again.");
             return;
         }
@@ -99,7 +99,9 @@ const Onboarding = () => {
 
         setSubmitting(true);
         try {
-            await workspaceServices.updateWorkspace(workspace.slug, profile);
+            const targetWorkspace = workspace
+                ? await workspaceServices.updateWorkspace(workspace.slug, profile)
+                : await workspaceServices.createWorkspace(profile);
             await dispatch(fetchWorkspaces()).unwrap();
 
             if (price === 0) {
@@ -118,7 +120,7 @@ const Onboarding = () => {
                 payerFields: paymentMethod?.mode === "manual"
                     ? JSON.parse(sessionStorage.getItem("onboarding_payer_fields") || "{}") as Record<string, string>
                     : undefined,
-                system_slug: workspace.slug,
+                system_slug: targetWorkspace.slug,
             }, true);
 
             if (checkout.checkout.mode === "redirect" && checkout.checkout.checkoutUrl) {
@@ -158,7 +160,7 @@ const Onboarding = () => {
                 </p>
             </div>
 
-            {(loading || (workspacePage && (workspacesLoading || !workspace))) && <p className="py-12 text-center text-muted-foreground">Loading your setup...</p>}
+            {(loading || (workspacePage && workspacesLoading)) && <p className="py-12 text-center text-muted-foreground">Loading your setup...</p>}
             {error && <p className="py-12 text-center text-error">{error}</p>}
 
             {!workspacePage && !loading && !error && (
@@ -227,9 +229,9 @@ const Onboarding = () => {
                 </>
             )}
 
-            {workspacePage && !loading && !workspacesLoading && workspace && !plan && !error && <p className="py-12 text-center text-muted-foreground">Loading the selected plan...</p>}
+            {workspacePage && !loading && !workspacesLoading && !plan && !error && <p className="py-12 text-center text-muted-foreground">Loading the selected plan...</p>}
 
-            {workspacePage && !loading && !workspacesLoading && workspace && plan && !error && (
+            {workspacePage && !loading && !workspacesLoading && plan && !error && (
                 <form onSubmit={submitWorkspace} className="workspace-onboarding-form mx-auto grid max-w-2xl gap-5 rounded-2xl border border-border bg-surface p-5 text-foreground sm:p-8">
                     <div className="flex items-center justify-between border-b border-border pb-4">
                         <div><p className="m-0 text-xs font-bold uppercase tracking-wider text-primary">Selected plan</p><p className="mb-0 mt-1 font-bold">{plan.name} · {billingCycle}</p></div>
