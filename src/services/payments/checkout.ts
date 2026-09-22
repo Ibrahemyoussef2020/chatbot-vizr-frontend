@@ -61,6 +61,8 @@ export const getSubscriptionStatus = async () => {
         pending: boolean;
         planCode: string | null;
         paymentStatus: "pending" | "awaiting_review" | "succeeded" | null;
+        rejected?: boolean;
+        rejectionMessage?: string;
         paymentProvider?: "stripe" | "vodafone_cash" | null;
         paymentReference?: string | null;
     } }>("/subscription/onboarding/status");

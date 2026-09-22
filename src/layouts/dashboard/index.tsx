@@ -13,6 +13,8 @@ const Dashboard = () => {
     const [subscriptionActive, setSubscriptionActive] = useState(false);
     const [paymentPending, setPaymentPending] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState<"pending" | "awaiting_review" | "succeeded" | null>(null);
+    const [rejected, setRejected] = useState(false);
+    const [rejectionMessage, setRejectionMessage] = useState("");
     const [subscriptionChecked, setSubscriptionChecked] = useState(false);
     const { user } = useAppSelector((state) => state.auth);
     const { active, loading } = useAppSelector((state) => state.workspace);
@@ -29,6 +31,8 @@ const Dashboard = () => {
                     setSubscriptionActive(status.active);
                     setPaymentPending(status.pending);
                     setPaymentStatus(status.paymentStatus);
+                    setRejected(Boolean(status.rejected));
+                    setRejectionMessage(status.rejectionMessage || "");
                 }
             } catch {
                 setSubscriptionActive(false);
@@ -54,6 +58,8 @@ const Dashboard = () => {
                 setSubscriptionActive(status.active);
                 setPaymentPending(status.pending);
                 setPaymentStatus(status.paymentStatus);
+                setRejected(Boolean(status.rejected));
+                setRejectionMessage(status.rejectionMessage || "");
             }).catch(() => undefined);
         }, 15000);
         return () => {
@@ -76,7 +82,7 @@ const Dashboard = () => {
         );
     }
 
-    if (user?.role !== "super_admin" && (!active?.business_name || ((!active.selected_plan_code || !subscriptionActive) && !paymentPending))) {
+    if (user?.role !== "super_admin" && (!active?.business_name || ((!active.selected_plan_code || !subscriptionActive) && !paymentPending && !rejected))) {
         return <Navigate to="/onboarding" replace />;
     }
 
@@ -93,11 +99,13 @@ const Dashboard = () => {
                             : "مساحة العمل بانتظار تأكيد الدفع. سنحدّث حالتها تلقائيًا عند وصول التأكيد."}
                 </div>}
                 <div className="dashboard-content min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 pt-2 lg:px-8 lg:pb-8 lg:pt-3">
-                    {paymentPending ? (
-                        <section className="mx-auto !p-4 mb-6 mt-4 max-w-2xl rounded-2xl border border-warning/30 bg-surface p-10 text-center shadow-sm sm:p-12" aria-live="polite">
-                            <p className="m-0 text-xs font-bold uppercase tracking-widest text-warning">Workspace activation</p>
+                    {paymentPending || rejected ? (
+                        <section className={`mx-auto !p-4 mb-6 mt-4 max-w-2xl rounded-2xl border bg-surface p-10 text-center shadow-sm sm:p-12 ${rejected ? "border-danger/40" : "border-warning/30"}`} aria-live="polite">
+                            <p className={`m-0 text-xs font-bold uppercase tracking-widest ${rejected ? "text-danger" : "text-warning"}`}>Workspace activation</p>
                             <h1 className="mb-3 mt-3 text-2xl font-extrabold">{active?.name || "Your workspace"} is waiting for activation</h1>
-                            <p className="m-0 leading-6 text-muted-foreground">{paymentStatus === "awaiting_review"
+                            <p className="m-0 leading-6 text-muted-foreground">{rejected
+                                ? rejectionMessage
+                                : paymentStatus === "awaiting_review"
                                 ? "Your payment details were received. The platform team will review the transfer and activate this workspace after confirming it."
                                 : paymentStatus === "succeeded"
                                     ? "Stripe confirmed your payment. Your workspace will be available as soon as activation finishes."
