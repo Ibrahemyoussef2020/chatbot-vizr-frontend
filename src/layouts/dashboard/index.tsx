@@ -10,7 +10,7 @@ const Dashboard = () => {
     const dispatch = useAppDispatch();
     const [mobileOpen, setMobileOpen] = useState(false);
     const [workspacesLoaded, setWorkspacesLoaded] = useState(false);
-    const [subscriptionActive, setSubscriptionActive] = useState(false);
+    const [, setSubscriptionActive] = useState(false);
     const [paymentPending, setPaymentPending] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState<"pending" | "awaiting_review" | "succeeded" | null>(null);
     const [rejected, setRejected] = useState(false);
