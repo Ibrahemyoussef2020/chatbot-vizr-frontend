@@ -31,6 +31,11 @@ export const getWorkspace = async (identifier: string) => {
     return response.data.data;
 };
 
+export const getCurrentWorkspace = async () => {
+    const response = await api.get<{ data: Workspace }>("/admin/workspace");
+    return response.data.data;
+};
+
 export type WorkspaceProfileInput = Partial<Pick<Workspace,
     "name" | "business_name" | "industry" | "website_url" | "support_email" | "support_phone" |
     "country" | "timezone" | "currency" | "selected_plan_code" | "rate_limit" | "is_active"

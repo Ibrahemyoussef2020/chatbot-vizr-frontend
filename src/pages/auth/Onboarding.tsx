@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/redux";
-import { fetchWorkspaces } from "@/redux/workspaceThunk";
+import { setActiveWorkspace } from "@/redux/workspaceSlice";
 import { workspaceServices } from "@/services";
 import { getCheckoutPaymentMethods, startFreePlan, subscribeToPlan, type CheckoutPaymentMethod } from "@/services/payments/checkout";
 import type { PlanItem } from "@/services/core/landing";
@@ -33,7 +33,7 @@ const Onboarding = () => {
     const plan = plans.find(item => item.code === effectivePlanCode) || null;
 
     useEffect(() => {
-        dispatch(fetchWorkspaces());
+        void workspaceServices.getCurrentWorkspace().then((currentWorkspace) => dispatch(setActiveWorkspace(currentWorkspace))).catch(() => undefined);
     }, [dispatch]);
 
     useEffect(() => {
@@ -43,7 +43,7 @@ const Onboarding = () => {
     }, []);
 
     if (!user) return <Navigate to="/auth/login" replace />;
-    if (user.role === "agent") return <Navigate to="/dashboard" replace />;
+    if (user.role === "agent" || (user.securityRoleCode && !["business_owner", "workspace_owner"].includes(user.securityRoleCode))) return <Navigate to="/dashboard" replace />;
     if (workspacePage && !loading && !error && !plans.some((item) => item.code === (selectedPlanCode || sessionStorage.getItem("onboarding_plan_code") || workspace?.selected_plan_code))) {
         return <Navigate to="/onboarding" replace />;
     }
@@ -103,7 +103,7 @@ const Onboarding = () => {
             const targetWorkspace = workspace
                 ? await workspaceServices.updateWorkspace(workspace.slug, profile)
                 : await workspaceServices.createWorkspace(profile);
-            await dispatch(fetchWorkspaces({ force: true })).unwrap();
+            dispatch(setActiveWorkspace(targetWorkspace));
 
             if (price === 0) {
                 await startFreePlan(plan.code, billingCycle);
