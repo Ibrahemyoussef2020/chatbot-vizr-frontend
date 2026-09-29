@@ -26,6 +26,7 @@ import {
 
 const Security = () => {
     const activeWorkspace = useAppSelector((state) => state.workspace.active);
+    const currentSecurityRoleId = useAppSelector((state) => state.auth.user?.securityRoleId);
 
     const [loading, setLoading] = useState<boolean>(true);
     const [roles, setRoles] = useState<SecurityRoleData[]>([]);
@@ -82,6 +83,8 @@ const Security = () => {
     }, [activeWorkspace]);
 
     const filteredRoles = roles.filter((r) => r.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const roleIsProtected = (role: SecurityRoleData) =>
+        role.id === currentSecurityRoleId || role.code === "business_owner" || role.code === "workspace_owner";
     const permissionGroups = permissions.reduce<Record<string, PermissionData[]>>((groups, permission) => {
         (groups[permission.category] ||= []).push(permission);
         return groups;
@@ -234,7 +237,7 @@ const Security = () => {
                                     </td>
                                     <td className="p-3 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <Button
+                                            {!roleIsProtected(role) && <Button
                                                 size="small"
                                                 variant="outlined"
                                                 startIcon={<HiOutlinePencilSquare />}
@@ -242,7 +245,7 @@ const Security = () => {
                                                 sx={{ textTransform: "none", fontSize: "0.7rem" }}
                                             >
                                                 Edit
-                                            </Button>
+                                            </Button>}
                                             <Button
                                                 size="small"
                                                 color="error"

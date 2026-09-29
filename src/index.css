@@ -301,6 +301,31 @@ textarea {
   font: inherit;
 }
 
+/* Keep native select popups readable in dark mode. Without an explicit
+   color-scheme, Chromium can render the option list with a white system
+   surface even when the select itself is dark. */
+select {
+  color-scheme: dark;
+  background-color: var(--surface) !important;
+  color: var(--foreground);
+}
+
+select option,
+select optgroup {
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+
+body.light-theme select {
+  color-scheme: light;
+}
+
+body.light-theme select option,
+body.light-theme select optgroup {
+  background-color: #ffffff;
+  color: #102235;
+}
+
 input[type="number"] {
   color-scheme: dark !important;
 }

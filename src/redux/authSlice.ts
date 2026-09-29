@@ -15,6 +15,7 @@ export interface User {
   email: string;
   role?: "super_admin" | "admin" | "agent";
   workspaceId?: string;
+  securityRoleId?: string;
 }
 
 export interface AuthState {

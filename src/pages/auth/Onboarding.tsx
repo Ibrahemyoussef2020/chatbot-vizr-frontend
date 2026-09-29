@@ -43,6 +43,7 @@ const Onboarding = () => {
     }, []);
 
     if (!user) return <Navigate to="/auth/login" replace />;
+    if (user.role === "agent") return <Navigate to="/dashboard" replace />;
     if (workspacePage && !loading && !error && !plans.some((item) => item.code === (selectedPlanCode || sessionStorage.getItem("onboarding_plan_code") || workspace?.selected_plan_code))) {
         return <Navigate to="/onboarding" replace />;
     }

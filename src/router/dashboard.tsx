@@ -37,6 +37,12 @@ import ProvidersView from "@/features/ai-management/views/ProvidersView";
 import Onboarding from "@/pages/auth/Onboarding";
 import OnboardingPayment from "@/pages/auth/OnboardingPayment";
 import WorkspaceManagement from "@/pages/dashboard/WorkspaceManagement";
+import { useAppSelector } from "@/redux/store";
+
+const SuperAdminWorkspaceManagement = () => {
+    const role = useAppSelector((state) => state.auth.user?.role);
+    return role === "super_admin" ? <WorkspaceManagement /> : <Navigate to="/dashboard" replace />;
+};
 
 const dashbordRpoter = [
     {
@@ -56,8 +62,8 @@ const dashbordRpoter = [
                 element: <Dashboard />,
                 children: [
                     { path: "business/payments", element: <BusinessPayments /> },
-                    { path: "business/workspaces", element: <WorkspaceManagement /> },
-                    { path: "business/workspaces/confirmations", element: <BusinessPayments /> },
+                    { path: "business/workspaces", element: <SuperAdminWorkspaceManagement /> },
+                    { path: "business/workspaces/confirmations", element: <SuperAdminWorkspaceManagement /> },
                     { path: "business/pricings-features", element: <BusinessFeatures /> },
                     { path: "features", element: <Navigate to="/dashboard/business/pricings-features" replace /> },
                     { path: "business/features", element: <Navigate to="/dashboard/business/pricings-features" replace /> },

@@ -64,38 +64,38 @@ const workspaceErrorMessage = (error: unknown, fallback: string) => {
     return message && !message.startsWith("Request failed with status code") ? message : fallback;
 };
 
-const navigationSections: { label: string; businessOnly?: boolean; items: NavigationItem[] }[] = [
+const navigationSections: { label: string; businessOnly?: boolean; superAdminOnly?: boolean; items: NavigationItem[] }[] = [
     {
         label: "Workspace",
         items: [
             { label: "Dashboard", to: "/dashboard", icon: HiOutlineHome, end: true },
-            { label: "Analytics", to: "/dashboard/analytics", icon: HiOutlineChartBarSquare },
-            { label: "Inbox", to: "/dashboard/inbox", icon: HiOutlineChatBubbleLeftRight },
-            { label: "Tags", to: "/dashboard/tags", icon: HiOutlineTag },
+            { label: "Analytics", to: "/dashboard/analytics", icon: HiOutlineChartBarSquare, permission: "analytics.view" },
+            { label: "Inbox", to: "/dashboard/inbox", icon: HiOutlineChatBubbleLeftRight, permission: "inbox.view" },
+            { label: "Tags", to: "/dashboard/tags", icon: HiOutlineTag, permission: "tags.manage" },
         ],
     },
     {
         label: "AI Management",
         items: [
-            { label: "Overview", to: "/dashboard/ai-management/overview", icon: HiOutlineChartBarSquare },
-            { label: "Providers", to: "/dashboard/ai-management/providers", icon: HiOutlineServerStack },
-            { label: "Models", to: "/dashboard/ai-management/models", icon: HiOutlineCpuChip },
-            { label: "Agents", to: "/dashboard/ai-management/agents", icon: HiOutlineSparkles },
-            { label: "Routing", to: "/dashboard/ai-management/routing", icon: HiOutlineArrowsRightLeft },
-            { label: "Quotas", to: "/dashboard/ai-management/quotas", icon: HiOutlineChartPie },
-            { label: "Request Logs", to: "/dashboard/ai-management/request-logs", icon: HiOutlineQueueList },
+            { label: "Overview", to: "/dashboard/ai-management/overview", icon: HiOutlineChartBarSquare, permission: "ai.view" },
+            { label: "Providers", to: "/dashboard/ai-management/providers", icon: HiOutlineServerStack, permission: "ai.providers.manage" },
+            { label: "Models", to: "/dashboard/ai-management/models", icon: HiOutlineCpuChip, permission: "ai.models.manage" },
+            { label: "Agents", to: "/dashboard/ai-management/agents", icon: HiOutlineSparkles, permission: "ai.agents.manage" },
+            { label: "Routing", to: "/dashboard/ai-management/routing", icon: HiOutlineArrowsRightLeft, permission: "ai.routing.manage" },
+            { label: "Quotas", to: "/dashboard/ai-management/quotas", icon: HiOutlineChartPie, permission: "ai.quotas.manage" },
+            { label: "Request Logs", to: "/dashboard/ai-management/request-logs", icon: HiOutlineQueueList, permission: "ai.analytics.view" },
         ],
     },
     {
         label: "Knowledge Base",
         businessOnly: true,
         items: [
-            { label: "Upload files", to: "/dashboard/knowledge/upload", icon: HiOutlineArrowUpTray },
-            { label: "Knowledge chat", to: "/dashboard/knowledge/chat", icon: HiOutlineChatBubbleBottomCenterText },
-            { label: "Knowledge sessions", to: "/dashboard/knowledge", icon: HiOutlineRectangleStack, end: true },
-            { label: "Plans", to: "/dashboard/knowledge/plans", icon: HiOutlineClipboardDocumentList },
-            { label: "Reports", to: "/dashboard/knowledge/reports", icon: HiOutlinePresentationChartLine },
-            { label: "Saved", to: "/dashboard/knowledge/saved", icon: HiOutlineBookmark },
+            { label: "Upload files", to: "/dashboard/knowledge/upload", icon: HiOutlineArrowUpTray, permission: "knowledge.manage" },
+            { label: "Knowledge chat", to: "/dashboard/knowledge/chat", icon: HiOutlineChatBubbleBottomCenterText, permission: "knowledge.use" },
+            { label: "Knowledge sessions", to: "/dashboard/knowledge", icon: HiOutlineRectangleStack, end: true, permission: "knowledge.view" },
+            { label: "Plans", to: "/dashboard/knowledge/plans", icon: HiOutlineClipboardDocumentList, permission: "knowledge.view" },
+            { label: "Reports", to: "/dashboard/knowledge/reports", icon: HiOutlinePresentationChartLine, permission: "knowledge.view" },
+            { label: "Saved", to: "/dashboard/knowledge/saved", icon: HiOutlineBookmark, permission: "knowledge.view" },
         ],
     },
     {
@@ -110,6 +110,7 @@ const navigationSections: { label: string; businessOnly?: boolean; items: Naviga
     },
     {
         label: "Workspaces",
+        superAdminOnly: true,
         items: [
             { label: "Control workspace", to: "/dashboard/business/workspaces", icon: HiOutlineRectangleStack },
             { label: "Confirm workspaces", to: "/dashboard/business/workspaces/confirmations", icon: HiOutlineCheck },
@@ -118,8 +119,8 @@ const navigationSections: { label: string; businessOnly?: boolean; items: Naviga
     {
         label: "Administration",
         items: [
-            { label: "System logs", to: "/dashboard/logs", icon: HiOutlineQueueList },
-            { label: "Settings", to: "/dashboard/settings", icon: HiOutlineCog6Tooth },
+            { label: "System logs", to: "/dashboard/logs", icon: HiOutlineQueueList, permission: "logs.view" },
+            { label: "Settings", to: "/dashboard/settings", icon: HiOutlineCog6Tooth, permission: "workspace.settings.manage" },
         ],
     },
 ];
@@ -131,10 +132,15 @@ interface SidebarContentProps {
     onLogout: () => void;
     canCreateWorkspace: boolean;
     canAccessBusinessTools: boolean;
+    isSuperAdmin: boolean;
 }
 
-const SidebarContent = ({ onClose, onCreateWorkspace, onManageWorkspaces, onLogout, canCreateWorkspace, canAccessBusinessTools }: SidebarContentProps) => {
+const SidebarContent = ({ onClose, onCreateWorkspace, onManageWorkspaces, onLogout, canCreateWorkspace, canAccessBusinessTools, isSuperAdmin }: SidebarContentProps) => {
     const permissions = useAppSelector(state => state.auth.user?.permissions || []);
+    const isAgent = useAppSelector(state => state.auth.user?.role === "agent");
+    const visibleItem = (item: NavigationItem) =>
+        (!isAgent || item.label === "Dashboard" || item.label === "Inbox")
+        && (!item.permission || permissions.includes(item.permission));
     return (
     <div className="flex h-full w-72 flex-col border-r border-border bg-surface text-foreground">
         <NavLink className="flex items-center gap-3 border-b border-border px-6 py-5 no-underline" to="/" onClick={onClose}>
@@ -149,14 +155,15 @@ const SidebarContent = ({ onClose, onCreateWorkspace, onManageWorkspaces, onLogo
             <div className="space-y-6">
                 {navigationSections
                     .filter(section => !section.businessOnly || canAccessBusinessTools)
-                    .filter(section => section.items.some(item => !item.permission || permissions.includes(item.permission)))
+                    .filter(section => !section.superAdminOnly || isSuperAdmin)
+                    .filter(section => section.items.some(visibleItem))
                     .map(section => (
                         <section key={section.label} aria-label={section.label}>
                             <h2 className="mb-2 mt-0 px-3 text-[.62rem] font-extrabold uppercase tracking-[.14em] text-muted-foreground">
                                 {section.label}
                             </h2>
                             <div className="grid gap-1">
-                                {section.items.filter(item => !item.permission || permissions.includes(item.permission)).map(({ label, to, icon: Icon, end }) => (
+                                {section.items.filter(visibleItem).map(({ label, to, icon: Icon, end }) => (
                                     <NavLink
                                         key={to}
                                         to={to}
@@ -203,6 +210,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const role = useAppSelector((state) => state.auth.user?.role);
+    const isSuperAdmin = role === "super_admin";
     // Workspace creation and editing now live on the Workspaces management page.
     const canCreateWorkspace = false;
     const canAccessBusinessTools = role === "super_admin" || role === "admin";
@@ -333,6 +341,7 @@ const DashboardSidebar = ({ mobileOpen, onClose }: DashboardSidebarProps) => {
         onLogout: logout,
         canCreateWorkspace,
         canAccessBusinessTools,
+        isSuperAdmin,
     };
 
     return (

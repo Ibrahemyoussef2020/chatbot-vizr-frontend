@@ -24,7 +24,7 @@ const Dashboard = () => {
         const load = async () => {
             try {
                 await dispatch(fetchWorkspaces());
-                if (user?.role === "super_admin") {
+                if (user?.role === "super_admin" || user?.role === "agent") {
                     setSubscriptionActive(true);
                 } else {
                     const status = await getSubscriptionStatus();
@@ -82,7 +82,7 @@ const Dashboard = () => {
         );
     }
 
-    if (user?.role !== "super_admin" && (!active?.business_name || ((!active.selected_plan_code || !subscriptionActive) && !paymentPending && !rejected))) {
+    if (user?.role !== "super_admin" && user?.role !== "agent" && (!active?.business_name || ((!active.selected_plan_code || !subscriptionActive) && !paymentPending && !rejected))) {
         return <Navigate to="/onboarding" replace />;
     }
 
