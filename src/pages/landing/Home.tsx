@@ -26,8 +26,21 @@ const sortSections = (sections: ContentSection[]) => (
         .sort((first, second) => sectionOrder.indexOf(first.type) - sectionOrder.indexOf(second.type))
 );
 
+const HomeSkeleton = () => (
+    <main className="min-h-[65vh] animate-pulse bg-background" aria-busy="true" aria-label="Loading home page">
+        <section className="mx-auto grid max-w-7xl gap-10 px-6 py-16 lg:grid-cols-2 lg:items-center lg:py-24">
+            <div className="space-y-5"><div className="h-4 w-36 rounded-full bg-surface-muted" /><div className="space-y-3"><div className="h-12 w-full rounded-xl bg-surface-muted" /><div className="h-12 w-4/5 rounded-xl bg-surface-muted" /></div><div className="space-y-2"><div className="h-4 w-full rounded bg-surface-muted" /><div className="h-4 w-11/12 rounded bg-surface-muted" /><div className="h-4 w-2/3 rounded bg-surface-muted" /></div><div className="h-12 w-44 rounded-xl bg-surface-muted" /></div>
+            <div className="h-72 rounded-3xl bg-surface-muted lg:h-96" />
+        </section>
+        <section className="mx-auto grid max-w-7xl gap-5 px-6 pb-16 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map((item) => <div key={item} className="h-36 rounded-2xl bg-surface-muted" />)}</section>
+        <section className="mx-auto grid max-w-7xl gap-5 px-6 pb-20 sm:grid-cols-2 lg:grid-cols-3">{[1, 2, 3, 4, 5, 6].map((item) => <div key={item} className="h-48 rounded-2xl bg-surface-muted" />)}</section>
+    </main>
+);
+
 const Home = () => {
     const { page, error, loading } = useLandingPage("home");
+
+    if (loading) return <HomeSkeleton />;
 
     if (loading) {
         return <main className="grid min-h-[65vh] place-items-center text-muted-foreground" aria-busy="true">Loading…</main>;
