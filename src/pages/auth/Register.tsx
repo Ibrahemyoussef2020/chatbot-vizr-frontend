@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { signupAsync, useAppDispatch, useAppSelector } from "@/redux";
 import getErrorText from "@/utils/typeErrorText";
@@ -7,6 +7,7 @@ import getErrorText from "@/utils/typeErrorText";
 const Register = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const loading = useAppSelector((state) => state.auth.loading);
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
 
@@ -22,7 +23,8 @@ const Register = () => {
                 password,
             })).unwrap();
             toast.success("Account created");
-            navigate(result.role ? "/dashboard" : "/", { replace: true });
+            const subscribePath = searchParams.get("subscribe") === "1";
+            navigate(subscribePath ? `/onboarding${searchParams.get("plan") ? `?plan=${encodeURIComponent(searchParams.get("plan")!)}` : ""}` : (result.role ? "/dashboard" : "/"), { replace: true });
         } catch (error) {
             toast.error(getErrorText(error));
         }

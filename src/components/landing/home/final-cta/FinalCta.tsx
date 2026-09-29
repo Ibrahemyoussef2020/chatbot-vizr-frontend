@@ -10,7 +10,7 @@ const FinalCta = () => (
                 <h2 className="mb-4 text-[clamp(1.875rem,4vw,3rem)]">Ready to Automate Your Support?</h2>
             <p className="mb-8 max-w-xl leading-7 text-muted-foreground">Join hundreds of companies answering customer messages in seconds. 14-day free trial, no credit card required.</p>
             <div className="flex gap-2">
-            <Link className="rounded-xl bg-primary px-5 py-3 font-extrabold text-primary-foreground no-underline" to="/auth/register">Subscribe with us</Link>
+            <Link className="rounded-xl bg-primary px-5 py-3 font-extrabold text-primary-foreground no-underline" to="/auth/register?subscribe=1">Subscribe with us</Link>
                 <button className="rounded-xl border border-border bg-transparent px-5 py-3 font-extrabold text-foreground" type="button" onClick={openChat}>Test Live AI Bot →</button>
             </div> 
             </div>

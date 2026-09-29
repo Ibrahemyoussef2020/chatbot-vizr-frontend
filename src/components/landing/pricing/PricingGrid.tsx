@@ -3,6 +3,8 @@ import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import Card from "@mui/material/Card";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppSelector } from "@/redux";
 import type { PlanItem } from "@/services/core/landing";
 import { subscribeToPlan } from "@/services/payments/checkout";
 import type { BillingCycle } from "./types";
@@ -119,8 +121,14 @@ const PricingGrid = ({ plans, billingCycle }: PricingGridProps) => {
     const [submittingPlan, setSubmittingPlan] = useState<string | null>(null);
     const [notification, setNotification] = useState<string | null>(null);
     const [provider, setProvider] = useState<"stripe" | "vodafone_cash">("stripe");
+    const navigate = useNavigate();
+    const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
 
     const handleSubscribe = async (planCode: string) => {
+        if (!isLoggedIn) {
+            navigate(`/auth/register?subscribe=1&plan=${encodeURIComponent(planCode)}`);
+            return;
+        }
         setSubmittingPlan(planCode);
         setNotification(null);
 

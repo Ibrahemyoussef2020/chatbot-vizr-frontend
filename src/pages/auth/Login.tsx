@@ -3,12 +3,13 @@ import { IoIosLogIn } from "react-icons/io";
 import { Box, Typography, Button } from "@mui/material";
 import CustomizedInput from "@/components/shared/CustomizedInput";
 import { toast } from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import getErrorText from "@/utils/typeErrorText";
 import { useAppDispatch, useAppSelector, loginAsync } from "@/redux";
 
 const Login = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
 
@@ -21,7 +22,8 @@ const Login = () => {
             toast.loading("Signing In", { id: "login" });
             const result = await dispatch(loginAsync({ email, password })).unwrap();
             toast.success("Signed In Successfully", { id: "login" });
-            navigate(result.role ? "/dashboard" : "/", { replace: true });
+            const subscribePath = searchParams.get("subscribe") === "1";
+            navigate(subscribePath ? `/onboarding${searchParams.get("plan") ? `?plan=${encodeURIComponent(searchParams.get("plan")!)}` : ""}` : (result.role ? "/dashboard" : "/"), { replace: true });
         } catch (error) {
             console.log(error);
             toast.error(getErrorText(error), { id: "login" });
@@ -29,7 +31,7 @@ const Login = () => {
     };
     useEffect(() => {
         if (user) {
-            navigate(user.role ? "/dashboard" : "/", { replace: true });
+            navigate(searchParams.get("subscribe") === "1" ? "/onboarding" : (user.role ? "/dashboard" : "/"), { replace: true });
         }
     }, [user, navigate]);
     return (
