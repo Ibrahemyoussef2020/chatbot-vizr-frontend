@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { fetchWorkspaces } from "@/redux/workspaceThunk";
 import { getSubscriptionStatus } from "@/services/payments/checkout";
@@ -80,10 +80,6 @@ const Dashboard = () => {
                 </main>
             </div>
         );
-    }
-
-    if (user?.role !== "super_admin" && user?.role !== "agent" && (!active?.business_name || ((!active.selected_plan_code || !subscriptionActive) && !paymentPending && !rejected))) {
-        return <Navigate to="/onboarding" replace />;
     }
 
     return (
