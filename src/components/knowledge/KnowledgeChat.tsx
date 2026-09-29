@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { HiOutlineArrowUp, HiOutlinePaperClip, HiOutlineSparkles } from "react-icons/hi2";
-import { SiGooglegemini } from "react-icons/si";
 import type { KnowledgeMessage } from "@/services/knowledge/knowledgeBase";
 
 interface Props {
@@ -21,7 +20,6 @@ interface Props {
 const KnowledgeChat = ({ sessionTitle, messages, busy, disabled, loading = false, onAsk, models = [], selectedModelId, selectingModel = false, onSelectModel, onManageSources }: Props) => {
     const [question, setQuestion] = useState("");
     const endRef = useRef<HTMLDivElement>(null);
-    const selectedProvider = models.find((model) => model.id === selectedModelId)?.provider;
 
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -65,13 +63,7 @@ const KnowledgeChat = ({ sessionTitle, messages, busy, disabled, loading = false
             <div className="bg-gradient-to-t from-background via-background to-transparent px-4 pb-5 pt-3 sm:px-8 lg:px-[6%]">
                 <form className="mx-auto flex max-w-5xl items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2 shadow-[0_12px_40px_var(--shadow-color)] focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10" onSubmit={submit}>
                     <button type="button" onClick={onManageSources} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border-0 bg-transparent text-xl text-muted-foreground hover:text-primary" aria-label="Upload and manage files" title="Upload and manage files"><HiOutlinePaperClip /></button>
-                    <label className="flex h-9 max-w-[190px] shrink-0 items-center gap-1.5 rounded-lg border border-border bg-background px-2 text-xs text-foreground" title="AI model for this conversation">
-                        {selectedProvider === "google" ? <SiGooglegemini className="shrink-0 text-base text-[#8e75ff]" /> : <HiOutlineSparkles className="shrink-0 text-base text-primary" />}
-                        <select aria-label="AI model for this Knowledge conversation" className="min-w-0 flex-1 border-0 bg-transparent py-1 font-semibold outline-none" value={selectedModelId || ""} disabled={loading || busy || selectingModel || !models.length} onChange={(event) => void onSelectModel?.(event.target.value)}>
-                            {!selectedModelId && <option value="">Default model</option>}
-                            {models.map((model) => <option key={model.id} value={model.id}>{model.provider === "google" ? "Gemini · " : `${model.provider} · `}{model.name}</option>)}
-                        </select>
-                    </label>
+                    <span className="grid h-10 w-10 shrink-0 place-items-center text-xl text-primary" title="Default AI model"><HiOutlineSparkles /></span>
                     <input className="min-w-0 flex-1 border-0 bg-transparent py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground" placeholder={loading ? "Loading conversation..." : disabled ? "Knowledge is unavailable" : "Ask across your private workspace knowledge..."} value={question} disabled={loading || disabled || busy} onChange={(event) => setQuestion(event.target.value)} />
                     <button type="submit" disabled={disabled || busy || !question.trim()} aria-label="Send question" className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border-0 bg-primary text-lg text-primary-foreground transition hover:brightness-110 disabled:bg-muted disabled:text-muted-foreground"><HiOutlineArrowUp /></button>
                 </form>

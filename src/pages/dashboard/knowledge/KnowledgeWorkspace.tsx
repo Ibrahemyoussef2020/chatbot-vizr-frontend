@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { HiOutlineArrowLeft, HiOutlineDocumentText, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi2";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import KnowledgeChat from "@/components/knowledge/KnowledgeChat";
@@ -6,8 +6,7 @@ import KnowledgeSessionRail from "@/components/knowledge/KnowledgeSessionRail";
 import SourceList from "@/components/knowledge/SourceList";
 import SourceUploader from "@/components/knowledge/SourceUploader";
 import { useAppSelector } from "@/redux/store";
-import { askQuestion, deleteSession, getSession, listSessions, selectSessionModel, updateSession, uploadSourcesDirect, type KnowledgeSession, type KnowledgeSessionDetail } from "@/services/knowledge/knowledgeBase";
-import { fetchAIModels, type AIManagementEntity } from "@/services/llms/aiManagement";
+import { askQuestion, deleteSession, getSession, listSessions, updateSession, uploadSourcesDirect, type KnowledgeSession, type KnowledgeSessionDetail } from "@/services/knowledge/knowledgeBase";
 
 const messageFromError = (error: unknown, fallback: string) => {
     const candidate = error as { response?: { data?: { message?: string } } };
@@ -26,8 +25,6 @@ const KnowledgeWorkspace = () => {
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploadController, setUploadController] = useState<AbortController | null>(null);
     const [asking, setAsking] = useState(false);
-    const [selectingModel, setSelectingModel] = useState(false);
-    const [availableModels, setAvailableModels] = useState<AIManagementEntity[]>([]);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -35,8 +32,8 @@ const KnowledgeWorkspace = () => {
         setLoading(true);
         setError("");
         setDetail(null);
-        Promise.all([getSession(workspace.slug, sessionId), listSessions(workspace.slug), fetchAIModels()])
-            .then(([sessionDetail, sessionList, models]) => { setDetail(sessionDetail); setSessions(sessionList); setAvailableModels(models); })
+        Promise.all([getSession(workspace.slug, sessionId), listSessions(workspace.slug)])
+            .then(([sessionDetail, sessionList]) => { setDetail(sessionDetail); setSessions(sessionList); })
             .catch((cause) => setError(messageFromError(cause, "Knowledge session could not be loaded.")))
             .finally(() => setLoading(false));
     }, [workspace?.slug, sessionId]);
@@ -69,27 +66,6 @@ const KnowledgeWorkspace = () => {
     };
 
     const sessionLoading = loading || Boolean(detail && detail.session.id !== sessionId);
-    const modelOptions = useMemo(() => availableModels
-        .filter((model) => model.enabled !== false && (model.providerId as AIManagementEntity | undefined)?.enabled !== false)
-        .map((model) => ({
-            id: String(model._id || model.id),
-            name: String(model.displayName || model.externalId || model.name || "Model"),
-            provider: String((model.providerId as AIManagementEntity | undefined)?.code || "AI"),
-        })), [availableModels]);
-
-    const selectModel = async (modelId: string) => {
-        if (!workspace?.slug || !detail) return;
-        setSelectingModel(true);
-        setError("");
-        try {
-            const session = await selectSessionModel(workspace.slug, sessionId, modelId);
-            setDetail((current) => current ? { ...current, session } : current);
-            setSessions((current) => current.map((item) => item.id === session.id ? session : item));
-        } catch (cause) {
-            setError(messageFromError(cause, "The conversation model could not be changed."));
-        } finally { setSelectingModel(false); }
-    };
-
     const renameConversation = async () => {
         if (!workspace?.slug || !detail) return;
         const title = window.prompt("Rename Knowledge conversation", detail.session.title)?.trim();
@@ -157,7 +133,7 @@ const KnowledgeWorkspace = () => {
                             </div>
                         </header>
                         {error && <div role="alert" className="m-4 rounded-xl border border-danger/20 bg-danger/10 p-3 text-sm text-danger">{error}</div>}
-                        <KnowledgeChat sessionTitle={detail.session.title} messages={detail.messages} busy={asking} disabled={false} onAsk={ask} models={modelOptions} selectedModelId={detail.session.selected_model_id} selectingModel={selectingModel} onSelectModel={selectModel} onManageSources={() => navigate(`/dashboard/knowledge/${sessionId}#sources`)} />
+                        <KnowledgeChat sessionTitle={detail.session.title} messages={detail.messages} busy={asking} disabled={false} onAsk={ask} onManageSources={() => navigate(`/dashboard/knowledge/${sessionId}#sources`)} />
                     </main>
                 </div>
             )}
