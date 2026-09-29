@@ -18,6 +18,7 @@ const Dashboard = () => {
     const [subscriptionChecked, setSubscriptionChecked] = useState(false);
     const { user } = useAppSelector((state) => state.auth);
     const { active, loading } = useAppSelector((state) => state.workspace);
+    const activationBlocked = active?.is_active === false && (paymentPending || rejected);
 
     useEffect(() => {
         let current = true;
@@ -87,7 +88,7 @@ const Dashboard = () => {
             <DashboardSidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
             <main className="flex min-w-0 flex-1 flex-col bg-background text-foreground">
                 <DashboardHeader onMenu={() => setMobileOpen(true)} />
-                {paymentPending && <div role="status" className="border-b border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning lg:px-8">
+                {activationBlocked && <div role="status" className="border-b border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning lg:px-8">
                     {paymentStatus === "succeeded"
                         ? "تم تأكيد الدفع. مساحة العمل بانتظار اكتمال التفعيل."
                         : paymentStatus === "awaiting_review"
@@ -95,7 +96,7 @@ const Dashboard = () => {
                             : "مساحة العمل بانتظار تأكيد الدفع. سنحدّث حالتها تلقائيًا عند وصول التأكيد."}
                 </div>}
                 <div className="dashboard-content min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 pt-2 lg:px-8 lg:pb-8 lg:pt-3">
-                    {paymentPending || rejected ? (
+                    {activationBlocked ? (
                         <section className={`mx-auto !p-4 mb-6 mt-4 max-w-2xl rounded-2xl border bg-surface p-10 text-center shadow-sm sm:p-12 ${rejected ? "border-danger/40" : "border-warning/30"}`} aria-live="polite">
                             <p className={`m-0 text-xs font-bold uppercase tracking-widest ${rejected ? "text-danger" : "text-warning"}`}>Workspace activation</p>
                             <h1 className="mb-3 mt-3 text-2xl font-extrabold">{active?.name || "Your workspace"} is waiting for activation</h1>
