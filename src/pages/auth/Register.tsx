@@ -17,14 +17,14 @@ const Register = () => {
         const password = String(data.get("password") || "");
         if (password !== passwordConfirmation) return toast.error("Passwords do not match");
         try {
-            const result = await dispatch(signupAsync({
+            await dispatch(signupAsync({
                 name: String(data.get("name") || ""),
                 email: String(data.get("email") || ""),
                 password,
             })).unwrap();
             toast.success("Account created");
             const subscribePath = searchParams.get("subscribe") === "1";
-            navigate(subscribePath ? `/onboarding${searchParams.get("plan") ? `?plan=${encodeURIComponent(searchParams.get("plan")!)}` : ""}` : (result.role ? "/dashboard" : "/"), { replace: true });
+            navigate(subscribePath ? `/onboarding${searchParams.get("plan") ? `?plan=${encodeURIComponent(searchParams.get("plan")!)}` : ""}` : "/", { replace: true });
         } catch (error) {
             toast.error(getErrorText(error));
         }

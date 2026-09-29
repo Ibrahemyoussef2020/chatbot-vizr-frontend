@@ -20,10 +20,10 @@ const Login = () => {
         const password = formData.get("password") as string;
         try {
             toast.loading("Signing In", { id: "login" });
-            const result = await dispatch(loginAsync({ email, password })).unwrap();
+            await dispatch(loginAsync({ email, password })).unwrap();
             toast.success("Signed In Successfully", { id: "login" });
             const subscribePath = searchParams.get("subscribe") === "1";
-            navigate(subscribePath ? `/onboarding${searchParams.get("plan") ? `?plan=${encodeURIComponent(searchParams.get("plan")!)}` : ""}` : (result.role ? "/dashboard" : "/"), { replace: true });
+            navigate(subscribePath ? `/onboarding${searchParams.get("plan") ? `?plan=${encodeURIComponent(searchParams.get("plan")!)}` : ""}` : "/", { replace: true });
         } catch (error) {
             console.log(error);
             toast.error(getErrorText(error), { id: "login" });
@@ -31,7 +31,7 @@ const Login = () => {
     };
     useEffect(() => {
         if (user) {
-            navigate(searchParams.get("subscribe") === "1" ? "/onboarding" : (user.role ? "/dashboard" : "/"), { replace: true });
+            navigate(searchParams.get("subscribe") === "1" ? "/onboarding" : "/", { replace: true });
         }
     }, [user, navigate]);
     return (
