@@ -164,7 +164,7 @@ const SidebarContent = ({ onClose, onCreateWorkspace, onManageWorkspaces, onLogo
                 {navigationSections
                     .filter(section => !section.businessOnly || canAccessBusinessTools)
                     .filter(section => !section.superAdminOnly || isSuperAdmin)
-                    .filter(section => !section.regularUserOnly || !user?.role)
+                    .filter(section => !section.regularUserOnly || user?.role === "user")
                     .filter(section => section.items.some(visibleItem))
                     .map(section => (
                         <section key={section.label} aria-label={section.label}>

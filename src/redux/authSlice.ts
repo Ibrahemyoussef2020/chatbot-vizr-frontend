@@ -13,9 +13,10 @@ export interface User {
   id?: string;
   name: string;
   email: string;
-  role?: "super_admin" | "admin" | "agent";
+  role?: "super_admin" | "admin" | "agent" | "user";
   workspaceId?: string;
   securityRoleId?: string;
+  securityRoleCode?: string;
 }
 
 export interface AuthState {
