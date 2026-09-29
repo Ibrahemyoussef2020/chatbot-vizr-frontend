@@ -170,7 +170,10 @@ const waitForWebhook = async (systemSlug: string, sessionId: string, uploadId: s
     for (let attempt = 0; attempt < 10; attempt += 1) {
         signal?.throwIfAborted();
         const detail = await getSession(systemSlug, sessionId);
-        if (detail.sources.some((source) => source.upload_id === uploadId)) return detail;
+        // Cloudinary may create the source metadata before extraction has
+        // finished. Seeing the source alone is not completion.
+        const source = detail.sources.find((item) => item.upload_id === uploadId);
+        if (source?.status === "ready" || source?.status === "failed") return detail;
         await wait(1_500, signal);
     }
     await completeWithRetry(systemSlug, sessionId, uploadId, signal);
