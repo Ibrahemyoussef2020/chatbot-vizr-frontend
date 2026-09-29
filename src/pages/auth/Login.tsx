@@ -19,9 +19,9 @@ const Login = () => {
         const password = formData.get("password") as string;
         try {
             toast.loading("Signing In", { id: "login" });
-            await dispatch(loginAsync({ email, password })).unwrap();
+            const result = await dispatch(loginAsync({ email, password })).unwrap();
             toast.success("Signed In Successfully", { id: "login" });
-            navigate("/dashboard");
+            navigate(result.role ? "/dashboard" : "/", { replace: true });
         } catch (error) {
             console.log(error);
             toast.error(getErrorText(error), { id: "login" });
@@ -29,7 +29,7 @@ const Login = () => {
     };
     useEffect(() => {
         if (user) {
-            navigate("/dashboard");
+            navigate(user.role ? "/dashboard" : "/", { replace: true });
         }
     }, [user, navigate]);
     return (

@@ -104,7 +104,7 @@ function AuthLinks({ onClick }: { onClick?: () => void }) {
     return (
         <>
             <Button component={Link} to="/auth/login" onClick={onClick} className="!font-bold !normal-case !text-muted-foreground">Sign In</Button>
-            <Button component={Link} to="/auth/register" onClick={onClick} variant="contained" className="!bg-primary !font-bold !normal-case">Start Free Trial</Button>
+            <Button component={Link} to="/auth/register" onClick={onClick} variant="contained" className="!bg-primary !font-bold !normal-case">Subscribe with us</Button>
         </>
     );
 }

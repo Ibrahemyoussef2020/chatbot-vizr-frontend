@@ -16,13 +16,13 @@ const Register = () => {
         const password = String(data.get("password") || "");
         if (password !== passwordConfirmation) return toast.error("Passwords do not match");
         try {
-            await dispatch(signupAsync({
+            const result = await dispatch(signupAsync({
                 name: String(data.get("name") || ""),
                 email: String(data.get("email") || ""),
                 password,
             })).unwrap();
             toast.success("Account created");
-            navigate("/dashboard", { replace: true });
+            navigate(result.role ? "/dashboard" : "/", { replace: true });
         } catch (error) {
             toast.error(getErrorText(error));
         }
