@@ -9,7 +9,10 @@ import PlanFeatureGroups from "@/components/plans/PlanFeatureGroups";
 import { getFeatureOptions, listFeatures, type BusinessFeature, type FeatureOptions } from "@/services/core/businessFeatures";
 
 const BusinessPlans = () => {
-    const allowed = useAppSelector(state => state.auth.user?.permissions?.includes("plans.manage") === true);
+    const user = useAppSelector(state => state.auth.user);
+    const allowed = user?.permissions?.includes("plans.manage") === true
+        && !["workspace_admin", "workspace_agent"].includes(user.securityRoleCode || "")
+        && user.role !== "admin";
     const [plans, setPlans] = useState<BusinessPlan[]>([]);
     const [catalog, setCatalog] = useState<BusinessFeature[]>([]);
     const [featureOptions, setFeatureOptions] = useState<FeatureOptions>({ metrics: [], agents: [] });

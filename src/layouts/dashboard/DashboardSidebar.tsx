@@ -65,7 +65,7 @@ const workspaceErrorMessage = (error: unknown, fallback: string) => {
     return message && !message.startsWith("Request failed with status code") ? message : fallback;
 };
 
-const navigationSections: { label: string; businessOnly?: boolean; superAdminOnly?: boolean; items: NavigationItem[] }[] = [
+const navigationSections: { label: string; businessOnly?: boolean; superAdminOnly?: boolean; regularUserOnly?: boolean; items: NavigationItem[] }[] = [
     {
         label: "Workspace",
         items: [
@@ -102,6 +102,7 @@ const navigationSections: { label: string; businessOnly?: boolean; superAdminOnl
     },
     {
         label: "Payment",
+        regularUserOnly: true,
         items: [
             { label: "Pricings", to: "/dashboard/business/pricings", icon: HiOutlineClipboardDocumentList, permission: "plans.manage" },
             { label: "Pricings Features", to: "/dashboard/business/pricings-features", icon: HiOutlineRectangleStack, permission: "plans.manage" },
@@ -138,11 +139,16 @@ interface SidebarContentProps {
 }
 
 const SidebarContent = ({ onClose, onCreateWorkspace, onManageWorkspaces, onLogout, canCreateWorkspace, canAccessBusinessTools, isSuperAdmin }: SidebarContentProps) => {
-    const permissions = useAppSelector(state => state.auth.user?.permissions || []);
+    const user = useAppSelector(state => state.auth.user);
+    const permissions = user?.permissions || [];
     const isAgent = useAppSelector(state => state.auth.user?.role === "agent");
     const visibleItem = (item: NavigationItem) =>
         (!isAgent || item.label === "Dashboard" || item.label === "Inbox")
-        && (!item.permission || permissions.includes(item.permission));
+        && (!item.permission || permissions.includes(item.permission))
+        && !(item.permission === "plans.manage" && (
+            ["workspace_admin", "workspace_agent"].includes(user?.securityRoleCode || "")
+            || user?.role === "admin"
+        ));
     return (
     <div className="flex h-full w-72 flex-col border-r border-border bg-surface text-foreground">
         <NavLink className="flex items-center gap-3 border-b border-border px-6 py-5 no-underline" to="/" onClick={onClose}>
@@ -158,6 +164,7 @@ const SidebarContent = ({ onClose, onCreateWorkspace, onManageWorkspaces, onLogo
                 {navigationSections
                     .filter(section => !section.businessOnly || canAccessBusinessTools)
                     .filter(section => !section.superAdminOnly || isSuperAdmin)
+                    .filter(section => !section.regularUserOnly || !user?.role)
                     .filter(section => section.items.some(visibleItem))
                     .map(section => (
                         <section key={section.label} aria-label={section.label}>
