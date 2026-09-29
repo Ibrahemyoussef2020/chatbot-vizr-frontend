@@ -58,7 +58,7 @@ export interface AIAnalytics {
 export interface AIRuntimeSettings {
     defaultAgentId: string | null;
     permissions?: string[];
-    roles: Array<{ _id: string; name: string; permissions: string[] }>;
+    roles: Array<{ _id: string; code: string; name: string; permissions: string[] }>;
 }
 export const fetchAIRuntime = async (systemSlug?: string): Promise<AIRuntimeSettings> => {
     const response = await api.get("/admin/ai-management/runtime", { params: { system_slug: systemSlug } });

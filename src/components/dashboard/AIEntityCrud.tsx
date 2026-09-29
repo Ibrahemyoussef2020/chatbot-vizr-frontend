@@ -117,7 +117,12 @@ export default function AIEntityCrud({ kind, items, providers, models, agents, w
                     {kind === "Agents" && <>
                         <Field name="name" label="Agent name" value={item?.name} />
                         <Field name="slug" label="Slug" value={item?.slug} />
-                        <Select name="securityRoleId" label="Security role" value={idOf(item?.securityRoleId)} items={runtime.roles} />
+                        <Select
+                            name="securityRoleId"
+                            label="Security role"
+                            value={idOf(item?.securityRoleId) || runtime.roles.find(role => role.code === "workspace_agent")?._id || ""}
+                            items={runtime.roles}
+                        />
                         <Select name="primaryModelId" label="Primary model" value={idOf(item?.primaryModelId)} items={models} />
                         {!runtime.roles.length && <p className="col-span-2 text-xs text-warning">Create a workspace role in Settings / Security before creating an agent.</p>}
                         <label className="col-span-2 grid gap-1 text-xs font-bold">System prompt<textarea required name="systemPrompt" rows={5} defaultValue={item?.systemPrompt ?? ""} className="rounded-lg border border-border bg-card p-3 text-foreground" /></label>
