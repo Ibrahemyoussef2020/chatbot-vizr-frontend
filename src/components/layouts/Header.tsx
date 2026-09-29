@@ -89,9 +89,9 @@ function DesktopAccount({ onLogout, loading }: { onLogout: () => void; loading: 
                         {user?.role && <p className="mb-0 mt-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--primary)]">{user.role.replaceAll("_", " ")}</p>}
                     </div>
                 </div>
-                <MenuItem component={Link} to="/dashboard" onClick={close} className="!mx-0 !mt-2 !min-h-11 !rounded-lg !px-3 !font-semibold !text-[var(--foreground)] hover:!bg-[var(--surface-muted)]">
+                {user?.role && <MenuItem component={Link} to="/dashboard" onClick={close} className="!mx-0 !mt-2 !min-h-11 !rounded-lg !px-3 !font-semibold !text-[var(--foreground)] hover:!bg-[var(--surface-muted)]">
                     Dashboard
-                </MenuItem>
+                </MenuItem>}
                 <MenuItem onClick={onLogout} disabled={loading} className="!mx-0 !mt-1 !min-h-11 !rounded-lg !px-3 !font-semibold !text-[var(--danger)] hover:!bg-[var(--surface-muted)]">
                     {loading ? "Logging out..." : "Log out"}
                 </MenuItem>
@@ -120,7 +120,7 @@ function MobileAccount({ onLogout, loading, closeMenu }: { onLogout: () => void;
                 {user?.role && <p className="mb-0 mt-2 text-[10px] font-bold uppercase text-primary">{user.role.replaceAll("_", " ")}</p>}
             </div>
             <div className="flex gap-2">
-                <Button component={Link} onClick={closeMenu} to="/dashboard" variant="contained" className="!normal-case">Dashboard</Button>
+                {user?.role && <Button component={Link} onClick={closeMenu} to="/dashboard" variant="contained" className="!normal-case">Dashboard</Button>}
                 <Button onClick={onLogout} disabled={loading} className="!normal-case !text-error">
                     {loading ? "Logging out..." : "Log out"}
                 </Button>
