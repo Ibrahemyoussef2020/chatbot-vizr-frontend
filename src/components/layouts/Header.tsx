@@ -157,7 +157,7 @@ function Header() {
                     {desktopLinks.slice(0, 1).map(({ label, to }) => <NavLink key={to} className={navClass} to={to}>{label}</NavLink>)}
                     <a className="text-sm font-semibold text-[var(--theme-copy)] no-underline" href="/#integrations">Integrations</a>
                     <a className="text-sm font-semibold text-[var(--theme-copy)] no-underline" href="/#capabilities">Platform</a>
-                    {desktopLinks.slice(1).map(({ label, to }) => <NavLink key={to} className={navClass} to={to}>{label}</NavLink>)}
+                    {desktopLinks.slice(1).filter(({ label }) => !isLoggedIn || label !== "Plans").map(({ label, to }) => <NavLink key={to} className={navClass} to={to}>{label}</NavLink>)}
                 </nav>
 
                 <div className="flex items-center gap-3 max-md:hidden">
@@ -185,7 +185,7 @@ function Header() {
                     <NavLink className={navClass} onClick={closeMenu} to="/">Home</NavLink>
                     <a className="text-sm font-semibold text-[var(--theme-copy)]" onClick={closeMenu} href="/#integrations">Integrations</a>
                     <a className="text-sm font-semibold text-[var(--theme-copy)]" onClick={closeMenu} href="/#capabilities">Platform</a>
-                    {desktopLinks.slice(1).map(({ label, to }) => <NavLink key={to} className={navClass} onClick={closeMenu} to={to}>{label}</NavLink>)}
+                    {desktopLinks.slice(1).filter(({ label }) => !isLoggedIn || label !== "Plans").map(({ label, to }) => <NavLink key={to} className={navClass} onClick={closeMenu} to={to}>{label}</NavLink>)}
                     {isLoggedIn
                         ? <MobileAccount onLogout={handleLogout} loading={loading} closeMenu={closeMenu} />
                         : <div className="mt-2 flex gap-2"><AuthLinks onClick={closeMenu} /></div>}
