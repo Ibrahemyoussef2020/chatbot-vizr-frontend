@@ -32,6 +32,7 @@ import {
     HiOutlineTrash,
     HiOutlineCheck,
     HiOutlineXMark,
+    HiOutlineUsers,
 } from "react-icons/hi2";
 import type { IconType } from "react-icons";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
@@ -72,6 +73,7 @@ const navigationSections: { label: string; businessOnly?: boolean; superAdminOnl
             { label: "Analytics", to: "/dashboard/analytics", icon: HiOutlineChartBarSquare, permission: "analytics.view" },
             { label: "Inbox", to: "/dashboard/inbox", icon: HiOutlineChatBubbleLeftRight, permission: "inbox.view" },
             { label: "Tags", to: "/dashboard/tags", icon: HiOutlineTag, permission: "tags.manage" },
+            { label: "Users", to: "/dashboard/users", icon: HiOutlineUsers, permission: "workspace.settings.manage" },
         ],
     },
     {

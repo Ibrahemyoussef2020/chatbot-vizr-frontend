@@ -1,5 +1,6 @@
 import FinalCta from "@/components/landing/home/final-cta/FinalCta";
 import Hero from "@/components/landing/home/hero/Hero";
+import Reveal from "@/components/landing/shared/Reveal";
 import SectionRenderer from "@/components/landing/shared/SectionRenderer";
 import { useLandingPage } from "@/hooks/useLandingPage";
 import type { ContentSection, LandingSectionItem } from "@/services/core/landing";
@@ -42,15 +43,33 @@ const Home = () => {
     const sections = sortSections(page.sections);
 
     return (
-        <main className="w-full overflow-x-clip bg-background text-foreground">
+        <main className="landing-home relative w-full overflow-x-clip bg-background text-foreground">
+            <div className="landing-ai-field" aria-hidden="true">
+                <span className="landing-ai-orbit landing-ai-orbit-one" />
+                <span className="landing-ai-orbit landing-ai-orbit-two" />
+                <span className="landing-ai-node landing-ai-node-one" />
+                <span className="landing-ai-node landing-ai-node-two" />
+            </div>
             <Hero
                 eyebrow={page.eyebrow}
                 title={page.title}
                 description={page.description}
                 demoItems={heroDemo}
             />
-            {sections.map((section) => <SectionRenderer section={section} key={section.type} />)}
-            <FinalCta />
+            <div className="relative z-10">
+                {sections.map((section, index) => (
+                    <Reveal
+                        key={section.type}
+                        delay={(index % 3) * 70}
+                        variant={["up", "left", "right", "zoom", "focus"][index % 5] as "up" | "left" | "right" | "zoom" | "focus"}
+                    >
+                        <SectionRenderer section={section} />
+                    </Reveal>
+                ))}
+                <Reveal delay={100} variant="zoom">
+                    <FinalCta />
+                </Reveal>
+            </div>
         </main>
     );
 };

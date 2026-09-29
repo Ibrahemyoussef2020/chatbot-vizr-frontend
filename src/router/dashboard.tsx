@@ -37,6 +37,7 @@ import ProvidersView from "@/features/ai-management/views/ProvidersView";
 import Onboarding from "@/pages/auth/Onboarding";
 import OnboardingPayment from "@/pages/auth/OnboardingPayment";
 import WorkspaceManagement from "@/pages/dashboard/WorkspaceManagement";
+import Users from "@/pages/dashboard/Users";
 import { useAppSelector } from "@/redux/store";
 
 const SuperAdminWorkspaceManagement = () => {
@@ -93,6 +94,10 @@ const dashbordRpoter = [
                     {
                         path: "tags",
                         element: <Tags />,
+                    },
+                    {
+                        path: "users",
+                        element: <Users />,
                     },
                     {
                         path: "token-management",
