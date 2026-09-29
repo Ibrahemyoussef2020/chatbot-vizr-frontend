@@ -10,14 +10,10 @@ interface Props {
     disabled: boolean;
     loading?: boolean;
     onAsk: (question: string) => Promise<void>;
-    models?: Array<{ id: string; name: string; provider: string }>;
-    selectedModelId?: string | null;
-    selectingModel?: boolean;
-    onSelectModel?: (modelId: string) => Promise<void>;
     onManageSources?: () => void;
 }
 
-const KnowledgeChat = ({ sessionTitle, messages, busy, disabled, loading = false, onAsk, models = [], selectedModelId, selectingModel = false, onSelectModel, onManageSources }: Props) => {
+const KnowledgeChat = ({ sessionTitle, messages, busy, disabled, loading = false, onAsk, onManageSources }: Props) => {
     const [question, setQuestion] = useState("");
     const endRef = useRef<HTMLDivElement>(null);
 
