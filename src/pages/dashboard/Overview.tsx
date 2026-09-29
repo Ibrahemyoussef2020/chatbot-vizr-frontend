@@ -61,9 +61,9 @@ const Overview = () => {
     }
 
     const resolutionSplit = [
-        { label: "AI Automated", value: overview?.stats.aiResolutionPercent || 88, color: "var(--primary)" },
-        { label: "Escalated to Agent", value: overview?.stats.humanHandoffPercent || 12, color: "var(--warning)" },
-        { label: "Pending Customer", value: 5, color: "var(--secondary)" },
+        { label: "AI Automated", value: overview?.stats.aiResolutionPercent ?? 0, color: "var(--primary)" },
+        { label: "Escalated to Agent", value: overview?.stats.humanHandoffPercent ?? 0, color: "var(--warning)" },
+        { label: "Pending Customer", value: overview?.stats.pending ?? 0, color: "var(--secondary)" },
     ];
 
     return (
@@ -108,7 +108,7 @@ const Overview = () => {
                                     {overview.stats.total.toLocaleString()}
                                 </strong>
                                 <span className="mt-1 flex items-center gap-1 text-[11px] font-bold text-success">
-                                    <HiOutlineArrowTrendingUp /> +18.4% this week
+                                    <HiOutlineArrowTrendingUp /> 0% this week
                                 </span>
                             </CardContent>
                         </Card>
@@ -156,7 +156,7 @@ const Overview = () => {
                                     <HiOutlineStar className="text-lg text-warning" />
                                 </div>
                                 <strong className="mt-2 block text-2xl font-black text-foreground">
-                                    {overview.stats.csatScore} / 5.0
+                                    {overview.stats.csatScore || 0} / 5.0
                                 </strong>
                                 <span className="mt-1 block text-[11px] font-semibold text-muted-foreground">
                                     {overview.stats.avgResponseSec}s avg response
@@ -176,7 +176,7 @@ const Overview = () => {
                                     {overview.stats.leadsCaptured} Leads
                                 </strong>
                                 <span className="mt-1 block text-[11px] font-semibold text-success">
-                                    {overview.stats.ragAccuracyPercent}% RAG accuracy
+                                    {overview.stats.ragAccuracyPercent || 0}% RAG accuracy
                                 </span>
                             </CardContent>
                         </Card>

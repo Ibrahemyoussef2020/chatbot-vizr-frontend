@@ -133,7 +133,7 @@ const AnalyticsPage = () => {
                                     {data.summary.totalInPeriod.toLocaleString()}
                                 </strong>
                                 <span className="mt-1 block text-[11px] font-semibold text-success">
-                                    +18.4% vs prev period
+                                    0% vs prev period
                                 </span>
                             </CardContent>
                         </Card>
@@ -198,7 +198,7 @@ const AnalyticsPage = () => {
                                     <HiOutlineStar className="text-lg text-warning" />
                                 </div>
                                 <strong className="mt-2 block text-2xl font-black text-foreground">
-                                    {data.summary.csatScore} / 5.0
+                                    {data.summary.csatScore || 0} / 5.0
                                 </strong>
                                 <span className="mt-1 block text-[11px] font-semibold text-muted-foreground">
                                     {data.summary.slaResponseSec}s avg response
@@ -302,21 +302,21 @@ const AnalyticsPage = () => {
                                     <tr className="hover:bg-surface-muted/40 transition-colors">
                                         <td className="px-5 py-3.5 font-bold text-foreground">Vizr AI Primary Agent</td>
                                         <td className="px-5 py-3.5 text-primary">Autonomous AI</td>
-                                        <td className="px-5 py-3.5">{Math.round(data.summary.totalInPeriod * 0.85)}</td>
-                                        <td className="px-5 py-3.5 font-mono">1.2 s</td>
-                                        <td className="px-5 py-3.5 font-bold text-success">4.9 / 5.0</td>
+                                        <td className="px-5 py-3.5">0</td>
+                                        <td className="px-5 py-3.5 font-mono">0 s</td>
+                                        <td className="px-5 py-3.5 font-bold text-success">0 / 5.0</td>
                                         <td className="px-5 py-3.5">
                                             <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-[10px] font-bold text-success">
-                                                Active (100%)
+                                                Active (0%)
                                             </span>
                                         </td>
                                     </tr>
                                     <tr className="hover:bg-surface-muted/40 transition-colors">
                                         <td className="px-5 py-3.5 font-bold text-foreground">RAG Knowledge Engine</td>
                                         <td className="px-5 py-3.5 text-secondary">Vector Retriever</td>
-                                        <td className="px-5 py-3.5">{Math.round(data.summary.totalInPeriod * 0.72)}</td>
-                                        <td className="px-5 py-3.5 font-mono">45 ms</td>
-                                        <td className="px-5 py-3.5 font-bold text-success">5.0 / 5.0</td>
+                                        <td className="px-5 py-3.5">0</td>
+                                        <td className="px-5 py-3.5 font-mono">0 ms</td>
+                                        <td className="px-5 py-3.5 font-bold text-success">0 / 5.0</td>
                                         <td className="px-5 py-3.5">
                                             <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-[10px] font-bold text-success">
                                                 Ready
@@ -326,12 +326,12 @@ const AnalyticsPage = () => {
                                     <tr className="hover:bg-surface-muted/40 transition-colors">
                                         <td className="px-5 py-3.5 font-bold text-foreground">Human Support Team</td>
                                         <td className="px-5 py-3.5 text-warning">Escalation Pool</td>
-                                        <td className="px-5 py-3.5">{Math.round(data.summary.totalInPeriod * 0.15)}</td>
-                                        <td className="px-5 py-3.5 font-mono">2.4 min</td>
-                                        <td className="px-5 py-3.5 font-bold text-foreground">4.7 / 5.0</td>
+                                        <td className="px-5 py-3.5">0</td>
+                                        <td className="px-5 py-3.5 font-mono">0 min</td>
+                                        <td className="px-5 py-3.5 font-bold text-foreground">0 / 5.0</td>
                                         <td className="px-5 py-3.5">
                                             <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[10px] font-bold text-primary">
-                                                Standby
+                                                Standby (0)
                                             </span>
                                         </td>
                                     </tr>
