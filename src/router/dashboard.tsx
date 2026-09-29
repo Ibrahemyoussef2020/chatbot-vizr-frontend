@@ -39,10 +39,16 @@ import OnboardingPayment from "@/pages/auth/OnboardingPayment";
 import WorkspaceManagement from "@/pages/dashboard/WorkspaceManagement";
 import Users from "@/pages/dashboard/Users";
 import { useAppSelector } from "@/redux/store";
+import type { ReactNode } from "react";
 
 const SuperAdminWorkspaceManagement = () => {
     const role = useAppSelector((state) => state.auth.user?.role);
     return role === "super_admin" ? <WorkspaceManagement /> : <Navigate to="/dashboard" replace />;
+};
+
+const PlansForRegularUsersOnly = ({ children }: { children: ReactNode }) => {
+    const role = useAppSelector((state) => state.auth.user?.role);
+    return role === "admin" || role === "agent" ? <Navigate to="/dashboard" replace /> : <>{children}</>;
 };
 
 const dashbordRpoter = [
@@ -125,7 +131,7 @@ const dashbordRpoter = [
                     },
                     {
                         path: "knowledge/plans",
-                        element: <KnowledgeSessions mode="plans" />,
+                        element: <PlansForRegularUsersOnly><KnowledgeSessions mode="plans" /></PlansForRegularUsersOnly>,
                     },
                     {
                         path: "knowledge/reports",
@@ -137,11 +143,11 @@ const dashbordRpoter = [
                     },
                     {
                         path: "knowledge/:sessionId/plans",
-                        element: <KnowledgePlans />,
+                        element: <PlansForRegularUsersOnly><KnowledgePlans /></PlansForRegularUsersOnly>,
                     },
                     {
                         path: "knowledge/:sessionId/plans/:outputId",
-                        element: <KnowledgePlans />,
+                        element: <PlansForRegularUsersOnly><KnowledgePlans /></PlansForRegularUsersOnly>,
                     },
                     {
                         path: "knowledge/:sessionId/reports",
@@ -153,7 +159,7 @@ const dashbordRpoter = [
                     },
                     {
                         path: "business/pricings",
-                        element: <BusinessPlans />,
+                        element: <PlansForRegularUsersOnly><BusinessPlans /></PlansForRegularUsersOnly>,
                     },
                     {
                         path: "business/plans",
