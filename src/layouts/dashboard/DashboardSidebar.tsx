@@ -145,6 +145,7 @@ const SidebarContent = ({ onClose, onCreateWorkspace, onManageWorkspaces, onLogo
     const visibleItem = (item: NavigationItem) =>
         (!isAgent || item.label === "Dashboard" || item.label === "Inbox")
         && (!item.permission || permissions.includes(item.permission))
+        && !(item.label === "Plans" && user?.role === "admin")
         && !(item.permission === "plans.manage" && (
             ["workspace_admin", "workspace_agent"].includes(user?.securityRoleCode || "")
             || user?.role === "admin"
