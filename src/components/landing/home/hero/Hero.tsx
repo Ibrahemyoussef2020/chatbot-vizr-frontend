@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAppSelector } from "@/redux";
 import {
     HiOutlineBolt,
     HiOutlineChatBubbleLeftRight,
@@ -38,6 +39,8 @@ const highlights = [
 const openChat = () => document.querySelector<HTMLButtonElement>(".chat-toggle")?.click();
 
 const Hero = ({ eyebrow, title, description, demoItems }: HeroProps) => {
+    const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
+    const subscribePath = isLoggedIn ? "/onboarding" : "/auth/register?subscribe=1";
     const [selectedChannel, setSelectedChannel] = useState(0);
     const [isHeroVisible, setIsHeroVisible] = useState(false);
     const [isManualSelection, setIsManualSelection] = useState(false);
@@ -100,7 +103,7 @@ const Hero = ({ eyebrow, title, description, demoItems }: HeroProps) => {
                         ))}
                     </div>
                     <div className="mt-8 flex flex-wrap gap-4">
-                        <Link className="inline-flex rounded-xl bg-primary px-5 py-3 font-extrabold text-primary-foreground no-underline" to="/auth/register?subscribe=1">Subscribe with us →</Link>
+                        <Link className="inline-flex rounded-xl bg-primary px-5 py-3 font-extrabold text-primary-foreground no-underline" to={subscribePath}>Subscribe with us →</Link>
                         <button type="button" className="rounded-xl border border-border bg-transparent px-5 py-3 font-extrabold text-foreground" onClick={openChat}>Talk to the Demo Bot →</button>
                     </div>
                     <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3 border-t border-border pt-5 text-xs font-semibold text-muted-foreground [&_span]:flex [&_span]:items-center [&_span]:gap-2 [&_i]:h-2 [&_i]:w-2 [&_i]:rounded-full [&_i]:bg-primary [&_span:first-child_i]:bg-secondary">
