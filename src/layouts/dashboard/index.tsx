@@ -18,13 +18,14 @@ const Dashboard = () => {
     const [subscriptionChecked, setSubscriptionChecked] = useState(false);
     const { user } = useAppSelector((state) => state.auth);
     const { active, loading } = useAppSelector((state) => state.workspace);
-    const activationBlocked = active?.is_active === false && (paymentPending || rejected);
+    const activationBlocked = (active?.is_active === false && (paymentPending || rejected))
+        || (!user?.role && (paymentPending || rejected));
 
     useEffect(() => {
         let current = true;
         const load = async () => {
             try {
-                await dispatch(fetchWorkspaces());
+                if (user?.role === "super_admin") await dispatch(fetchWorkspaces());
                 if (user?.role === "super_admin" || user?.role === "agent") {
                     setSubscriptionActive(true);
                 } else {
