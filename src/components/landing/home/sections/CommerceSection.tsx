@@ -45,7 +45,7 @@ export const CommerceSection = ({ section }: SectionProps) => {
                             {item.title} conversations with live business context.
                         </h3>
                         <p className="m-0 max-w-2xl leading-7 text-muted-foreground">{item.description}</p>
-                        <Link className="inline-flex rounded-xl px-5 py-3 text-sm font-extrabold text-white no-underline" style={{ backgroundColor: color }} to="/auth/register">
+                        <Link className="inline-flex rounded-xl px-5 py-3 text-sm font-extrabold text-white no-underline" style={{ backgroundColor: color }} to="/pricing">
                             Connect {item.title} →
                         </Link>
                     </div>

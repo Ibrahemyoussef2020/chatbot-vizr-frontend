@@ -50,7 +50,7 @@ export const ChannelsSection = ({ section }: SectionProps) => {
                         <span className="text-xs font-extrabold uppercase tracking-[0.14em]" style={{ color: active.color }}>{active.label}</span>
                         <h3 className="m-0 text-2xl font-black leading-tight text-foreground">{active.title}</h3>
                         <p className="m-0 leading-7 text-muted-foreground">{active.text}</p>
-                        <Link className="inline-flex rounded-xl px-5 py-3 text-sm font-extrabold text-white no-underline" style={{ backgroundColor: active.color }} to="/auth/register">
+                        <Link className="inline-flex rounded-xl px-5 py-3 text-sm font-extrabold text-white no-underline" style={{ backgroundColor: active.color }} to="/pricing">
                             Connect {active.label} →
                         </Link>
                     </div>
