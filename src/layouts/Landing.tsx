@@ -1,9 +1,10 @@
 import { Link, Outlet } from "react-router-dom";
 import Header from "@/components/layouts/Header";
 import ChatPopup from "@/components/landing/ChatPopup";
+import LandingFloatingActions from "@/components/landing/LandingFloatingActions";
 
 const copy = "text-xs leading-7 text-muted-foreground no-underline";
-const Landing = () => <div><Header /><Outlet /><ChatPopup /><footer className="mt-20 border-t border-border bg-surface-muted px-[max(1rem,calc((100%_-_1280px)/2))] py-12 text-muted-foreground"><div className="grid grid-cols-[1.15fr_.75fr_1fr_1fr] gap-12 max-lg:grid-cols-2 max-sm:grid-cols-1">
+const Landing = () => <div><Header /><Outlet /><LandingFloatingActions /><ChatPopup /><footer className="mt-20 border-t border-border bg-surface-muted px-[max(1rem,calc((100%_-_1280px)/2))] py-12 text-muted-foreground"><div className="grid grid-cols-[1.15fr_.75fr_1fr_1fr] gap-12 max-lg:grid-cols-2 max-sm:grid-cols-1">
     <div className="flex flex-col items-start gap-2"><Link className="mb-2 flex items-center gap-2 no-underline" to="/" aria-label="Vizr home"><img className="h-12 w-12 object-contain" src="/robot.png" alt="" /><span className="flex flex-col leading-none"><strong className="text-xl font-black text-white">Vizr</strong><b className="text-[.6rem] font-black tracking-[.2em] text-[var(--theme-accent)]">AI CHATBOT</b></span></Link><p className={copy}>Your always-on AI chatbot for every customer channel—grounded in your live business data.</p></div>
     <div className="flex flex-col items-start gap-2"><h2 className="text-xs font-extrabold uppercase tracking-[.12em] text-[var(--theme-accent)]">Navigation</h2><Link className={copy} to="/">Home Page</Link><Link className={copy} to="/about">About Vizr</Link><Link className={copy} to="/pricing">Subscription Plans</Link></div>
     <div className="flex flex-col items-start gap-2"><h2 className="text-xs font-extrabold uppercase tracking-[.12em] text-[var(--theme-accent)]">Commerce & Channels</h2><span className={copy}>Shopify & WooCommerce</span><span className={copy}>BigCommerce & Magento</span><span className={copy}>WhatsApp Business Automation</span><span className={copy}>Instagram, Telegram & Web Chat</span></div>
