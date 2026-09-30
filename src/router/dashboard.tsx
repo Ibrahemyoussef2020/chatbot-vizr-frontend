@@ -41,7 +41,15 @@ import Users from "@/pages/dashboard/Users";
 import { useAppSelector } from "@/redux/store";
 import type { ReactNode } from "react";
 
-const SuperAdminWorkspaceManagement = () => {
+const WorkspaceControl = () => {
+    const role = useAppSelector((state) => state.auth.user?.role);
+    const securityRoleCode = useAppSelector((state) => state.auth.user?.securityRoleCode);
+    return role === "super_admin" || role === "admin" || securityRoleCode === "business_owner"
+        ? <WorkspaceManagement />
+        : <Navigate to="/dashboard" replace />;
+};
+
+const WorkspaceConfirmations = () => {
     const role = useAppSelector((state) => state.auth.user?.role);
     return role === "super_admin" ? <WorkspaceManagement /> : <Navigate to="/dashboard" replace />;
 };
@@ -69,8 +77,8 @@ const dashbordRpoter = [
                 element: <Dashboard />,
                 children: [
                     { path: "business/payments", element: <BusinessPayments /> },
-                    { path: "business/workspaces", element: <SuperAdminWorkspaceManagement /> },
-                    { path: "business/workspaces/confirmations", element: <SuperAdminWorkspaceManagement /> },
+                    { path: "business/workspaces", element: <WorkspaceControl /> },
+                    { path: "business/workspaces/confirmations", element: <WorkspaceConfirmations /> },
                     { path: "business/pricings-features", element: <BusinessFeatures /> },
                     { path: "features", element: <Navigate to="/dashboard/business/pricings-features" replace /> },
                     { path: "business/features", element: <Navigate to="/dashboard/business/pricings-features" replace /> },

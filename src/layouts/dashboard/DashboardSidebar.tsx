@@ -49,6 +49,7 @@ interface DashboardSidebarProps {
 
 interface NavigationItem {
     permission?: string;
+    superAdminOnly?: boolean;
     label: string;
     to: string;
     icon: IconType;
@@ -113,10 +114,9 @@ const navigationSections: { label: string; businessOnly?: boolean; superAdminOnl
     },
     {
         label: "Workspaces",
-        superAdminOnly: true,
         items: [
             { label: "Control workspace", to: "/dashboard/business/workspaces", icon: HiOutlineRectangleStack },
-            { label: "Confirm workspaces", to: "/dashboard/business/workspaces/confirmations", icon: HiOutlineCheck },
+            { label: "Confirm workspaces", to: "/dashboard/business/workspaces/confirmations", icon: HiOutlineCheck, superAdminOnly: true },
         ],
     },
     {
@@ -145,6 +145,7 @@ const SidebarContent = ({ onClose, onCreateWorkspace, onManageWorkspaces, onLogo
     const visibleItem = (item: NavigationItem) =>
         (!isAgent || item.label === "Dashboard" || item.label === "Inbox")
         && (!item.permission || permissions.includes(item.permission))
+        && (!item.superAdminOnly || isSuperAdmin)
         && !(item.label === "Plans" && user?.role === "admin")
         && !(item.permission === "plans.manage" && (
             ["workspace_admin", "workspace_agent"].includes(user?.securityRoleCode || "")
