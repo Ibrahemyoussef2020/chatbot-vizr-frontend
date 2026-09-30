@@ -214,22 +214,35 @@ interface ChannelBarChartProps {
 }
 
 export const ChannelDistributionChart = ({ data }: ChannelBarChartProps) => {
+    if (!data || !data.length) {
+        return <div className="flex h-56 items-center justify-center text-xs text-muted-foreground">No channel activity recorded for this window.</div>;
+    }
+
+    const colors = ["var(--primary)", "var(--secondary)", "var(--warning)", "var(--success)", "var(--danger)"];
+    const total = data.reduce((sum, channel) => sum + channel.count, 0);
+    const circumference = 2 * Math.PI * 42;
+    let offset = 0;
+
     return (
-        <div className="space-y-4">
-            {data.map((channel) => (
-                <div key={channel.name} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs font-semibold">
-                        <span className="font-bold text-foreground">{channel.name}</span>
-                        <span className="text-primary font-mono">{channel.count} msgs ({channel.sharePercent}%)</span>
-                    </div>
-                    <div className="h-3 w-full overflow-hidden rounded-full bg-surface-muted">
-                        <div
-                            className="h-full rounded-full bg-secondary transition-all duration-700"
-                            style={{ width: `${Math.max(channel.sharePercent, 6)}%` }}
-                        />
-                    </div>
+        <div className="flex flex-col items-center">
+            <div className="relative h-52 w-52">
+                <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90 transform">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="var(--surface-muted)" strokeWidth="14" />
+                    {data.map((channel, index) => {
+                        const length = total ? (channel.count / total) * circumference : 0;
+                        const currentOffset = offset;
+                        offset += length;
+                        return <circle key={channel.name} cx="50" cy="50" r="42" fill="none" stroke={colors[index % colors.length]} strokeWidth="14" strokeDasharray={`${length} ${circumference - length}`} strokeDashoffset={-currentOffset} className="transition-all duration-700 hover:opacity-80" />;
+                    })}
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <strong className="text-3xl font-black text-foreground">{total.toLocaleString()}</strong>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total volume</span>
                 </div>
-            ))}
+            </div>
+            <div className="mt-4 grid w-full gap-2 text-xs font-semibold sm:grid-cols-2">
+                {data.map((channel, index) => <div key={channel.name} className="flex items-center justify-between gap-2 rounded-lg bg-surface-muted/60 px-2.5 py-2"><span className="flex items-center gap-1.5 text-foreground"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colors[index % colors.length] }} />{channel.name}</span><span className="font-mono text-muted-foreground">{channel.count} ({channel.sharePercent}%)</span></div>)}
+            </div>
         </div>
     );
 };
