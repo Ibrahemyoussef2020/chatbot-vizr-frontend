@@ -9,6 +9,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
 import { HiOutlinePencilSquare, HiOutlinePlus, HiOutlineArrowPath } from "react-icons/hi2";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { updateWorkspaceStatus } from "@/redux/workspaceSlice";
 import { fetchWorkspaces } from "@/redux/workspaceThunk";
 import { workspaceServices } from "@/services";
 import type { Workspace } from "@/services/core/workspace";
@@ -43,7 +44,7 @@ const WorkspaceManagement = () => {
         setStatusBusy(workspace.id); setError("");
         try {
             await workspaceServices.updateWorkspace(workspace.id, { is_active: isActive });
-            await dispatch(fetchWorkspaces({ force: true })).unwrap();
+            dispatch(updateWorkspaceStatus({ id: workspace.id, is_active: isActive }));
         } catch (requestError) {
             setError(requestError instanceof Error ? requestError.message : "Workspace status could not be updated.");
         } finally { setStatusBusy(null); }

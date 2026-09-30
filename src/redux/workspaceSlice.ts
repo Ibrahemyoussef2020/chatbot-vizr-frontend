@@ -9,6 +9,11 @@ interface WorkspaceState {
     error: string | null;
 }
 
+interface WorkspaceStatusUpdate {
+    id: string;
+    is_active: boolean;
+}
+
 const initialState: WorkspaceState = {
     items: [],
     active: null,
@@ -23,6 +28,11 @@ const workspaceSlice = createSlice({
         setActiveWorkspace: (state, action: PayloadAction<Workspace>) => {
             state.active = action.payload;
             localStorage.setItem("active_workspace", action.payload.slug);
+        },
+        updateWorkspaceStatus: (state, action: PayloadAction<WorkspaceStatusUpdate>) => {
+            const workspace = state.items.find((item) => item.id === action.payload.id);
+            if (workspace) workspace.is_active = action.payload.is_active;
+            if (state.active?.id === action.payload.id) state.active.is_active = action.payload.is_active;
         },
         clearWorkspaces: (state) => {
             state.items = [];
@@ -55,5 +65,5 @@ const workspaceSlice = createSlice({
     },
 });
 
-export const { clearWorkspaces, setActiveWorkspace } = workspaceSlice.actions;
+export const { clearWorkspaces, setActiveWorkspace, updateWorkspaceStatus } = workspaceSlice.actions;
 export default workspaceSlice.reducer;
