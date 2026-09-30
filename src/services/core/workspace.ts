@@ -17,6 +17,7 @@ export interface Workspace {
     selected_plan_code?: string;
     created_at?: string;
     updated_at?: string;
+    owner?: { id: string; name: string; email: string } | null;
 }
 
 export const getWorkspaces = async () => {
