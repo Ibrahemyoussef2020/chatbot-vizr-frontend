@@ -418,6 +418,42 @@ button:disabled {
   background: var(--primary);
 }
 
+/* Keep every app scroll surface aligned with the active theme. */
+html,
+body,
+* {
+  scrollbar-color: color-mix(in srgb, var(--primary) 65%, var(--border)) var(--surface-muted);
+  scrollbar-width: thin;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+  background: var(--surface-muted);
+  border-radius: 999px;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--primary) 65%, var(--border));
+  border: 2px solid var(--surface-muted);
+  border-radius: 999px;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
 [id] {
   scroll-margin-top: 5rem;
 }
