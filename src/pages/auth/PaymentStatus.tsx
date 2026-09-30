@@ -4,7 +4,7 @@ import { getSubscriptionStatus } from "@/services/payments/checkout";
 import { useAppSelector } from "@/redux";
 
 const PaymentStatus = () => {
-    const user = useAppSelector((state) => state.auth.user);
+    const { user, loading: authLoading } = useAppSelector((state) => state.auth);
     const location = useLocation();
     const navigate = useNavigate();
     const cancelled = location.pathname.endsWith("/cancel");
@@ -12,7 +12,11 @@ const PaymentStatus = () => {
     const [message, setMessage] = useState("Checking payment confirmation...");
 
     useEffect(() => {
-        if (!user || cancelled || pendingReview) return;
+        if (authLoading || !user || cancelled) return;
+        if (pendingReview) {
+            navigate("/dashboard", { replace: true });
+            return;
+        }
         let disposed = false;
         let timer: ReturnType<typeof setTimeout> | undefined;
 
@@ -36,8 +40,9 @@ const PaymentStatus = () => {
             disposed = true;
             if (timer) clearTimeout(timer);
         };
-    }, [cancelled, navigate, pendingReview, user]);
+    }, [authLoading, cancelled, navigate, pendingReview, user]);
 
+    if (authLoading) return <main className="grid min-h-screen place-items-center p-5 text-muted-foreground" aria-busy="true">Restoring your session…</main>;
     if (!user) return <Navigate to="/auth/login" replace state={{ from: location }} />;
 
     return (
