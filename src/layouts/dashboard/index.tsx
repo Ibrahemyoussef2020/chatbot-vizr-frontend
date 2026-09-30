@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
+import { setActiveWorkspace } from "@/redux/workspaceSlice";
 import { fetchWorkspaces } from "@/redux/workspaceThunk";
+import { workspaceServices } from "@/services";
 import { getSubscriptionStatus } from "@/services/payments/checkout";
 import DashboardHeader from "./DashboardHeader";
 import DashboardSidebar from "./DashboardSidebar";
@@ -18,14 +20,24 @@ const Dashboard = () => {
     const [subscriptionChecked, setSubscriptionChecked] = useState(false);
     const { user } = useAppSelector((state) => state.auth);
     const { active, loading } = useAppSelector((state) => state.workspace);
-    const activationBlocked = (active?.is_active === false && (paymentPending || rejected))
-        || (!user?.role && (paymentPending || rejected));
+    // A workspace can remain technically active while its first payment is
+    // pending review. In that state the user must stay inside the dashboard
+    // shell, but must not reach the normal dashboard routes yet.
+    const activationBlocked = user?.role !== "super_admin"
+        && (paymentPending || rejected || active?.is_active === false);
 
     useEffect(() => {
         let current = true;
         const load = async () => {
             try {
-                if (user?.role === "super_admin") await dispatch(fetchWorkspaces());
+                if (user?.role === "super_admin") {
+                    await dispatch(fetchWorkspaces()).unwrap();
+                } else {
+                    // Tenant users must load their own workspace. The systems-list
+                    // endpoint is intentionally restricted to super admins.
+                    const workspace = await workspaceServices.getCurrentWorkspace();
+                    if (current) dispatch(setActiveWorkspace(workspace));
+                }
                 if (user?.role === "super_admin" || user?.role === "agent") {
                     setSubscriptionActive(true);
                 } else {

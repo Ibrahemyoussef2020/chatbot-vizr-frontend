@@ -131,7 +131,10 @@ const Onboarding = () => {
 
             sessionStorage.setItem("onboarding_payment_instructions", checkout.checkout.instructions || "Your payment details were submitted for review.");
             sessionStorage.setItem("onboarding_payment_reference", checkout.checkout.reference);
-            navigate("/payment/pending-review", { replace: true });
+            // The workspace already exists. Open it immediately and let the
+            // dashboard shell show the activation waiting state while the
+            // platform confirms the payment.
+            navigate("/dashboard", { replace: true });
         } catch (reason) {
             toast.error(getErrorText(reason));
         } finally {
