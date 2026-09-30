@@ -3,15 +3,24 @@ import { IoIosLogIn } from "react-icons/io";
 import { Box, Typography, Button } from "@mui/material";
 import CustomizedInput from "@/components/shared/CustomizedInput";
 import { toast } from "react-hot-toast";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import getErrorText from "@/utils/typeErrorText";
 import { useAppDispatch, useAppSelector, loginAsync } from "@/redux";
 
 const Login = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [searchParams] = useSearchParams();
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
+    const returnLocation = (location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null)?.from;
+    const returnPath = returnLocation?.pathname
+        ? `${returnLocation.pathname}${returnLocation.search || ""}${returnLocation.hash || ""}`
+        : "/dashboard";
+
+    const destination = searchParams.get("subscribe") === "1"
+        ? `/onboarding${searchParams.get("plan") ? `?plan=${encodeURIComponent(searchParams.get("plan")!)}` : ""}`
+        : returnPath;
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -22,8 +31,7 @@ const Login = () => {
             toast.loading("Signing In", { id: "login" });
             await dispatch(loginAsync({ email, password })).unwrap();
             toast.success("Signed In Successfully", { id: "login" });
-            const subscribePath = searchParams.get("subscribe") === "1";
-            navigate(subscribePath ? `/onboarding${searchParams.get("plan") ? `?plan=${encodeURIComponent(searchParams.get("plan")!)}` : ""}` : "/", { replace: true });
+            navigate(destination, { replace: true });
         } catch (error) {
             console.log(error);
             toast.error(getErrorText(error), { id: "login" });
@@ -31,9 +39,9 @@ const Login = () => {
     };
     useEffect(() => {
         if (user) {
-            navigate(searchParams.get("subscribe") === "1" ? "/onboarding" : "/", { replace: true });
+            navigate(destination, { replace: true });
         }
-    }, [user, navigate]);
+    }, [destination, navigate, user]);
     return (
         <Box sx={{ width: "100%", height: "100%", display: "flex", flex: 1 }}>
             <Box sx={{ padding: 8, mt: 8, display: { md: "flex", sm: "none", xs: "none" } }}>
