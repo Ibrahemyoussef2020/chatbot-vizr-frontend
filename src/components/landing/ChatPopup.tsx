@@ -162,7 +162,7 @@ const ChatPopup = () => {
     return (
         <div className="fixed bottom-5 right-5 z-[1000]">
             <button
-                className="float-right grid h-16 w-16 place-items-center overflow-hidden rounded-full border-2 border-primary bg-primary text-2xl text-primary-foreground shadow-[var(--shadow)] [&_img]:h-[85%] [&_img]:w-[85%] [&_img]:object-contain"
+                className="chat-toggle float-right grid h-16 w-16 place-items-center overflow-hidden rounded-full border-2 border-primary bg-primary text-2xl text-primary-foreground shadow-[var(--shadow)] [&_img]:h-[85%] [&_img]:w-[85%] [&_img]:object-contain"
                 aria-label={open ? "Close chat demo" : "Open chat demo"}
                 aria-expanded={open}
                 onClick={() => setOpen((value) => !value)}

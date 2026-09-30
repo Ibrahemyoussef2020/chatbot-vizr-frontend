@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import type { CardItem } from "@/services/core/landing";
 import type { SectionProps } from "../../shared/types";
 
@@ -22,9 +21,9 @@ export const StepsSection = ({ section }: SectionProps) => (
             ))}
         </div>
         <div className="mt-12 grid justify-items-center gap-3 [&_small]:text-xs [&_small]:text-muted-foreground">
-            <Link className="inline-flex rounded-xl bg-primary px-5 py-3 font-extrabold text-primary-foreground no-underline" to="#" onClick={() => document.querySelector<HTMLButtonElement>(".chat-toggle")?.click()}>
+            <button type="button" className="inline-flex rounded-xl bg-primary px-5 py-3 font-extrabold text-primary-foreground" onClick={() => document.querySelector<HTMLButtonElement>(".chat-toggle")?.click()}>
                 Start chatbot speaking →
-            </Link>
+            </button>
             <small>No credit card required Â· Launch in minutes</small>
         </div>
     </section>
