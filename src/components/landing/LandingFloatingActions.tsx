@@ -15,7 +15,7 @@ const LandingFloatingActions = () => {
     if (!visible) return null;
 
     return (
-        <div className="fixed bottom-5 right-24 z-[1000] flex flex-col gap-2" aria-label="Quick actions">
+        <div className="fixed bottom-24 right-5 z-[1000] flex flex-col gap-2" aria-label="Quick actions">
             <button
                 type="button"
                 aria-label="Scroll to top"
