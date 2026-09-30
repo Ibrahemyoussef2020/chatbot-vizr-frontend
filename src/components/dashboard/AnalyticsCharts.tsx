@@ -220,21 +220,17 @@ export const ChannelDistributionChart = ({ data }: ChannelBarChartProps) => {
 
     const colors = ["var(--primary)", "var(--secondary)", "var(--warning)", "var(--success)", "var(--danger)"];
     const total = data.reduce((sum, channel) => sum + channel.count, 0);
-    const circumference = 2 * Math.PI * 42;
-    let offset = 0;
+    let cursor = 0;
+    const gradient = data.map((channel, index) => {
+        const start = cursor;
+        cursor += total ? (channel.count / total) * 100 : 0;
+        return `${colors[index % colors.length]} ${start}% ${cursor}%`;
+    }).join(", ");
 
     return (
         <div className="flex flex-col items-center">
             <div className="relative h-52 w-52">
-                <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90 transform">
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="var(--surface-muted)" strokeWidth="14" />
-                    {data.map((channel, index) => {
-                        const length = total ? (channel.count / total) * circumference : 0;
-                        const currentOffset = offset;
-                        offset += length;
-                        return <circle key={channel.name} cx="50" cy="50" r="42" fill="none" stroke={colors[index % colors.length]} strokeWidth="14" strokeDasharray={`${length} ${circumference - length}`} strokeDashoffset={-currentOffset} className="transition-all duration-700 hover:opacity-80" />;
-                    })}
-                </svg>
+                <div className="h-full w-full rounded-full shadow-inner transition-all duration-700" style={{ background: `conic-gradient(${gradient})` }} aria-label="Omnichannel volume distribution" />
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                     <strong className="text-3xl font-black text-foreground">{total.toLocaleString()}</strong>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total volume</span>
